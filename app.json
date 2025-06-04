@@ -1,0 +1,75 @@
+{
+  "expo": {
+    "name": "Raigamsfa",
+    "slug": "raigamsfa",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/images/icon.png",
+    "scheme": "raigamsfa",
+    "userInterfaceStyle": "automatic",
+    "newArchEnabled": true,
+      "splash": {
+      "backgroundColor": "#FFFFFF"
+    },
+
+     "doctor": {
+    "reactNativeDirectoryCheck": {
+      "exclude": ["@mui/icons-material", "expo-checkbox", "undici"]
+    }
+  },
+   
+"extends": ["eslint:recommended", "plugin:react/recommended"],
+
+  "parserOptions": {
+    "ecmaFeatures": {
+      "jsx": true
+    }
+  },
+   "cli": {
+    "appVersionSource": "remote"
+  },
+
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "com.raigam.Raigamsfa"
+    },
+    "android": {
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/images/icon.png",
+        "backgroundColor": "#0C056D"
+      },
+      "edgeToEdgeEnabled": true,
+      "package": "com.raigams.Raigamsfa"
+    },
+    "web": {
+      "bundler": "metro",
+      "output": "static",
+      "favicon": "./assets/images/favicon.png"
+    },
+    "plugins": [
+      "expo-router",
+      [
+        "expo-splash-screen",
+      {
+          "backgroundColor": "#232323",
+          "image": "./assets/images/splash-icon.png",
+          "dark": {
+            "image": "./assets/images/splash-icon-dark.png",
+            "backgroundColor": "#000000"
+          },
+          "imageWidth": 1200
+        }
+      ]
+    ],
+    "experiments": {
+      "typedRoutes": true
+    },
+    "extra": {
+      "router": {},
+      "eas": {
+        "projectId": "92c42144-c096-47a3-8ff4-1150faf65f9a"
+      }
+    },
+    "owner": "raigamsfa"
+  }
+}
