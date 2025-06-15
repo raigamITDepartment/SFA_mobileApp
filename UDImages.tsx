@@ -1,9 +1,9 @@
 const UDImages = {
-  // dashboard: require("./assets/images/bottomTab/dashboard.png"),
-  // deal: require("./assets/images/bottomTab/deal.png"),
-  home: require("./assets/images/bottomTab/home.png"),
-  // menu: require("./assets/images/bottomTab/menu.png"),
-  qr: require("./assets/images/bottomTab/qr.png"),
+  survey: require("./assets/images/bottomTab/survey.png"),
+  bill: require("./assets/images/bottomTab/bill.png"),
+  report: require("./assets/images/bottomTab/Report.png"),
+  outlet: require("./assets/images/bottomTab/Outlet.png"),
+  dashboard: require("./assets/images/bottomTab/dashboard.png"),
 
   splashLogo: require("./assets/images/splash_screen_logo.png"),
   logo: require("./assets/images/icon.png"),

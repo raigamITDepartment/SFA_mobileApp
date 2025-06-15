@@ -26,6 +26,6 @@ const UDColors = {
   error:'#FF0000',
   shadow:"rgba(3, 3, 3, 0.30)",
   yellow:"#DBA80E",
-  bottomNavBar:"#0C056D"
+  bottomNavBar:"#ff0000"
 };
 export default UDColors;

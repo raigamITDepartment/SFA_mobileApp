@@ -21,7 +21,7 @@ import {
 import UDColors from '../constants/UDColors';
 import UDImages from '../UDImages';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
-
+import { LinearGradient } from 'expo-linear-gradient';
 type LoginScreenProps = {
   navigation: NativeStackNavigationProp<any>;
 };
@@ -86,8 +86,11 @@ const LoginScreen = ({navigation}: LoginScreenProps) => {
   };
 
   return (
+     
     <View style={styles.mainBody}>
       {/* <Loader loading={loading} /> */}
+
+         <LinearGradient colors={['#ff6666', '#ff0000']} style={styles.gradient}>
       <ScrollView
         keyboardShouldPersistTaps="handled"
         contentContainerStyle={{
@@ -163,12 +166,17 @@ const LoginScreen = ({navigation}: LoginScreenProps) => {
           </KeyboardAvoidingView>
         </View>
       </ScrollView>
+      </LinearGradient>
     </View>
   );
 };
 export default LoginScreen;
 
 const styles = StyleSheet.create({
+
+   gradient: {
+    flex: 1,
+  }, 
   mainBody: {
     flex: 1,
     justifyContent: 'center',

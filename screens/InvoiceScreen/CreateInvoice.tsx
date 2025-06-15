@@ -4,14 +4,25 @@ import {
   Text,
   TextInput,
   TouchableOpacity,
-  StyleSheet,
+  StyleSheet,StatusBar
 } from 'react-native';
 import { Picker } from '@react-native-picker/picker';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
+//import { RootStackParamList } from '@/navigation/AuthNavigator';
+import { Ionicons } from '@expo/vector-icons';
+import { LinearGradient } from 'expo-linear-gradient';
+type RootStackParamList = {
+  // Survey: undefined;
+  // HomeSurvey:undefined
+  // Home: undefined;
+  HomeScreen:undefined
+  CreateInvoice:undefined
+  CreateInvoiceScreen:undefined
 
-import { RootStackParamList } from '@/navigation/AuthNavigator';
+};
 
-type CreateInvoiceProps = NativeStackScreenProps<RootStackParamList, 'InvoiceCr'>;
+
+type CreateInvoiceProps = NativeStackScreenProps<RootStackParamList, 'CreateInvoice'>;
 
 const CreateInvoice = ({ navigation }: CreateInvoiceProps): React.JSX.Element => {
   const [selectedRoute, setSelectedRoute] = useState('');
@@ -19,21 +30,18 @@ const CreateInvoice = ({ navigation }: CreateInvoiceProps): React.JSX.Element =>
   const [invoiceType, setInvoiceType] = useState('');
 
   return (
-    <View style={styles.container}>
+
+      <LinearGradient colors={['#ff6666', '#ff0000']} style={styles.container}>
+
       <View style={styles.header}>
-        <View style={styles.backButtonContainer}>
-          <TouchableOpacity activeOpacity={1} 
-          
-            onPress={() => {
-            console.log("Navigating to Home");
-            navigation.navigate('start');
-            }
-            }>
-            <Text style={styles.backText}>Back</Text>
-          </TouchableOpacity>
-        </View>
-        <Text style={styles.title}>New Invoice</Text>
-      </View>
+            <Ionicons name="arrow-back-outline" size={28} color="white" 
+            
+            onPress={() => navigation.navigate('HomeScreen')}
+            
+            />
+            <Text style={styles.title}>Raigam SFA Invoice</Text>
+            <Ionicons name="notifications-outline" size={28} color="white" />
+          </View>
 
       <View style={styles.form}>
         <View style={styles.formGroup}>
@@ -88,12 +96,19 @@ const CreateInvoice = ({ navigation }: CreateInvoiceProps): React.JSX.Element =>
           <TouchableOpacity style={[styles.button, styles.unproductiveButton]}>
             <Text style={styles.buttonText}>Unproductive Call</Text>
           </TouchableOpacity>
-          <TouchableOpacity style={[styles.button, styles.createButton]}>
+          <TouchableOpacity
+            style={[styles.button, styles.createButton]}
+            onPress={() => {
+              console.log("Navigating to CreateInvoiceScreen");
+              navigation.navigate('CreateInvoiceScreen');
+            }}
+          >
             <Text style={styles.buttonText}>Create Invoice</Text>
           </TouchableOpacity>
         </View>
       </View>
-    </View>
+   
+    </LinearGradient>
   );
 };
 
@@ -103,9 +118,13 @@ const styles = StyleSheet.create({
     backgroundColor: '#0C056D',
     padding: 20,
   },
-  header: {
+   header: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: 20,
+    paddingHorizontal: 20,
+    marginTop:30
+
   },
   backButtonContainer: {
     alignSelf: 'flex-start',
@@ -124,6 +143,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#ffe6e6',
     borderRadius: 10,
     padding: 20,
+    marginTop:15
   },
   formGroup: {
     marginBottom: 15,
