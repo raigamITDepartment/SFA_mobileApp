@@ -5,7 +5,8 @@ import {
     Dimensions,
     StyleSheet,
     ViewStyle,
-    Platform
+    Platform,
+    Text,
 } from 'react-native';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 
@@ -30,88 +31,86 @@ interface BottomTabNavigatorProps {
     otherButtonImageStyle?: ViewStyle;
 }
 
-
-function BottomTabNavigator({ tabBarStyle, screens, homeButtonStyle, initialRouteName, outerCircleOtherStyle, homeButtonIconStyle, otherButtonImageStyle }: BottomTabNavigatorProps) {
-
+function BottomTabNavigator({
+    tabBarStyle,
+    screens,
+    homeButtonStyle,
+    initialRouteName,
+    outerCircleOtherStyle,
+    homeButtonIconStyle,
+    otherButtonImageStyle,
+}: BottomTabNavigatorProps) {
     const screenHeight = Dimensions.get('window').height;
     const tabHeight = screenHeight * 0.09;
 
-    function renderTabIcon(screen: Screen) {
+    function renderTabIcon(screen: Screen, tabLabel?: string) {
         if (screen.isHomeScreen) {
             return (
-                <View style={[styles.outerCircle, styles.shadow]}>
-                    <View style={[styles.innerCircle, homeButtonStyle]}>
-                        <Image source={screen.icon} style={[styles.homeButtonIcon]} />
+                <View style={[styles.iconContainer]}>
+                    <View style={[styles.outerCircle, styles.shadow]}>
+                        <View style={[styles.innerCircle, homeButtonStyle]}>
+                            <Image
+                                source={screen.icon}
+                                style={[styles.homeButtonIcon, ]}
+                            />
+                        </View>
                     </View>
+                    {tabLabel && <Text style={styles.tabLabel}>{tabLabel}</Text>}
                 </View>
-            )
+            );
         } else {
             return (
-                <View style={[styles.outerCircleOther, outerCircleOtherStyle]}>
-                    <Image
-                        source={screen.icon}
-                        resizeMode='contain'
-                        style={[{ width: 30, height: 30}]}
-                    />
+                <View style={[styles.iconContainer]}>
+                    <View style={[styles.outerCircleOther, outerCircleOtherStyle]}>
+                        <Image
+                            source={screen.icon}
+                            resizeMode="contain"
+                            style={[styles.otherButtonImage, ]}
+                        />
+                    </View>
+                    {tabLabel && <Text style={styles.tabLabel}>{tabLabel}</Text>}
                 </View>
-            )
+            );
         }
     }
 
     return (
         <Tab.Navigator
-            initialRouteName={initialRouteName? initialRouteName: screens[0].name}
+            initialRouteName={initialRouteName ? initialRouteName : screens[0].name}
             screenOptions={{
                 headerShown: false,
-                tabBarShowLabel: true,
+                tabBarShowLabel: false, // Custom labels below icons
                 tabBarStyle: {
                     height: tabHeight,
                     ...tabBarStyle,
-                }
+                },
             }}
         >
             {screens.map((screen) => (
-                screen.hideTabBar ?
                 <Tab.Screen
                     key={screen.name}
                     name={screen.name}
                     component={screen.component}
                     options={{
-                        tabBarLabel: screen.tabLabel ? screen.tabLabel : '',
-                        tabBarIcon: ({ color, size }) => (
-                            renderTabIcon(screen)
-                        ),
-                        tabBarStyle:{display: 'none'}
-                    }}
-                />:
-                <Tab.Screen
-                    key={screen.name}
-                    name={screen.name}
-                    component={screen.component}
-                    options={{
-                        tabBarLabel: screen.tabLabel ? screen.tabLabel : '',
-                        tabBarIcon: ({ color, size }) => (
-                            renderTabIcon(screen)
-                        )
+                        tabBarIcon: () => renderTabIcon(screen, screen.tabLabel),
+                        ...(screen.hideTabBar && { tabBarStyle: { display: 'none' } }),
                     }}
                 />
             ))}
-
         </Tab.Navigator>
-    )
+    );
 }
 
 export default BottomTabNavigator;
-
-
 const styles = StyleSheet.create({
     innerCircle: {
         width: 62,
         height: 62,
         borderRadius: 100,
-        backgroundColor: '#052108',
+        backgroundColor: '#ff0000',
         justifyContent: 'center',
-        alignItems: 'center'
+        alignItems: 'center',
+       
     },
     outerCircle: {
         backgroundColor: '#FAFEFF',
@@ -149,8 +148,26 @@ const styles = StyleSheet.create({
         borderRadius: 30,
         borderColor: 'rgba(255, 255, 255, 0.3)',
         borderWidth: 1,
-        marginTop: 10,
-        backgroundColor: '#160946',
+        marginTop: 29,
+        backgroundColor: '#ff0000',
         padding: 16
-    }
+    },
+        iconContainer: {
+        justifyContent: 'center',
+        alignItems: 'center',
+        marginTop:10
+    },
+        tabLabel: {
+        marginTop: 5,
+        width: 40,
+        fontSize: 12,
+        color: '#000',
+        textAlign: 'center',
+    },
+
+       otherButtonImage: {
+        width: 30,
+        height: 30,
+        
+    },
 });

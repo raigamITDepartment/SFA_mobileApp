@@ -1,52 +1,58 @@
+import React from "react";
 import { StyleSheet } from "react-native";
 import BottomTabNavigationBar from "../components/ui/BottomTabNavigator";
- import CreateInvoice from "../screens/CreateInvoice";
-// import QRScreen from "../screens/QRScreen";
+import CreateInvoice from "@/screens/InvoiceScreen/CreateInvoice";
 import HomeScreen from "../screens/HomeScreen";
-// import DealScreen from "../screens/DealScreen";
-// import MenuScreen from "../screens/MenuScreen";
+import HomeReport from "@/screens/ReportScreen/HomeReport";
+import HomeOutlet from "@/screens/OutletScreen/HomeOutlet";
+import HomeSurvey from "@/screens/SurveyScreen/HomeSurvey";
 import UDImages from "../UDImages";
 import UDColors from "../constants/UDColors";
-import React from 'react';
-function BottomTabNavigator() {
+
+function AppBottomTabNavigator() {
   const screens = [
-    // {
-    //   name: "DashboardScreen",
-    //   component: DashboardScreen,
-    //   icon: UDImages.dashboard,
-    //   hideTabBar: true,
-    // },
+    {
+      name: "HomeSurvey",
+      component: HomeSurvey,
+      icon: UDImages.survey,
+      hideTabBar: true,
+      tabLabel: "Survey",
+    },
     {
       name: "CreateInvoice",
       component: CreateInvoice,
-      icon: UDImages.qr,
+      icon: UDImages.bill,
       hideTabBar: true,
+      tabLabel: "Invoice",
     },
     {
       name: "HomeScreen",
       component: HomeScreen,
-      icon: UDImages.home,
+      icon: UDImages.dashboard,
       isHomeScreen: true,
+      tabLabel: "",
     },
-//     {
-//       name: "DealScreen",
-//       component: DealScreen,
-//       icon: UDImages.deal,
-//       hideTabBar: true,
-//     },
-//     {
-//       name: "MenuScreen",
-//       component: MenuScreen,
-//       icon: UDImages.menu,
-//       hideTabBar: false,
-//     },
- ];
+    {
+      name: "Report",
+      component: HomeReport,
+      icon: UDImages.report,
+      hideTabBar: true,
+      tabLabel: "Report",
+    },
+    {
+      name: "OutletAddScreen",
+      component: HomeOutlet,
+      icon: UDImages.outlet,
+      hideTabBar: true,
+      tabLabel: "Outlet",
+    },
+  ];
 
   return (
     <BottomTabNavigationBar
       tabBarStyle={styles.tabBarStyle}
       screens={screens}
-      initialRouteName={"HomeScreen"}
+      initialRouteName="HomeScreen"
       outerCircleOtherStyle={styles.outerCircleOtherStyle}
       otherButtonImageStyle={styles.otherButtonImageStyle}
       homeButtonStyle={styles.homeButtonStyle}
@@ -55,11 +61,11 @@ function BottomTabNavigator() {
   );
 }
 
-export default BottomTabNavigator;
+export default AppBottomTabNavigator;
 
 const styles = StyleSheet.create({
   tabBarStyle: {
-    backgroundColor: UDColors.bottomNavBar,
+    backgroundColor: UDColors.bottomNavBar || "#ffffff", // Fallback color if undefined
     borderTopLeftRadius: 30,
     borderTopRightRadius: 30,
     height: 80,
@@ -68,18 +74,17 @@ const styles = StyleSheet.create({
     backgroundColor: "transparent",
     justifyContent: "center",
     paddingHorizontal: 11,
-    // borderWidth:0
   },
   otherButtonImageStyle: {
     alignSelf: "center",
-    width:25,
-    height:25,
+    width: 25,
+    height: 25,
   },
-  homeButtonStyle:{
-    backgroundColor:UDColors.bottomNavBar,
-
+  homeButtonStyle: {
+    backgroundColor: UDColors.bottomNavBar || "#ffffff", // Fallback color if undefined
   },
-  homeButtonIconStyle:{
-        height:26
-  }
+  homeButtonIconStyle: {
+    height: 26,
+    width: 26, // Ensure consistent width and height
+  },
 });
