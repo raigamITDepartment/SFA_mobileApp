@@ -36,7 +36,7 @@ const CreateInvoiceScreen = ({ navigation }: CreateInvoiceScreenProps): React.JS
       style={styles.itemBox}
       onPress={() => {
         console.log('Navigating to ItemDetails');
-        navigation.navigate('start');
+        navigation.navigate('ItemDetailsScreen');
        
       }}
         >

@@ -1,13 +1,13 @@
 import React, { useState } from 'react';
 import {
   View,
-  Text,
   TextInput,
   TouchableOpacity,
   StyleSheet,
   ScrollView,
   
 } from 'react-native';
+import { Text, Card} from "react-native-paper";
 import DateTimePicker from '@react-native-community/datetimepicker';
 import { Picker } from '@react-native-picker/picker';
 import { LinearGradient } from 'expo-linear-gradient';
@@ -61,6 +61,7 @@ const OutletAdd = ({ navigation }: StockProps): React.JSX.Element => {
   return (
     <LinearGradient colors={['#ff6666', '#ff0000']} style={styles.gradient}>
       <ScrollView contentContainerStyle={styles.container}>
+        <Card style={styles.card}>
         <Text style={styles.title}>Add New Outlet</Text>
 
         <View style={styles.field}>
@@ -171,6 +172,7 @@ const OutletAdd = ({ navigation }: StockProps): React.JSX.Element => {
             <Text style={styles.createText}>Create</Text>
           </TouchableOpacity>
         </View>
+        </Card>
       </ScrollView>
     </LinearGradient>
   );
@@ -181,13 +183,14 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   container: {
+    
     padding: 16,
   },
   title: {
     fontSize: 22,
     fontWeight: '600',
     marginBottom: 16,
-    color: '#FFF',
+  
     textAlign: 'center',
   },
   field: {
@@ -197,7 +200,7 @@ const styles = StyleSheet.create({
   label: {
     fontSize: 16,
     marginBottom: 8,
-    color: '#FFF',
+
   },
   input: {
     marginTop: 8,
@@ -253,6 +256,11 @@ const styles = StyleSheet.create({
   createText: {
     color: '#FFF',
     fontWeight: '600',
+  },
+   card: {
+    padding: 16,
+    borderRadius: 8,
+    marginTop: 35,
   },
 
 

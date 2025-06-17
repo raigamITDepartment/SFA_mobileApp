@@ -68,7 +68,9 @@ const styles = StyleSheet.create({
     backgroundColor: UDColors.bottomNavBar || "#ffffff", // Fallback color if undefined
     borderTopLeftRadius: 30,
     borderTopRightRadius: 30,
-    height: 80,
+    height: 90,
+    marginBottom: 10,
+    
   },
   outerCircleOtherStyle: {
     backgroundColor: "transparent",

@@ -2,28 +2,27 @@ import React from 'react';
 import { View, Text, TouchableOpacity, StyleSheet, StatusBar } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
-//import { NativeStackScreenProps } from '@react-navigation/native-stack';
-import type { NativeStackScreenProps } from '@react-navigation/native-stack';
-//import { RootStackParamList } from '@/navigation/AuthNavigator';
 
 
+import { StackScreenProps } from '@react-navigation/stack';
+//import { RootStackParamList } from '../../navigation/AuthNavigator';
 
 
 
 type RootStackParamList = {
   Survey: undefined;
-  HomeSurvey:undefined
+  HomeSurvery:undefined
   Home: undefined;
   HomeScreen:undefined
 };
 
 
-// Define navigation types
-type HomeSurveryProps = NativeStackScreenProps<RootStackParamList, 'HomeSurvey'>;
+
+type HomeSurveryProps = StackScreenProps<RootStackParamList, 'HomeSurvery'>;
+
+const HomeSurvery = ({ navigation }: HomeSurveryProps): React.JSX.Element => {
 
 
-
-const HomeSurvey = ({ navigation }: HomeSurveryProps): React.JSX.Element => {
   const reports = [
     { title: 'Survey 1', route: 'Survey' },
     { title: 'Survey 2', route: 'Survery' },
@@ -89,6 +88,9 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: '500',
   },
+
+
+  
 });
 
-export default HomeSurvey;
+export default HomeSurvery;
