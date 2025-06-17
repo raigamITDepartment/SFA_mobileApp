@@ -2,12 +2,11 @@ import React, { useState } from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, TextInput } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { Dropdown } from 'react-native-element-dropdown';
-  import AntDesign from '@expo/vector-icons/AntDesign';
+import AntDesign from '@expo/vector-icons/AntDesign';
 
 const HomeScreen = () => {
   const [monthlyTarget, setMonthlyTarget] = useState('');
   const [monthlyGrowth, setMonthlyGrowth] = useState('');
-  const [categoryWiseTarget, setCategoryWiseTarget] = useState('');
 
 
  const data = [
@@ -32,7 +31,11 @@ const HomeScreen = () => {
     <ScrollView style={styles.container}>
       <View style={styles.header}>
         <Text style={styles.title}>Dashboard</Text>
-        <TouchableOpacity style={styles.profileIcon}>
+        <TouchableOpacity style={styles.profileIcon}
+        
+         // onPress={() => navigation.navigate('HomeScreen')}
+        
+        >
           <Ionicons name="person-circle" size={40} color="white" />
         </TouchableOpacity>
       </View>
@@ -80,8 +83,8 @@ const HomeScreen = () => {
           value={value}
           onFocus={() => setIsFocus(true)}
           onBlur={() => setIsFocus(false)}
-          onChange={item => {
-            setValue(item.value);
+          onChange={(item: { label: string; value: string }) => {
+           // setValue(item.value);
             setIsFocus(false);
           }}
           renderLeftIcon={() => (
@@ -101,7 +104,12 @@ const HomeScreen = () => {
       </View>
       </View>
 
-   
+    <View style={styles.card}>
+        <Text style={styles.cardTitle}>End The Day</Text>
+       <TouchableOpacity style={styles.button}>
+                 <Text style={styles.buttonText}>Day End</Text>
+               </TouchableOpacity>
+      </View>
     </ScrollView>
   );
 };
@@ -121,6 +129,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 8,
     borderRadius: 10,
     marginVertical: 8,
+    marginTop: 22,
   },
   title: {
     color: 'white',
@@ -210,6 +219,20 @@ const styles = StyleSheet.create({
       height: 40,
       fontSize: 16,
     },
+
+      button: {
+    backgroundColor: '#ff0000',
+    padding: 10,
+    borderRadius: 8,
+    width: '40%',
+    alignItems: 'center',
+    marginInlineStart: '30%',
+  },
+
+    buttonText: {
+    color: '#fff',
+    fontWeight: 'bold',
+  },
 });
 
 export default HomeScreen;

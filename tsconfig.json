@@ -2,6 +2,7 @@
   "extends": "expo/tsconfig.base",
   "compilerOptions": {
     "strict": true,
+
     "jsx": "react", // or "react-native" for React Native projects
     "moduleResolution": "node",
     "allowSyntheticDefaultImports": true,
@@ -12,9 +13,7 @@
     "paths": {
       "@/*": [
         "./*"
-      ],
-      
-
+      ]
     }
   },
   "include": [

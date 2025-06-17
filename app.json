@@ -8,27 +8,30 @@
     "scheme": "raigamsfa",
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
-      "splash": {
+    "splash": {
       "backgroundColor": "#FFFFFF"
     },
-
-     "doctor": {
-    "reactNativeDirectoryCheck": {
-      "exclude": ["@mui/icons-material", "expo-checkbox", "undici"]
-    }
-  },
-   
-"extends": ["eslint:recommended", "plugin:react/recommended"],
-
-  "parserOptions": {
-    "ecmaFeatures": {
-      "jsx": true
-    }
-  },
-   "cli": {
-    "appVersionSource": "remote"
-  },
-
+    "doctor": {
+      "reactNativeDirectoryCheck": {
+        "exclude": [
+          "@mui/icons-material",
+          "expo-checkbox",
+          "undici"
+        ]
+      }
+    },
+    "extends": [
+      "eslint:recommended",
+      "plugin:react/recommended"
+    ],
+    "parserOptions": {
+      "ecmaFeatures": {
+        "jsx": true
+      }
+    },
+    "cli": {
+      "appVersionSource": "remote"
+    },
     "ios": {
       "supportsTablet": true,
       "bundleIdentifier": "com.raigam.Raigamsfa"
@@ -50,16 +53,16 @@
       "expo-router",
       [
         "expo-splash-screen",
-      {
+        {
           "backgroundColor": "#232323",
           "image": "./assets/images/splash-icon.png",
-          "dark": {
-            "image": "./assets/images/splash-icon-dark.png",
-            "backgroundColor": "#000000"
-          },
+          "resizeMode": "contain",
+          "imageResizeMode": "contain",
           "imageWidth": 1200
         }
-      ]
+      ],
+      "expo-font",
+      "expo-secure-store"
     ],
     "experiments": {
       "typedRoutes": true
