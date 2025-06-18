@@ -6,7 +6,8 @@ import {
   Text,
   ScrollView,
   Image,
-  Keyboard,
+
+  Pressable,
   TouchableOpacity,
   KeyboardAvoidingView,
 } from "react-native";
@@ -17,9 +18,9 @@ import UDImages from "../UDImages";
 import Checkbox from "expo-checkbox";
 import type { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import { LinearGradient } from "expo-linear-gradient";
-import { loginUser } from "../actions/UserAction";
+import { MaterialCommunityIcons } from "@expo/vector-icons";
+import { loginUser } from "../actions/UserAction"; // Correct import
 import {
-
   setUserName as setAsyncUserName,
   setPassword as setAsyncPassword,
   setRememberMe as setAsyncRememberMe,
@@ -29,12 +30,11 @@ import {
   setToken as setAsyncToken,
   getToken as getAsyncToken,
 } from "../services/AsyncStoreService";
-type Props = {};
+type Props = object;
 
 type LoginScreenProps = {
   navigation: NativeStackNavigationProp<any>;
 };
-
 
 const LoginScreen = ({ navigation }: LoginScreenProps, props: Props) => {
   const [userName, setUserName] = useState<any>("");
@@ -43,11 +43,12 @@ const LoginScreen = ({ navigation }: LoginScreenProps, props: Props) => {
   const [error, setError] = useState({ field: "", message: "" });
   const userLoginResponse = useAppSelector((state) => state.login.user);
   const [loginButtonPressed, setLoginButtonPressed] = useState(false);
-  const passwordInputRef = createRef<TextInput>();
+  //const passwordInputRef = createRef<TextInput>();
   const dispatch = useAppDispatch();
+  const [passwordVisibility, setPasswordVisibility] = useState(true);
+  const [rightIcon, setRightIcon] = useState<any>("eye");
   const [verifiedByUserNameAndPassword, setVerifiedByUserNameAndPassword] =
     useState(false);
-
 
   useEffect(() => {
     console.log("LoginScreen useEffect called");
@@ -55,13 +56,17 @@ const LoginScreen = ({ navigation }: LoginScreenProps, props: Props) => {
     fillCredentials();
   }, []);
 
+  const handlePasswordVisibility = () => {
+    if (rightIcon === "eye") {
+      setRightIcon("eye-off");
+      setPasswordVisibility(!passwordVisibility);
+    } else if (rightIcon === "eye-off") {
+      setRightIcon("eye");
+      setPasswordVisibility(!passwordVisibility);
+    }
+  };
 
-
-
-
-
-
-const fillCredentials = async () => {
+  const fillCredentials = async () => {
     const rm = await getAsyncRememberMe();
     const un = await getAsyncUserName();
     const ps = await getAsyncPassword();
@@ -71,29 +76,27 @@ const fillCredentials = async () => {
     }
   };
 
-
   // const verifyToken = async () => {
   //   const tkn = await getAsyncToken();
   //  // dispatch(loginByToken({ token: tkn, userTypeId: 2 }));
   // };
 
-
-
-  const verifyUserNameAndPassword = async () => {
+  const verifyUserNameAndPassword = React.useCallback(async () => {
     setVerifiedByUserNameAndPassword(true);
     const un = await getAsyncUserName();
     const ps = await getAsyncPassword();
     // const bioEnabled = (await getBioEnabled()) === "Y" ? true : false;
     // if (bioEnabled && un && ps) {
-     
+
     // }
 
-     dispatch(loginUser({ userName: un, password: ps }));
-  };
+    dispatch(loginUser({ userName: un, password: ps }));
+  }, [dispatch]);
 
   useEffect(() => {
-    if (userLoginResponse && userLoginResponse.data) {
-      console.log("User Login Response: ");
+       if (userLoginResponse && userLoginResponse) {
+
+      console.log("User Login Response by screnn: ");
       console.log(userLoginResponse);
 
       if (userLoginResponse.data && userLoginResponse.data.token) {
@@ -103,10 +106,10 @@ const fillCredentials = async () => {
           setAsyncRememberMe(rememberMe ? "Y" : "N");
         }
         setAsyncToken(userLoginResponse.data.token);
-        if (userLoginResponse.data.gpsStatus === false) {
+        if (userLoginResponse.data.gpsStatus === "false") {
           navigation.navigate("DayStart");
         } else {
-          if (userLoginResponse.data.gpsStatus === true) {
+          if (userLoginResponse.data.gpsStatus === "true") {
             navigation.navigate("Home");
           } else {
             navigation.navigate("Home");
@@ -134,13 +137,22 @@ const fillCredentials = async () => {
       }
     }
     setLoginButtonPressed(false);
-  }, [userLoginResponse]);
+  }, [
+    userLoginResponse,
+    loginButtonPressed,
+    navigation,
+    password,
+    rememberMe,
+    userName,
+    verifiedByUserNameAndPassword,
+    verifyUserNameAndPassword,
+  ]);
 
   const onLoginPress = () => {
-     console.log("LOGIN button clicked ✅ 1");
+    console.log("LOGIN button clicked ✅ 1");
     let loginError = { field: "", message: "" };
     if (userName === "" && password === "") {
-       console.log("LOGIN button clicked ✅2", loginError);
+      console.log("LOGIN button clicked ✅2", loginError);
       loginError.field = "fieldValidation";
       loginError.message = titles.userNameAndPasswordRequired;
       setError(loginError);
@@ -156,6 +168,8 @@ const fillCredentials = async () => {
       setLoginButtonPressed(true);
       setError({ field: "", message: "" });
       dispatch(loginUser({ userName: userName, password: password }));
+          console.log("name: ", userName);
+      console.log("password: ", password);
     }
   };
 
@@ -187,34 +201,38 @@ const fillCredentials = async () => {
               </View>
               <View style={styles.SectionStyle}>
                 <TextInput
+                  value={userName}
                   style={styles.inputStyle}
                   onChangeText={(newText) => setUserName(newText)}
-                  placeholder="Enter Email" //dummy@abc.com
-                  placeholderTextColor="#8b9cb5"
-                  autoCapitalize="none"
-                  keyboardType="email-address"
-                  returnKeyType="next"
-                  onSubmitEditing={() =>
-                    passwordInputRef.current && passwordInputRef.current.focus()
-                  }
-                  underlineColorAndroid="#f000"
-                  blurOnSubmit={false}
+                  placeholderTextColor="#0C056D"
+                  //  style={styles.inputText}
+                  placeholder={titles.userName}
+                  maxLength={30}
                 />
               </View>
               <View style={styles.SectionStyle}>
                 <TextInput
                   style={styles.inputStyle}
+                  value={password}
                   onChangeText={(newText) => setPassword(newText)}
-                  placeholder="Enter Password" //12345
-                  placeholderTextColor="#8b9cb5"
-                  keyboardType="default"
-                  ref={passwordInputRef}
-                  onSubmitEditing={Keyboard.dismiss}
-                  blurOnSubmit={false}
-                  secureTextEntry={true}
-                  underlineColorAndroid="#f000"
-                  returnKeyType="next"
+                  placeholderTextColor="#0C056D"
+                  secureTextEntry={passwordVisibility}
+                  placeholder={titles.password}
+                  maxLength={30}
                 />
+
+                {/* <View style={styles.rightAlign}> */}
+                  <Pressable
+                    style={styles.eyeIcon}
+                    onPress={handlePasswordVisibility}
+                  >
+                    <MaterialCommunityIcons
+                      name={rightIcon}
+                      size={22}
+                      color="#0C056D"
+                    />
+                  </Pressable>
+                {/* </View> */}
               </View>
 
               {error.field === "fieldValidation" ? (
@@ -271,6 +289,9 @@ const styles = StyleSheet.create({
     marginLeft: 35,
     marginRight: 35,
     margin: 10,
+
+
+
   },
   buttonStyle: {
     backgroundColor: "#7DE24E",
@@ -308,7 +329,6 @@ const styles = StyleSheet.create({
     padding: 10,
   },
   errorTextStyle: {
-   
     textAlign: "center",
     fontSize: 14,
   },
@@ -341,5 +361,21 @@ const styles = StyleSheet.create({
     flex: 1,
     height: 1,
     backgroundColor: "white",
+  },
+  forgetPassword: {
+    fontFamily: "Montserrat",
+    fontSize: 10,
+    color: "#DBA80E",
+  },
+  eyeIcon: {
+    alignItems: "center",
+    justifyContent: "center",
+  },
+
+  rightAlign: {
+    flexDirection: "row",
+    justifyContent: "flex-end",
+    alignItems: "center",
+    width: "50%",
   },
 });

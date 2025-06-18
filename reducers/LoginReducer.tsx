@@ -2,87 +2,102 @@ import { createSlice } from "@reduxjs/toolkit";
 import jwt_decode from "jwt-decode";
 
 const initialLoginState = {
-    user: {
-        data: {
-            id: "",
-            userName: "",
-            firstName: "",
-            lastName: "",
-            email: "",
-            mobileNumber: "",
-            token: "",
-       
-         
-            role: "",
-            roleId: null,
-            subRole: "",
-            subRoleId: null,
-            userType: "",
-            userTypeId: null,
-            territoryId: null,
-            userAgencyId: null,
-            agencyCode: null,
-            gpsStatus: false,
-        },
-        error: "",
-        loginType: "",
-        isOnboarding: false,
+  user: {
+    data: {
+      agencyCode: "",
+      gpsStatus: "",
+      personalName: "",
+      role: "",
+      roleId: "",
+      subRole: "",
+      subRoleId: "",
+      territoryId: "",
+      token: null,
+      userAgencyId: "",
+      userId: null,
+      userName: "",
+      userType: null,
+      userTypeId: null,
     },
-    error: false,
-    loading: false,
+    error: "",
+    // loginType: "",
+    // isOnboarding: false,
+  },
+  error: false,
+  loading: false,
 };
 
 const loginSlice = createSlice({
-    name: "login",
-    initialState: initialLoginState,
-    reducers: {
-        setLoading: (state) => {
-            state.loading = true;
-        },
-        setSuccess: (state, { payload }) => {
-            state.loading = false;
-            state.error = false;
-
-            const res = payload?.payload;
-            if (res && res.token) {
-             // If you need to decode the token, you can use:
-             // const content = jwt_decode(res.token);
-
-                state.user.data.id = res.userId?.toString() ?? "";
-                state.user.data.userName = res.userName ?? "";
-                state.user.data.firstName = res.personalName?.split(" ")[0] ?? "";
-                state.user.data.lastName = res.personalName?.split(" ")[1] ?? "";
-                state.user.data.token = res.token;
-                state.user.data.gpsStatus = res.gpsStatus ?? false;
-
- 
-     
-
-                // Additional fields from your API
-                state.user.data.role = res.role;
-                state.user.data.roleId = res.roleId;
-                state.user.data.subRole = res.subRole;
-                state.user.data.subRoleId = res.subRoleId;
-                state.user.data.userType = res.userType;
-                state.user.data.userTypeId = res.userTypeId;
-                state.user.data.territoryId = res.territoryId;
-                state.user.data.userAgencyId = res.userAgencyId;
-                state.user.data.agencyCode = res.agencyCode;
-              
-
-                state.user.error = payload.error ?? "";
-                state.user.loginType = payload.loginType ?? "";
-            }
-        },
-        setError: (state, { payload }) => {
-            state.error = true;
-            state.user = payload;
-        },
+  name: "login",
+  initialState: initialLoginState,
+  reducers: {
+    setLoading: (state) => {
+      state.loading = true;
     },
+    setSuccess: (state, { payload }) => {
+      state.loading = false;
+      state.error = false;
+      console.log("Login Success Reducer Payload:", payload);
+      // Decode the JWT token if it exists
+      if (payload) {
+        if (payload.token) {
+            console.log("Login Success Reducer Payload Token:", payload.token);
+          //state.user.isOnboarding = payload.isOnboarding || false;
+          //console.log("Login Success Reducer Payload isOnboarding:", state.user.isOnboarding);
+
+        //   const content = jwt_decode(payload.token);
+        //   console.log("Decoded token content::", content);
+   
+
+          state.user.data.agencyCode = payload.agencyCode;
+          state.user.data.gpsStatus = payload.gpsStatus;
+          state.user.data.personalName = payload.personalName;
+          state.user.data.role = payload.role;
+          state.user.data.roleId = payload.roleId;
+
+          state.user.data.subRole = payload.subRole;
+          state.user.data.subRoleId = payload.subRoleId;
+          state.user.data.territoryId = payload.territoryId;
+          state.user.data.token = payload.token;
+          state.user.data.userAgencyId = payload.userAgencyId;
+          state.user.data.userId = payload.userId;
+          state.user.data.userName = payload.userName;
+          state.user.data.userType = payload.userType;
+          state.user.data.userTypeId = payload.userTypeId;
+
+          console.log("Login Success Reducer User Data:", state.user.data);
+          // state.user.loginType = payload.loginType;
+        } else {
+          state.user.data = {
+            agencyCode: "",
+            gpsStatus: "",
+            personalName: "",
+            role: "",
+            roleId: "",
+            subRole: "",
+            subRoleId: "",
+            territoryId: "",
+            token: null,
+            userAgencyId: "",
+            userId: null,
+            userName: "",
+            userType: null,
+            userTypeId: null,
+          };
+         // state.user.isOnboarding = false;
+        }
+
+        state.user.error = payload.error;
+        //state.user.loginType = payload.loginType;
+      }
+    },
+    setError: (state, { payload }) => {
+        console.error("Login Error Reducer Payload:", payload);
+      state.error = true;
+      state.user = payload;
+    },
+  },
 });
 
-// export the actions
 export const { setLoading, setSuccess, setError } = loginSlice.actions;
-
-// export the default reducer
 export default loginSlice.reducer;

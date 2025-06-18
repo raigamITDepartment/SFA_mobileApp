@@ -25,6 +25,7 @@
     "axios": "^1.10.0",
     "expo": "~53.0.9",
     "expo-blur": "~14.1.4",
+    "expo-checkbox": "~4.1.4",
     "expo-constants": "~17.1.6",
     "expo-font": "~13.3.1",
     "expo-haptics": "~14.1.4",
@@ -32,6 +33,7 @@
     "expo-linear-gradient": "~14.1.5",
     "expo-linking": "~7.1.5",
     "expo-router": "^5.1.0",
+    "expo-secure-store": "~14.2.3",
     "expo-splash-screen": "~0.30.8",
     "expo-status-bar": "~2.2.3",
     "expo-symbols": "~0.4.4",
@@ -51,12 +53,11 @@
     "react-native-vector-icons": "^10.2.0",
     "react-native-web": "~0.20.0",
     "react-native-webview": "13.13.5",
-    "react-redux": "^9.2.0",
-    "expo-secure-store": "~14.2.3",
-    "expo-checkbox": "~4.1.4"
+    "react-redux": "^9.2.0"
   },
   "devDependencies": {
     "@babel/core": "^7.25.2",
+    "@types/jwt-decode": "^2.2.1",
     "@types/react": "~19.0.10",
     "@types/react-native": "^0.72.8",
     "@types/react-redux": "^7.1.34",
