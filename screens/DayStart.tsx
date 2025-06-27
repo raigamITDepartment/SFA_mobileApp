@@ -1,23 +1,61 @@
-import React from "react";
+import React, { useState } from "react";
 import {
   StyleSheet,
   Text,
   View,
   Image,
   TouchableOpacity,
+  Alert,
+  ActivityIndicator,
 } from "react-native";
 import UDImages from "../UDImages";
 import { NativeStackNavigationProp } from "@react-navigation/native-stack";
-
+import * as Location from 'expo-location';
 type DayStartScreenProps = {
   navigation: NativeStackNavigationProp<any>;
 };
-
 const DayStart = ({ navigation }: DayStartScreenProps) => {
+  const [loading, setLoading] = useState(false);
   // const handleSubmitPress = () => {
   //   // Navigate to the home screen
   //   navigation.navigate("Home");
   // };
+
+
+
+  // const handleDayStart = async () => {
+  //   setLoading(true);
+  //   setLoading(true);
+  //   try {
+  //     let { status } = await Location.requestForegroundPermissionsAsync();
+  //     if (status !== 'granted') {
+  //       Alert.alert('Permission denied', 'Location permission is required.');
+  //       setLoading(false);
+  //       return;
+  //     }
+  //     let location = await Location.getCurrentPositionAsync({});
+  //     const { latitude, longitude } = location.coords;
+
+  //     const response = await fetch('https://your-api-url.com/daystart', {
+  //       method: 'POST',
+  //       headers: { 'Content-Type': 'application/json' },
+  //       body: JSON.stringify({ latitude, longitude ,DayStart:1}),
+  //     });
+  //     const data = await response.json();
+
+  //     if (response.ok && data.code === 200) {
+  //       navigation.navigate('Home');
+  //     } else {
+  //       Alert.alert('Error', data.message || 'Failed to start day.');
+  //     }
+  //   } catch (err) {
+  //     Alert.alert('Error', 'Could not get location or connect to backend.');
+  //   } finally {
+  //     setLoading(false);
+  //   }
+  // };
+
+
 
   return (
     <View style={styles.container}>
@@ -35,10 +73,11 @@ const DayStart = ({ navigation }: DayStartScreenProps) => {
           <TouchableOpacity
             style={styles.buttonStyle}
             activeOpacity={1}
-            
-             onPress={() => navigation.navigate('Home')}
+           // onPress={handleDayStart} disabled={loading}
+            onPress={() => navigation.navigate('Home')}
           >
             <Text style={styles.buttonTextStyle}>Day Start</Text>
+              {loading && <ActivityIndicator />}
           </TouchableOpacity>
         </View>
       </View>

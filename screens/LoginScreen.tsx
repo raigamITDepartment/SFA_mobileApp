@@ -94,29 +94,24 @@ const LoginScreen = ({ navigation }: LoginScreenProps, props: Props) => {
   }, [dispatch]);
 
   useEffect(() => {
-       if (userLoginResponse && userLoginResponse) {
-
-      console.log("User Login Response by screnn: ");
+    if (userLoginResponse && userLoginResponse.data) {
+      console.log("User Login Response by screen: ");
       console.log(userLoginResponse);
 
-      if (userLoginResponse.data && userLoginResponse.data.token) {
-        if (loginButtonPressed) {
-          setAsyncUserName(userName);
-          setAsyncPassword(password);
-          setAsyncRememberMe(rememberMe ? "Y" : "N");
-        }
+      // Save credentials and token if login was triggered by button
+      if (loginButtonPressed) {
+        setAsyncUserName(userName);
+        setAsyncPassword(password);
+        setAsyncRememberMe(rememberMe ? "Y" : "N");
+      }
+      if (userLoginResponse.data.token) {
         setAsyncToken(userLoginResponse.data.token);
-        if (userLoginResponse.data.gpsStatus === "false") {
-          navigation.navigate("DayStart");
-        } else {
-          if (userLoginResponse.data.gpsStatus === "true") {
-            navigation.navigate("Home");
-          } else {
-            navigation.navigate("Home");
-          }
+        console.log("Token saved GPS Status: ", userLoginResponse.data.gpsStatus);
+        if (userLoginResponse.data.gpsStatus === false) {
+          navigation.navigate("start");
+        } else if (userLoginResponse.data.gpsStatus === true) {
+          navigation.navigate("Home");
         }
-      } else {
-        navigation.navigate("Login");
       }
     }
     if (
@@ -149,10 +144,9 @@ const LoginScreen = ({ navigation }: LoginScreenProps, props: Props) => {
   ]);
 
   const onLoginPress = () => {
-    console.log("LOGIN button clicked ✅ 1");
     let loginError = { field: "", message: "" };
     if (userName === "" && password === "") {
-      console.log("LOGIN button clicked ✅2", loginError);
+
       loginError.field = "fieldValidation";
       loginError.message = titles.userNameAndPasswordRequired;
       setError(loginError);
@@ -168,8 +162,7 @@ const LoginScreen = ({ navigation }: LoginScreenProps, props: Props) => {
       setLoginButtonPressed(true);
       setError({ field: "", message: "" });
       dispatch(loginUser({ userName: userName, password: password }));
-          console.log("name: ", userName);
-      console.log("password: ", password);
+     
     }
   };
 
@@ -211,6 +204,7 @@ const LoginScreen = ({ navigation }: LoginScreenProps, props: Props) => {
                 />
               </View>
               <View style={styles.SectionStyle}>
+                
                 <TextInput
                   style={styles.inputStyle}
                   value={password}
@@ -221,7 +215,7 @@ const LoginScreen = ({ navigation }: LoginScreenProps, props: Props) => {
                   maxLength={30}
                 />
 
-                {/* <View style={styles.rightAlign}> */}
+          
                   <Pressable
                     style={styles.eyeIcon}
                     onPress={handlePasswordVisibility}
@@ -232,7 +226,7 @@ const LoginScreen = ({ navigation }: LoginScreenProps, props: Props) => {
                       color="#0C056D"
                     />
                   </Pressable>
-                {/* </View> */}
+            
               </View>
 
               {error.field === "fieldValidation" ? (
@@ -257,12 +251,7 @@ const LoginScreen = ({ navigation }: LoginScreenProps, props: Props) => {
               >
                 <Text style={styles.buttonTextStyle}>LOGIN</Text>
               </TouchableOpacity>
-              <Text
-                style={styles.registerTextStyle}
-                onPress={() => navigation.navigate("start")}
-              >
-                New Here ? Register
-              </Text>
+             
             </KeyboardAvoidingView>
           </View>
         </ScrollView>
@@ -289,6 +278,7 @@ const styles = StyleSheet.create({
     marginLeft: 35,
     marginRight: 35,
     margin: 10,
+  
 
 
 
@@ -370,6 +360,9 @@ const styles = StyleSheet.create({
   eyeIcon: {
     alignItems: "center",
     justifyContent: "center",
+    position: "absolute",
+    marginLeft: "85%",
+    marginTop: 10,
   },
 
   rightAlign: {
@@ -377,5 +370,6 @@ const styles = StyleSheet.create({
     justifyContent: "flex-end",
     alignItems: "center",
     width: "50%",
+    
   },
 });

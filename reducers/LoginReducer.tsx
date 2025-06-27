@@ -5,7 +5,7 @@ const initialLoginState = {
   user: {
     data: {
       agencyCode: "",
-      gpsStatus: "",
+      gpsStatus: false,
       personalName: "",
       role: "",
       roleId: "",
@@ -37,11 +37,11 @@ const loginSlice = createSlice({
     setSuccess: (state, { payload }) => {
       state.loading = false;
       state.error = false;
-      console.log("Login Success Reducer Payload:", payload);
+      //console.log("Login Success Reducer Payload:", payload);
       // Decode the JWT token if it exists
       if (payload) {
         if (payload.token) {
-            console.log("Login Success Reducer Payload Token:", payload.token);
+          //  console.log("Login Success Reducer Payload Token:", payload.token);
           //state.user.isOnboarding = payload.isOnboarding || false;
           //console.log("Login Success Reducer Payload isOnboarding:", state.user.isOnboarding);
 
@@ -65,12 +65,12 @@ const loginSlice = createSlice({
           state.user.data.userType = payload.userType;
           state.user.data.userTypeId = payload.userTypeId;
 
-          console.log("Login Success Reducer User Data:", state.user.data);
+          //console.log("Login Success Reducer User Data:", state.user.data);
           // state.user.loginType = payload.loginType;
         } else {
           state.user.data = {
             agencyCode: "",
-            gpsStatus: "",
+            gpsStatus: false,
             personalName: "",
             role: "",
             roleId: "",
