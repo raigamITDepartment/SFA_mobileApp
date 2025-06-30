@@ -12,6 +12,7 @@ const initialLoginState = {
       subRole: "",
       subRoleId: "",
       territoryId: "",
+      territoryName: "",
       token: null,
       userAgencyId: "",
       userId: null,
@@ -58,6 +59,7 @@ const loginSlice = createSlice({
           state.user.data.subRole = payload.subRole;
           state.user.data.subRoleId = payload.subRoleId;
           state.user.data.territoryId = payload.territoryId;
+          state.user.data.territoryName = payload.territoryName;
           state.user.data.token = payload.token;
           state.user.data.userAgencyId = payload.userAgencyId;
           state.user.data.userId = payload.userId;
@@ -77,6 +79,7 @@ const loginSlice = createSlice({
             subRole: "",
             subRoleId: "",
             territoryId: "",
+            territoryName: "",
             token: null,
             userAgencyId: "",
             userId: null,

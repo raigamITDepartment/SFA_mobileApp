@@ -18,27 +18,21 @@ import { RootStackParamList } from "@/navigation/AuthNavigator";
 import { useAppDispatch, useAppSelector } from "../../store/Hooks";
 import { fetchRoutesByTerritoryId } from "../../actions/OutletAction";
 import type { AppDispatch } from "../../store"; // adjust the path as needed
-import { createSelector } from "reselect";
+
 
 type StockProps = NativeStackScreenProps<RootStackParamList, "OutletAdd">;
-// --- Selectors defined in this file ---
-// const selectOutlet = (state: any) => state.outlet;
 
-// const selectRoutes = createSelector(
-//   [selectOutlet],
-//   (outlet) => (outlet && outlet.routes) ? outlet.routes : []
-// );
-// // --------------------------------------
 
 const OutletAdd = ({ navigation }: StockProps): React.JSX.Element => {
   const dispatch: AppDispatch = useDispatch();
   const [date, setDate] = useState(new Date());
   const [selectedRoute, setSelectedRoute] = useState("");
-  //const { routes = [], loading = false, error = null } = useSelector((state: any) => state.outlet || {});
-  const territoryId = useSelector((state: any) => state.login?.user?.data?.territoryId );
- const roots = useAppSelector((state) => state.root);
-// const roots = useAppSelector((state) => state.login.user);
-  //const [outlet, setOutlet] = useState("");
+
+  const territoryId = useSelector(
+    (state: any) => state.login?.user?.data?.territoryId
+  );
+  const Route = useAppSelector((state) => state.root);
+
   const [outletName, setOutletName] = useState("");
   const [address1, setAddress1] = useState("");
   const [address2, setAddress2] = useState("");
@@ -46,12 +40,12 @@ const OutletAdd = ({ navigation }: StockProps): React.JSX.Element => {
   const [contactPerson, setContactPerson] = useState("");
   const [mobile, setMobile] = useState("");
   const [category, setCategory] = useState("");
-  // const [selectedValue, setSelectedValue] = useState('');
   const [image, setImage] = useState<string | null>(null);
-  //const territoryId = 1;
-  const routes = useSelector((state: any) => state.routes?.routes || []);
   const loading = useSelector((state: any) => state.outlet?.loading);
   const error = useSelector((state: any) => state.outlet?.error);
+
+
+
 
   useEffect(() => {
     if (
@@ -62,15 +56,14 @@ const OutletAdd = ({ navigation }: StockProps): React.JSX.Element => {
       dispatch(fetchRoutesByTerritoryId(territoryId));
       console.log("Fetching routes for territoryId:", territoryId);
     }
-  }, [territoryId]);
+  }, [territoryId, dispatch]);
 
   if (loading) return <ActivityIndicator />;
   if (error)
     return <Text style={{ color: "red" }}>{error.error || error}</Text>;
 
-  console.log("Selected Route:", roots);
-  // Hardcode the territoryId for testing/demo purposes
-  // Remove/comment this line in production!
+  console.log("Selected Route:", Route.routes);
+
 
   const takePhoto = async () => {
     const { status } = await ImagePicker.requestCameraPermissionsAsync();
@@ -131,13 +124,25 @@ const OutletAdd = ({ navigation }: StockProps): React.JSX.Element => {
 
           <View style={styles.field}>
             <Text>Select Route:</Text>
+            {/* <Picker
+              selectedValue={selectedRoute}
+              onValueChange={(itemValue) => {
+                setSelectedRoute(itemValue);
+                const selected = (routes || []).find((route: any) => route.id === itemValue);
+                if (selected) {
+                  console.log("Selected Route Name...............:", selected.routeName);
+                }
+              }}
+              style={{ height: 50, width: 250 }}
+            > */}
+
             <Picker
               selectedValue={selectedRoute}
               onValueChange={(itemValue) => setSelectedRoute(itemValue)}
-              style={{ height: 50, width: 250 }}
+               style={styles.picker}
             >
               <Picker.Item label="Select a route" value="" />
-              {(routes || []).map((route: any) => (
+              {(Route.routes || []).map((route: any) => (
                 <Picker.Item
                   key={route.id}
                   label={route.routeName}

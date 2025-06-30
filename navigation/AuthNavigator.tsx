@@ -2,19 +2,19 @@ import React from "react";
 import { createStackNavigator } from "@react-navigation/stack";
 import LoginScreen from "../screens/LoginScreen";
 import AuthLoading from "../screens/AuthLoading";
-import DayStart from "@/screens/DayStart";
-import CreateInvoice from "@/screens/InvoiceScreen/CreateInvoice";
+import DayStart from "../screens/DayStart";
+import CreateInvoice from "../screens/InvoiceScreen/CreateInvoice";
 import BottomTabNavigation from "./BottomTabNavigator";
-import HomeScreen from "@/screens/HomeScreen";
-import CreateInvoiceScreen from "@/screens/InvoiceScreen/CreateInvoiceScreen";
-import ItemDetailsScreen from "@/screens/InvoiceScreen/ItemDetailsScreen";
-import InvoiceFinish from "@/screens/InvoiceScreen/InvoiceFinish";
-import Stock from "@/screens/Stock";
-import OutletAdd from "@/screens/OutletScreen/OutletAdd";
-import HomeReport from "@/screens/ReportScreen/HomeReport";
-import UpdateOutlet from "@/screens/OutletScreen/UpdateOutlet";
-import Survey from "@/screens/SurveyScreen/Survey"
-import HomeSurvery from "@/screens/SurveyScreen/HomeSurvey";
+import HomeScreen from "../screens/HomeScreen";
+import CreateInvoiceScreen from "../screens/InvoiceScreen/CreateInvoiceScreen";
+import ItemDetailsScreen from "../screens/InvoiceScreen/ItemDetailsScreen";
+import InvoiceFinish from "../screens/InvoiceScreen/InvoiceFinish";
+import Stock from "../screens/Stock";
+import OutletAdd from "../screens/OutletScreen/OutletAdd";
+import HomeReport from "../screens/ReportScreen/HomeReport";
+import UpdateOutlet from "../screens/OutletScreen/UpdateOutlet";
+import Survey from "../screens/SurveyScreen/Survey"
+import HomeSurvery from "../screens/SurveyScreen/HomeSurvey";
 
 // Define all route names exactly as they will be used in <Stack.Screen name="...">
 export type RootStackParamList = {

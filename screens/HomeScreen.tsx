@@ -3,11 +3,15 @@ import { View, Text, StyleSheet, ScrollView, TouchableOpacity, TextInput } from 
 import { Ionicons } from '@expo/vector-icons';
 import { Dropdown } from 'react-native-element-dropdown';
 import AntDesign from '@expo/vector-icons/AntDesign';
+import { useAppDispatch, useAppSelector } from "../store/Hooks";
+
+
+
 
 const HomeScreen = () => {
   const [monthlyTarget, setMonthlyTarget] = useState('');
   const [monthlyGrowth, setMonthlyGrowth] = useState('');
-
+  const userLoginResponse = useAppSelector((state) => state.login.user);
 
  const data = [
     { label: 'Item 1', value: '1' },
@@ -25,7 +29,7 @@ const HomeScreen = () => {
   const [value, setValue] = useState(null);
     const [isFocus, setIsFocus] = useState(false);
 
- 
+
 
   return (
     <ScrollView style={styles.container}>
@@ -40,6 +44,18 @@ const HomeScreen = () => {
         </TouchableOpacity>
       </View>
 
+
+      <View style={styles.card}>
+        <Text style={styles.cardTitle}>Welcome</Text>
+      
+
+        <Text style={styles.input}>User Name: {userLoginResponse.data.userName}</Text>
+
+       <Text style={[styles.input, { marginTop: 12 }]}>Hello: {userLoginResponse.data.personalName}</Text>
+      
+        <Text style={[styles.input, { marginTop: 12 }]}>Territory Name: {userLoginResponse.data.territoryName}</Text>
+      </View>
+
       <View style={styles.card}>
         <Text style={styles.cardTitle}>Monthly Target</Text>
         <TextInput
@@ -51,7 +67,7 @@ const HomeScreen = () => {
       </View>
 
       <View style={styles.card}>
-        <Text style={styles.cardTitle}>Monthly Growth</Text>
+        <Text style={styles.cardTitle}>Monthly Achievement</Text>
         <TextInput
           style={styles.input}
           placeholder="Enter Monthly Growth"
@@ -99,7 +115,7 @@ const HomeScreen = () => {
         
                 <Text style={styles.cardTitle}>Soya</Text>
                  <Text style={styles.cardTitle}>1200pkt</Text>
-                  <Text style={styles.cardTitle}> Progress</Text>
+                  <Text style={styles.cardTitle}> Achievement</Text>
                    <Text style={styles.cardTitle}>10%</Text>
       </View>
       </View>
@@ -158,12 +174,12 @@ const styles = StyleSheet.create({
   },
   input: {
     backgroundColor: '#F5F5F5',
-    borderWidth: 1,
+   /// borderWidth: 1,
     borderColor: '#E0E0E0',
     borderRadius: 8,
     padding: 10,
     fontSize: 16,
-    color: '#333',
+    //color: '#333',
   },
  
   actionsContainer: {

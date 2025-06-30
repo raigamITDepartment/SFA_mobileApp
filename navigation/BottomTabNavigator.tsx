@@ -1,11 +1,11 @@
 import React from "react";
 import { StyleSheet } from "react-native";
 import BottomTabNavigationBar from "../components/ui/BottomTabNavigator";
-import CreateInvoice from "@/screens/InvoiceScreen/CreateInvoice";
+import CreateInvoice from "../screens/InvoiceScreen/CreateInvoice";
 import HomeScreen from "../screens/HomeScreen";
-import HomeReport from "@/screens/ReportScreen/HomeReport";
-import HomeOutlet from "@/screens/OutletScreen/HomeOutlet";
-import HomeSurvey from "@/screens/SurveyScreen/HomeSurvey";
+import HomeReport from "../screens/ReportScreen/HomeReport";
+import HomeOutlet from "../screens/OutletScreen/HomeOutlet";
+import HomeSurvey from "../screens/SurveyScreen/HomeSurvey";
 import UDImages from "../UDImages";
 import UDColors from "../constants/UDColors";
 
