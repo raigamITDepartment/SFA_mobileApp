@@ -8,9 +8,6 @@
     "scheme": "raigamsfa",
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
-    "splash": {
-      "backgroundColor": "#FFFFFF"
-    },
     "ios": {
       "supportsTablet": true,
       "bundleIdentifier": "com.raigam.Raigamsfa"
@@ -21,7 +18,8 @@
         "backgroundColor": "#0C056D"
       },
       "edgeToEdgeEnabled": true,
-      "package": "com.raigams.Raigamsfa"
+      "package": "com.raigams.Raigamsfa",
+      "proguard": true
     },
     "web": {
       "bundler": "metro",
@@ -33,11 +31,9 @@
       [
         "expo-splash-screen",
         {
-          "backgroundColor": "#232323",
-          "image": "./assets/images/splash-icon.png",
-          "resizeMode": "contain",
-          "imageResizeMode": "contain",
-          "imageWidth": 1200
+          "backgroundColor": "#0C056D",
+          "image": "./assets/images/splash.png",
+          "resizeMode": "cover"
         }
       ],
       "expo-font",
