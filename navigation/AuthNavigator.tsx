@@ -24,24 +24,26 @@ export type RootStackParamList = {
     start: undefined;
     Home: undefined;
     DashBoard: undefined;
-    CreateInvoice: undefined;
-    CreateInvoiceScreen:undefined;
-    ItemDetailsScreen: undefined;
+    CreateInvoice: { customerId?: string; invoiceType?: string; invoiceMode?: string } | undefined;
+    CreateInvoiceScreen: { customerId: string; customerName: string; invoiceType: string; invoiceMode: string };
+    ItemDetailsScreen: { customerName: string ;itemName: string };
     InvoiceFinish:undefined;
     Stock:undefined;
     OutletAdd:undefined;
     UpdateOutlet:undefined;
     HomeReport:undefined;
     Survey:undefined;
-    HomeSurvery:undefined
-    
+    HomeSurvey:undefined;
+ 
 
 };
 
 const Stack = createStackNavigator<RootStackParamList>();
 
 const AuthNavigator = () => (
-  <Stack.Navigator initialRouteName="AuthLoading" screenOptions={{ headerShown: false }}>
+  <Stack.Navigator initialRouteName="start" screenOptions={{ headerShown: false }}>
+   
+   
     <Stack.Screen name="AuthLoading" component={AuthLoading} />
     <Stack.Screen name="Login" component={LoginScreen} />
     <Stack.Screen name="start" component={DayStart} />

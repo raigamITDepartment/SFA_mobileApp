@@ -1,7 +1,12 @@
 import { AnyAction, ThunkAction } from "@reduxjs/toolkit";
 import { RootState } from "../store";
 import { setLoading, setSuccess, setError } from "../reducers/LoginReducer";
-
+import {
+  setLogoutLoading,
+  setLogoutSuccess,
+  setLogoutError,
+} from "../reducers/LogoutReducer";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 import { userManagementApi } from "../services/Api";
 
 
@@ -47,9 +52,39 @@ const loginUser = (
 //   };
 // };
 
+const logoutUser = (
+  data: { latitude: number; longitude: number; dayend: number }
+): ThunkAction<void, RootState, unknown, AnyAction> => {
+  return async (dispatch) => {
+    dispatch(setLogoutLoading());
+    console.log("Logout Data:", data);
+    try {
+      const token = await AsyncStorage.getItem("userToken");
+
+      await userManagementApi().post(
+        `/api/v1/auth/logout`,
+        data,
+        {
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+
+      await AsyncStorage.removeItem("userToken");
+      dispatch(setLogoutSuccess());
+    } catch (error: any) {
+      console.error("Logout error:", error.response?.data || error.message);
+      dispatch(setLogoutError(error.response?.data || error.message));
+    }
+  };
+};
+
 
 export {
   loginUser,
+  logoutUser
  // loginByEmail,
  // loginByToken,
 

@@ -5,7 +5,7 @@ import {
   TextInput,
   TouchableOpacity,
   StyleSheet,
-  StatusBar,
+  Alert,
 } from "react-native";
 import { useDispatch, useSelector } from "react-redux";
 import { Picker } from "@react-native-picker/picker";
@@ -18,12 +18,10 @@ import type { AppDispatch } from "../../store"; // adjust the path as needed
 import { fetchRoutesByTerritoryId } from "../../actions/OutletAction";
 
 type RootStackParamList = {
-  // Survey: undefined;
-  // HomeSurvey:undefined
-  // Home: undefined;
   HomeScreen: undefined;
-  CreateInvoice: undefined;
-  CreateInvoiceScreen: undefined;
+  CreateInvoice: { customerId?: string; invoiceType?: string; invoiceMode?: string } | undefined;
+  // This should be defined in your main navigator's param list (e.g., AuthNavigator.tsx)
+  CreateInvoiceScreen: { customerId: string; customerName: string; invoiceType: string; invoiceMode: string };
 };
 
 type CreateInvoiceProps = NativeStackScreenProps<
@@ -31,13 +29,21 @@ type CreateInvoiceProps = NativeStackScreenProps<
   "CreateInvoice"
 >;
 
+const customers = [
+  { id: 'customerA', name: 'Pathirana Super City' },
+  { id: 'customerB', name: 'Customer B' },
+    { id: 'customerC', name: 'Super K' },
+];
+
 const CreateInvoice = ({
   navigation,
+  route,
 }: CreateInvoiceProps): React.JSX.Element => {
   const dispatch: AppDispatch = useDispatch();
-  const [selectedRoute, setSelectedRoute] = useState("");
-  const [selectedCustomer, setSelectedCustomer] = useState("");
-  const [invoiceType, setInvoiceType] = useState("");
+  const [selectedRoute, setSelectedRoute] = useState<string>("");
+  const [selectedCustomer, setSelectedCustomer] = useState<string>("");
+  const [invoiceType, setInvoiceType] = useState<string>("");
+  const [invoiceMode, setInvoiceMode] = useState<string>("");
   const territoryId = useSelector(
     (state: any) => state.login?.user?.data?.territoryId
   );
@@ -54,6 +60,40 @@ const CreateInvoice = ({
     }
   }, [territoryId, dispatch]);
 
+  useEffect(() => {
+    if (route.params) {
+      if (route.params.customerId) {
+        setSelectedCustomer(route.params.customerId);
+      }
+      if (route.params.invoiceType) {
+        setInvoiceType(route.params.invoiceType);
+      }
+      if (route.params.invoiceMode) {
+        setInvoiceMode(route.params.invoiceMode);
+      }
+    }
+  }, [route.params]);
+
+  const handleCreateInvoice = () => {
+    if (!selectedCustomer || !invoiceType || !invoiceMode) {
+      Alert.alert(
+        "Missing Information",
+        "Please select a customer, invoice type, and invoice mode before proceeding."
+      );
+      return;
+    }
+
+    const customer = customers.find(c => c.id === selectedCustomer);
+    // The customer should always be found if selectedCustomer is not empty, but this is good practice.
+    if (customer) {
+      navigation.navigate('CreateInvoiceScreen', {
+        customerId: customer.id,
+        customerName: customer.name,
+        invoiceType: invoiceType,
+        invoiceMode: invoiceMode,
+      });
+    }
+  };
   return (
     <LinearGradient colors={["#ff6666", "#ff0000"]} style={styles.container}>
       <View style={styles.header}>
@@ -109,8 +149,9 @@ const CreateInvoice = ({
             style={styles.picker}
           >
             <Picker.Item label="Select Customer" value="" />
-            <Picker.Item label="Customer A" value="customerA" />
-            <Picker.Item label="Customer B" value="customerB" />
+            {customers.map(customer => (
+              <Picker.Item key={customer.id} label={customer.name} value={customer.id} />
+            ))}
           </Picker>
         </View>
 
@@ -121,6 +162,7 @@ const CreateInvoice = ({
             onValueChange={(itemValue) => setInvoiceType(itemValue)}
             style={styles.picker}
           >
+            <Picker.Item label="Select Invoice Type" value="" />
             <Picker.Item label="Normal Invoice " value="Normal" />
             <Picker.Item label="Agency Direct Invoice" value="Agency" />
             <Picker.Item label="Company Direct Invoice" value="Company" />
@@ -130,10 +172,11 @@ const CreateInvoice = ({
         <View style={styles.formGroup}>
           <Text style={styles.label}>Invoice Mode</Text>
           <Picker
-            selectedValue={invoiceType}
-            onValueChange={(itemValue) => setInvoiceType(itemValue)}
+            selectedValue={invoiceMode}
+            onValueChange={(itemValue) => setInvoiceMode(itemValue)}
             style={styles.picker}
           >
+            <Picker.Item label="Select Invoice Mode" value="" />
             <Picker.Item label="Booking" value="Booking" />
             <Picker.Item label="Actual" value="Actual" />
           </Picker>
@@ -145,10 +188,7 @@ const CreateInvoice = ({
           </TouchableOpacity>
           <TouchableOpacity
             style={[styles.button, styles.createButton]}
-            onPress={() => {
-              console.log("Navigating to CreateInvoiceScreen");
-              navigation.navigate("CreateInvoiceScreen");
-            }}
+            onPress={handleCreateInvoice}
           >
             <Text style={styles.buttonText}>Create Invoice</Text>
           </TouchableOpacity>

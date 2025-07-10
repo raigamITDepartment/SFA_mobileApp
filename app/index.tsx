@@ -4,7 +4,7 @@ import { ActivityIndicator, View, Alert, Linking, Platform } from "react-native"
 import { Provider } from "react-redux";
 import store from "../store";
 import AuthNavigator from '../navigation/AuthNavigator';
-
+import { InvoiceProvider } from '../context/InvoiceContext';
 import Constants from 'expo-constants';
 
 const UPDATE_JSON_URL ='https://firebasestorage.googleapis.com/v0/b/sfamobile-1eab9.firebasestorage.app/o/version.json?alt=media&token=f27ff58b-2836-4d2a-bb6e-5c1dea6ac87c';
@@ -80,7 +80,11 @@ export default function App() {
 
   return (
     <Provider store={store}>
+      <InvoiceProvider>
+
       <AuthNavigator />
+      </InvoiceProvider>
+     
     </Provider>
   );
 }
