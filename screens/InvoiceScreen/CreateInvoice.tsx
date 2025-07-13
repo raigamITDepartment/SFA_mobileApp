@@ -77,7 +77,7 @@ const CreateInvoice = ({
   const handleCreateInvoice = () => {
     if (!selectedCustomer || !invoiceType || !invoiceMode) {
       Alert.alert(
-        "Missing Information",
+        "Can't Create the Bill",
         "Please select a customer, invoice type, and invoice mode before proceeding."
       );
       return;

@@ -6,7 +6,7 @@ import { RootStackParamList } from '@/navigation/AuthNavigator';
 
 type StockProps = NativeStackScreenProps<RootStackParamList, 'Stock'>;
 
-const Stock = ({ navigation }: StockProps): React.JSX.Element => {
+const Stock = ({ navigation }: StockProps): React.ReactElement => {
   const [searchText, setSearchText] = useState("");
   const stockData = [
     { id: "1", product: "Deveni Batha Kotthu Mix White", qty: 20, uom: "Pkt" },

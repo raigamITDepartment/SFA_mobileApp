@@ -12,7 +12,7 @@ type UpdateOutletProps = NativeStackScreenProps<RootStackParamList, 'UpdateOutle
 
 
 
-const UpdateOutlet = ({ navigation }: UpdateOutletProps): React.JSX.Element => {
+const UpdateOutlet = ({ navigation }: UpdateOutletProps): React.ReactElement => {
 // UpdateOutletScreen Component
 
   const [route, setRoute] = useState("");

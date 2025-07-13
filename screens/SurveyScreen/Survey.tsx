@@ -1,31 +1,18 @@
 import React from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, ScrollView } from 'react-native';
+import { View, Text, StyleSheet, ScrollView } from 'react-native';
 import { Picker } from '@react-native-picker/picker'; // Import Picker from the correct package
-import type { NativeStackScreenProps } from '@react-navigation/native-stack';
-//import { RootStackParamList } from '@/screens/SurveyScreen/App';
+import type { StackScreenProps } from '@react-navigation/stack';
+import { RootStackParamList } from '../../navigation/AuthNavigator';
 import { Ionicons } from '@expo/vector-icons';
 
-type RootStackParamList = {
- 
-  Home:undefined;
-  Survey:undefined;
-  HomeSurvey:undefined
-  
-};
-
-
-type SurveyProps = NativeStackScreenProps<RootStackParamList, 'Survey'>;
+type SurveyProps = StackScreenProps<RootStackParamList, 'Survey'>;
 
 const Survey = ({ navigation }: SurveyProps): React.JSX.Element => {
   return (
     <ScrollView style={styles.container}>
       {/* Header */}
          <View style={styles.header}>
-        <Ionicons name="arrow-back-outline" size={28} color="white" 
-        
-        onPress={() => navigation.navigate('Home')}
-        
-        />
+        <Ionicons name="arrow-back-outline" size={28} color="white" onPress={() => navigation.goBack()} />
         <Text style={styles.title}>Raigam</Text>
         <Ionicons name="notifications-outline" size={28} color="white" />
       </View>

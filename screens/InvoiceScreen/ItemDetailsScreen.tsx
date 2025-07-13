@@ -37,23 +37,24 @@ const LabelInput: React.FC<LabelInputProps> = ({ label, value, onChangeText = ()
 type ItemDetailsScreenProps = NativeStackScreenProps<RootStackParamList, 'ItemDetailsScreen'>;
 
 const ItemDetailsScreen = ({ navigation, route }: ItemDetailsScreenProps): React.JSX.Element => {
-  const { customerName, itemName } = route.params;
+  const { customerName, item } = route.params;
+  const { itemName } = item;
 
-  const [unitPrice, setUnitPrice] = useState('100.00');
-  const [unitPriceGR, setUnitPriceGR] = useState('0');
-  const [unitPriceMR, setUnitPriceMR] = useState('0');
-  const [quantity, setQuantity] = useState('0');
-  const [specialDiscount, setSpecialDiscount] = useState('0');
-  const [freeIssue, setFreeIssue] = useState('0');
+  const [unitPrice, setUnitPrice] = useState(item.unitPrice || '100.00');
+  const [unitPriceGR, setUnitPriceGR] = useState(item.unitPriceGR || '0');
+  const [unitPriceMR, setUnitPriceMR] = useState(item.unitPriceMR || '0');
+  const [quantity, setQuantity] = useState(item.quantity || '0');
+  const [specialDiscount, setSpecialDiscount] = useState(item.specialDiscount || '0');
+  const [freeIssue, setFreeIssue] = useState(item.freeIssue || '0');
   const [showGoodReturn, setShowGoodReturn] = useState(false);
   const [showMarketReturn, setShowMarketReturn] = useState(false);
-  const [goodReturnQty, setGoodReturnQty] = useState('0');
-  const [goodReturnFreeQty, setGoodReturnFreeQty] = useState('0');
+  const [goodReturnQty, setGoodReturnQty] = useState(item.goodReturnQty || '0');
+  const [goodReturnFreeQty, setGoodReturnFreeQty] = useState(item.goodReturnFreeQty || '0');
   const [goodReturnTotal, setGoodReturnTotal] = useState('0');
-  const [marketReturnQty, setMarketReturnQty] = useState('0');
-  const [marketReturnFreeQty, setMarketReturnFreeQty] = useState('0');
+  const [marketReturnQty, setMarketReturnQty] = useState(item.marketReturnQty || '0');
+  const [marketReturnFreeQty, setMarketReturnFreeQty] = useState(item.marketReturnFreeQty || '0');
   const [marketReturnTotal, setMarketReturnTotal] = useState('0');
-  const [lineTotal, setLineTotal] = useState('0');
+  const [lineTotal, setLineTotal] = useState(item.lineTotal || '0');
 
   useEffect(() => {
     const parse = (val: string) => parseFloat(val) || 0;
@@ -79,7 +80,7 @@ const ItemDetailsScreen = ({ navigation, route }: ItemDetailsScreenProps): React
     const finalTotal = discountedAmount - goodTotal - marketTotal;
 
     setLineTotal(finalTotal.toFixed(2));
-  }, [unitPrice, quantity, freeIssue, specialDiscount, goodReturnQty, goodReturnFreeQty, marketReturnQty, marketReturnFreeQty]);
+  }, [unitPrice, quantity, freeIssue, specialDiscount, goodReturnQty,unitPriceGR ,goodReturnFreeQty, marketReturnQty,unitPriceMR, marketReturnFreeQty]);
 
   const handleSave = async () => {
     const itemData = {
@@ -93,6 +94,8 @@ const ItemDetailsScreen = ({ navigation, route }: ItemDetailsScreenProps): React
       marketReturnQty,
       marketReturnFreeQty,
       lineTotal,
+      unitPriceGR,
+      unitPriceMR,
     };
 
     try {

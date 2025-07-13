@@ -18,8 +18,8 @@
         "backgroundColor": "#0C056D"
       },
       "edgeToEdgeEnabled": true,
-      "package": "com.raigams.Raigamsfa",
-      "proguard": true
+      "package": "com.raigams.Raigamsfa"
+     
     },
     "web": {
       "bundler": "metro",

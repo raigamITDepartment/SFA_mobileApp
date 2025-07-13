@@ -1,4 +1,4 @@
-import React, { useState, createRef, useEffect } from "react";
+import React, { useState, useEffect } from "react";
 import {
   StyleSheet,
   TextInput,
@@ -6,7 +6,6 @@ import {
   Text,
   ScrollView,
   Image,
-
   Pressable,
   TouchableOpacity,
   KeyboardAvoidingView,
@@ -16,10 +15,10 @@ import { useAppDispatch, useAppSelector } from "../store/Hooks";
 import UDColors from "../constants/UDColors";
 import UDImages from "../UDImages";
 import Checkbox from "expo-checkbox";
-import type { NativeStackNavigationProp } from "@react-navigation/native-stack";
+import { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import { LinearGradient } from "expo-linear-gradient";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
-import { loginUser } from "../actions/UserAction"; // Correct import
+import { loginUser } from "../actions/UserAction";
 import {
   setUserName as setAsyncUserName,
   setPassword as setAsyncPassword,
@@ -28,42 +27,31 @@ import {
   getUserName as getAsyncUserName,
   getPassword as getAsyncPassword,
   setToken as setAsyncToken,
-  getToken as getAsyncToken,
 } from "../services/AsyncStoreService";
-type Props = object;
 
 type LoginScreenProps = {
   navigation: NativeStackNavigationProp<any>;
 };
 
-const LoginScreen = ({ navigation }: LoginScreenProps, props: Props) => {
-  const [userName, setUserName] = useState<any>("");
-  const [password, setPassword] = useState<any>("");
+const LoginScreen = ({ navigation }: LoginScreenProps) => {
+  const [userName, setUserName] = useState(""); // 👈 Hardcoded
+  const [password, setPassword] = useState(""); // 👈 Hardcoded
   const [rememberMe, setRememberMe] = useState(false);
   const [error, setError] = useState({ field: "", message: "" });
   const userLoginResponse = useAppSelector((state) => state.login.user);
-  const [loginButtonPressed, setLoginButtonPressed] = useState(false);
-  //const passwordInputRef = createRef<TextInput>();
   const dispatch = useAppDispatch();
+  const [loginButtonPressed, setLoginButtonPressed] = useState(false);
   const [passwordVisibility, setPasswordVisibility] = useState(true);
-  const [rightIcon, setRightIcon] = useState<any>("eye");
-  const [verifiedByUserNameAndPassword, setVerifiedByUserNameAndPassword] =
-    useState(false);
+  const [rightIcon, setRightIcon] = useState("eye");
+  const [verifiedByUserNameAndPassword, setVerifiedByUserNameAndPassword] = useState(false);
 
   useEffect(() => {
-    console.log("LoginScreen useEffect called");
-    // Check if token exists
     fillCredentials();
   }, []);
 
   const handlePasswordVisibility = () => {
-    if (rightIcon === "eye") {
-      setRightIcon("eye-off");
-      setPasswordVisibility(!passwordVisibility);
-    } else if (rightIcon === "eye-off") {
-      setRightIcon("eye");
-      setPasswordVisibility(!passwordVisibility);
-    }
+    setRightIcon((prev) => (prev === "eye" ? "eye-off" : "eye"));
+    setPasswordVisibility((prev) => !prev);
   };
 
   const fillCredentials = async () => {
@@ -71,195 +59,142 @@ const LoginScreen = ({ navigation }: LoginScreenProps, props: Props) => {
     const un = await getAsyncUserName();
     const ps = await getAsyncPassword();
     if (rm === "Y") {
-      setUserName(un);
-      setPassword(ps);
-    }
+    setUserName(un ?? ""); // ✅ fallback to empty string if null
+    setPassword(ps ?? "");
   };
-
-  // const verifyToken = async () => {
-  //   const tkn = await getAsyncToken();
-  //  // dispatch(loginByToken({ token: tkn, userTypeId: 2 }));
-  // };
+  };
 
   const verifyUserNameAndPassword = React.useCallback(async () => {
     setVerifiedByUserNameAndPassword(true);
     const un = await getAsyncUserName();
     const ps = await getAsyncPassword();
-    // const bioEnabled = (await getBioEnabled()) === "Y" ? true : false;
-    // if (bioEnabled && un && ps) {
-
-    // }
-
     dispatch(loginUser({ userName: un, password: ps }));
   }, [dispatch]);
 
   useEffect(() => {
-    if (userLoginResponse && userLoginResponse.data) {
-      console.log("User Login Response by screen: ");
-      console.log(userLoginResponse);
-
-      // Save credentials and token if login was triggered by button
+    if (userLoginResponse?.data) {
       if (loginButtonPressed) {
         setAsyncUserName(userName);
         setAsyncPassword(password);
         setAsyncRememberMe(rememberMe ? "Y" : "N");
       }
+
       if (userLoginResponse.data.token) {
         setAsyncToken(userLoginResponse.data.token);
-        console.log("Token saved GPS Status: ", userLoginResponse.data.gpsStatus);
         if (userLoginResponse.data.gpsStatus === false) {
           navigation.navigate("start");
-        } else if (userLoginResponse.data.gpsStatus === true) {
+        } else {
           navigation.navigate("Home");
         }
       }
     }
-    if (
-      userLoginResponse &&
-      userLoginResponse.error &&
-      userLoginResponse.error.length > 0
-    ) {
+
+    if (userLoginResponse?.error?.length > 0) {
       if (loginButtonPressed) {
-        let loginError = {
-          field: "fieldValidation",
-          message: titles.loginError,
-        };
-        setError(loginError);
-      } else {
-        if (!verifiedByUserNameAndPassword) {
-          verifyUserNameAndPassword();
-        }
+        setError({ field: "fieldValidation", message: titles.loginError });
+      } else if (!verifiedByUserNameAndPassword) {
+        verifyUserNameAndPassword();
       }
     }
+
     setLoginButtonPressed(false);
   }, [
     userLoginResponse,
     loginButtonPressed,
-    navigation,
+    userName,
     password,
     rememberMe,
-    userName,
+    navigation,
     verifiedByUserNameAndPassword,
     verifyUserNameAndPassword,
   ]);
 
   const onLoginPress = () => {
     let loginError = { field: "", message: "" };
-    if (userName === "" && password === "") {
-
-      loginError.field = "fieldValidation";
-      loginError.message = titles.userNameAndPasswordRequired;
-      setError(loginError);
-    } else if (userName === "") {
-      loginError.field = "fieldValidation";
-      loginError.message = titles.requiredUserName;
-      setError(loginError);
-    } else if (password === "") {
-      loginError.field = "fieldValidation";
-      loginError.message = titles.requiredPassword;
-      setError(loginError);
+    if (!userName && !password) {
+      loginError = {
+        field: "fieldValidation",
+        message: titles.userNameAndPasswordRequired,
+      };
+    } else if (!userName) {
+      loginError = {
+        field: "fieldValidation",
+        message: titles.requiredUserName,
+      };
+    } else if (!password) {
+      loginError = {
+        field: "fieldValidation",
+        message: titles.requiredPassword,
+      };
     } else {
       setLoginButtonPressed(true);
       setError({ field: "", message: "" });
-      dispatch(loginUser({ userName: userName, password: password }));
-     
+      dispatch(loginUser({ userName, password }));
+      return;
     }
+
+    setError(loginError);
   };
 
   return (
     <View style={styles.mainBody}>
-      {/* <Loader loading={loading} /> */}
-
       <LinearGradient colors={["#ff6666", "#ff0000"]} style={styles.gradient}>
-        <ScrollView
-          keyboardShouldPersistTaps="handled"
-          contentContainerStyle={{
-            flex: 1,
-            justifyContent: "center",
-            alignContent: "center",
-          }}
-        >
-          <View>
-            <KeyboardAvoidingView enabled>
-              <View style={{ alignItems: "center" }}>
-                <Image
-                  source={UDImages.splashLogo}
-                  style={{
-                    width: "50%",
-                    height: 100,
-                    resizeMode: "contain",
-                    margin: 30,
-                  }}
-                />
-              </View>
-              <View style={styles.SectionStyle}>
-                <TextInput
-                  value={userName}
-                  style={styles.inputStyle}
-                  onChangeText={(newText) => setUserName(newText)}
-                  placeholderTextColor="#0C056D"
-                  //  style={styles.inputText}
-                  placeholder={titles.userName}
-                  maxLength={30}
-                />
-              </View>
-              <View style={styles.SectionStyle}>
-                
-                <TextInput
-                  style={styles.inputStyle}
-                  value={password}
-                  onChangeText={(newText) => setPassword(newText)}
-                  placeholderTextColor="#0C056D"
-                  secureTextEntry={passwordVisibility}
-                  placeholder={titles.password}
-                  maxLength={30}
-                />
+        <ScrollView keyboardShouldPersistTaps="handled" contentContainerStyle={{ flex: 1, justifyContent: "center", alignContent: "center" }}>
+          <KeyboardAvoidingView enabled>
+            <View style={{ alignItems: "center" }}>
+              <Image
+                source={UDImages.splashLogo}
+                style={{ width: "50%", height: 100, resizeMode: "contain", margin: 30 }}
+              />
+            </View>
 
-          
-                  <Pressable
-                    style={styles.eyeIcon}
-                    onPress={handlePasswordVisibility}
-                  >
-                    <MaterialCommunityIcons
-                      name={rightIcon}
-                      size={22}
-                      color="#0C056D"
-                    />
-                  </Pressable>
-            
-              </View>
+            <View style={styles.SectionStyle}>
+              <TextInput
+                value={userName}
+                style={styles.inputStyle}
+                onChangeText={setUserName}
+                placeholderTextColor="#0C056D"
+                placeholder={titles.userName}
+                maxLength={30}
+              />
+            </View>
 
-              {error.field === "fieldValidation" ? (
-                <Text style={styles.errorTextStyle}>{error.message}</Text>
-              ) : null}
+            <View style={styles.SectionStyle}>
+              <TextInput
+                style={styles.inputStyle}
+                value={password}
+                onChangeText={setPassword}
+                placeholderTextColor="#0C056D"
+                secureTextEntry={passwordVisibility}
+                placeholder={titles.password}
+                maxLength={30}
+              />
+              <Pressable style={styles.eyeIcon} onPress={handlePasswordVisibility}>
+                <MaterialCommunityIcons   name={rightIcon as any} size={22} color="#0C056D" />
+              </Pressable>
+            </View>
 
-              <View style={styles.leftAlign}>
-                <Checkbox
-                  style={styles.checkbox}
-                  value={rememberMe}
-                  onValueChange={setRememberMe}
-                />
-                <Text style={styles.rememberMe}>{titles.rememberMe}</Text>
-              </View>
-              <TouchableOpacity
-                style={styles.buttonStyle}
-                activeOpacity={0.5}
-                onPress={() => {
-                  console.log("LOGIN button clicked ✅");
-                  onLoginPress();
-                }}
-              >
-                <Text style={styles.buttonTextStyle}>LOGIN</Text>
-              </TouchableOpacity>
-             
-            </KeyboardAvoidingView>
-          </View>
+            {error.field === "fieldValidation" ? (
+              <Text style={styles.errorTextStyle}>{error.message}</Text>
+            ) : null}
+
+            <View style={styles.leftAlign}>
+              <Checkbox style={styles.checkbox} value={rememberMe} onValueChange={setRememberMe} />
+              <Text style={styles.rememberMe}>{titles.rememberMe}</Text>
+            </View>
+
+            <TouchableOpacity style={styles.buttonStyle} activeOpacity={0.5} onPress={onLoginPress}>
+              <Text style={styles.buttonTextStyle}>LOGIN</Text>
+            </TouchableOpacity>
+          </KeyboardAvoidingView>
         </ScrollView>
       </LinearGradient>
     </View>
   );
 };
+
 export default LoginScreen;
+
 
 const styles = StyleSheet.create({
   gradient: {

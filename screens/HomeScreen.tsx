@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   View,
   Text,
@@ -7,6 +7,7 @@ import {
   TouchableOpacity,
   TextInput,
   Alert,
+  BackHandler
 } from "react-native";
 
 import { Dropdown } from "react-native-element-dropdown";
@@ -16,10 +17,16 @@ import Entypo from "@expo/vector-icons/Entypo";
 import * as Location from "expo-location";
 import { useAppDispatch, useAppSelector } from "../store/Hooks";
 import type { NativeStackScreenProps } from "@react-navigation/native-stack";
-import { RootStackParamList } from "../navigation/AuthNavigator";
 import { logoutUser } from "../actions/UserAction";
+// import useBackToHome from '../store/UseBackToHome';
 
-type HomeScreenProps = NativeStackScreenProps<RootStackParamList, "DashBoard">;
+type RootStackParamList = {
+  HomeScreen: undefined;
+  Login: undefined;
+  start: undefined;
+};
+
+type HomeScreenProps = NativeStackScreenProps<RootStackParamList, "HomeScreen">;
 
 const HomeScreen = ({ navigation }: HomeScreenProps) => {
   const dispatch = useAppDispatch();
@@ -28,14 +35,12 @@ const HomeScreen = ({ navigation }: HomeScreenProps) => {
   const [monthlyTarget, setMonthlyTarget] = useState("");
   const [achievementValue, setAchievementValue] = useState("");
   const [achievementPercentage, setAchievementPercentage] = useState("");
-
   const [pcTarget, setPcTarget] = useState("");
   const [pcAchievement, setPcAchievement] = useState("");
-
+  const [pcUnproductive, setPcUnproductive] = useState("");
   const [activeOutlets, setActiveOutlets] = useState("");
   const [closedOutlets, setClosedOutlets] = useState("");
   const [visitedOutlets, setVisitedOutlets] = useState("");
-
   const [dropdownValue, setDropdownValue] = useState(null);
   const [isFocus, setIsFocus] = useState(false);
 
@@ -45,6 +50,16 @@ const HomeScreen = ({ navigation }: HomeScreenProps) => {
     { label: "Item 3", value: "3" },
     { label: "Item 4", value: "4" },
   ];
+
+  useEffect(() => {
+    const backAction = () => {
+      navigation.navigate("HomeScreen");
+      return true;
+    };
+
+    const backHandler = BackHandler.addEventListener("hardwareBackPress", backAction);
+    return () => backHandler.remove();
+  }, [navigation]);
 
   const handleLogout = () => {
     Alert.alert("Confirm Logout", "Are you sure you want to logout and end the day?", [
@@ -61,10 +76,10 @@ const HomeScreen = ({ navigation }: HomeScreenProps) => {
 
             let location = await Location.getCurrentPositionAsync({});
             const { latitude, longitude } = location.coords;
-            console.log("Current Location:", latitude, longitude,);
+            console.log("Current Location:", latitude, longitude);
 
             await dispatch(logoutUser({ latitude, longitude, dayend: 1 }));
-            navigation.replace("Login");
+            navigation.replace("Login"); // Use lowercase "login" if your screen name is defined like that
           } catch (error) {
             console.error("Logout error:", error);
             Alert.alert("Error", "Something went wrong while logging out.");
@@ -89,9 +104,9 @@ const HomeScreen = ({ navigation }: HomeScreenProps) => {
 
       <View style={styles.card}>
         <Text style={styles.cardTitle}>Welcome</Text>
-        <Text style={styles.input}>User Name: {userLoginResponse.data.userName}</Text>
-        <Text style={styles.input}>Hello: {userLoginResponse.data.personalName}</Text>
-        <Text style={styles.input}>Territory: {userLoginResponse.data.territoryName}</Text>
+        <Text style={styles.input}>User Name: {userLoginResponse?.data?.userName}</Text>
+        <Text style={styles.input}>Hello: {userLoginResponse?.data?.personalName}</Text>
+        <Text style={styles.input}>Territory: {userLoginResponse?.data?.territoryName}</Text>
       </View>
 
       <View style={styles.card}>
@@ -134,9 +149,15 @@ const HomeScreen = ({ navigation }: HomeScreenProps) => {
         />
         <TextInput
           style={styles.input}
-          placeholder="My Achievement PC Target:"
+          placeholder="My Achieved PC Target:"
           value={pcAchievement}
           onChangeText={setPcAchievement}
+        />
+        <TextInput
+          style={styles.input}
+          placeholder="My Unproductive calls:"
+          value={pcUnproductive}
+          onChangeText={setPcUnproductive}
         />
       </View>
 

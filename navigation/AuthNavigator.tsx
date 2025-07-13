@@ -14,7 +14,25 @@ import OutletAdd from "../screens/OutletScreen/OutletAdd";
 import HomeReport from "../screens/ReportScreen/HomeReport";
 import UpdateOutlet from "../screens/OutletScreen/UpdateOutlet";
 import Survey from "../screens/SurveyScreen/Survey"
-import HomeSurvery from "../screens/SurveyScreen/HomeSurvey";
+import HomeSurvey from "../screens/SurveyScreen/HomeSurvey";
+import InvoiceSummaryScreen from "../screens/ReportScreen/InvoiceSummary";
+import StockLevelReportScreen from "../screens/ReportScreen/StockLevel";
+
+export type InvoiceItem = {
+  itemName: string;
+  unitPrice: string;
+  quantity: string;
+  specialDiscount: string;
+  freeIssue: string;
+  goodReturnQty: string;
+  goodReturnFreeQty: string;
+  marketReturnQty: string;
+  marketReturnFreeQty: string;
+  lineTotal: string;
+  unitPriceGR: string;
+  unitPriceMR: string;
+  category: string;
+};
 
 // Define all route names exactly as they will be used in <Stack.Screen name="...">
 export type RootStackParamList = {
@@ -23,32 +41,32 @@ export type RootStackParamList = {
     Login: undefined;
     start: undefined;
     Home: undefined;
-    DashBoard: undefined;
+    HomeScreen: undefined;
     CreateInvoice: { customerId?: string; invoiceType?: string; invoiceMode?: string } | undefined;
     CreateInvoiceScreen: { customerId: string; customerName: string; invoiceType: string; invoiceMode: string };
-    ItemDetailsScreen: { customerName: string ;itemName: string };
-    InvoiceFinish:undefined;
+    ItemDetailsScreen: { customerName: string; item: Partial<InvoiceItem> & { itemName: string } };
+    InvoiceFinish: { invoiceData: any };
     Stock:undefined;
     OutletAdd:undefined;
     UpdateOutlet:undefined;
     HomeReport:undefined;
     Survey:undefined;
     HomeSurvey:undefined;
- 
+    InvoiceSummary: undefined;
+    StockLevel: undefined;
+
 
 };
 
 const Stack = createStackNavigator<RootStackParamList>();
 
 const AuthNavigator = () => (
-  <Stack.Navigator initialRouteName="start" screenOptions={{ headerShown: false }}>
-   
-   
+  <Stack.Navigator initialRouteName="start" screenOptions={{ headerShown: false, gestureEnabled: false }}>
     <Stack.Screen name="AuthLoading" component={AuthLoading} />
     <Stack.Screen name="Login" component={LoginScreen} />
     <Stack.Screen name="start" component={DayStart} />
     <Stack.Screen name="Home" component={BottomTabNavigation} />
-    <Stack.Screen name="DashBoard" component={HomeScreen} />
+    <Stack.Screen name="HomeScreen" component={HomeScreen}   />
     <Stack.Screen name="CreateInvoice" component={CreateInvoice} />
     <Stack.Screen name="CreateInvoiceScreen" component={CreateInvoiceScreen} />
     <Stack.Screen name="ItemDetailsScreen" component={ItemDetailsScreen} />
@@ -58,8 +76,9 @@ const AuthNavigator = () => (
       <Stack.Screen name="UpdateOutlet" component={UpdateOutlet}/>
       <Stack.Screen name="HomeReport" component={HomeReport}/>
      <Stack.Screen name="Survey" component={Survey}/>
-      <Stack.Screen name="HomeSurvery" component={HomeSurvery}/>
-
+      <Stack.Screen name="HomeSurvey" component={HomeSurvey}/>
+      <Stack.Screen name="InvoiceSummary" component={InvoiceSummaryScreen} options={{ headerShown: true, title: 'Invoice Summary' }} />
+      <Stack.Screen name="StockLevel" component={StockLevelReportScreen} options={{ headerShown: true, title: 'Stock Level Report' }} />
   </Stack.Navigator>
 );
 

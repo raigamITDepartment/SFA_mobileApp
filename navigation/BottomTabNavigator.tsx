@@ -11,6 +11,8 @@ import UDColors from "../constants/UDColors";
 
 function AppBottomTabNavigator() {
   const screens = [
+
+     
     {
       name: "HomeSurvey",
       component: HomeSurvey,
@@ -25,13 +27,17 @@ function AppBottomTabNavigator() {
       hideTabBar: true,
       tabLabel: "Invoice",
     },
-    {
+
+
+       {
       name: "HomeScreen",
       component: HomeScreen,
       icon: UDImages.dashboard,
       isHomeScreen: true,
       tabLabel: "",
     },
+    
+
     {
       name: "Report",
       component: HomeReport,
@@ -52,7 +58,7 @@ function AppBottomTabNavigator() {
     <BottomTabNavigationBar
       tabBarStyle={styles.tabBarStyle}
       screens={screens}
-      initialRouteName="HomeScreen"
+      initialRouteName="HomeScreen" // Set the initial route to HomeScreen
       outerCircleOtherStyle={styles.outerCircleOtherStyle}
       otherButtonImageStyle={styles.otherButtonImageStyle}
       homeButtonStyle={styles.homeButtonStyle}
