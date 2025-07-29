@@ -11,50 +11,66 @@ import {
 import UDImages from "../UDImages";
 import { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import * as Location from 'expo-location';
+import { DayStartUser } from "../actions/UserAction";
+import { useAppDispatch ,useAppSelector} from "@/store/Hooks";
+
+
 type DayStartScreenProps = {
   navigation: NativeStackNavigationProp<any>;
 };
 const DayStart = ({ navigation }: DayStartScreenProps) => {
+    const dispatch = useAppDispatch();
   const [loading, setLoading] = useState(false);
   // const handleSubmitPress = () => {
   //   // Navigate to the home screen
   //   navigation.navigate("Home");
   // };
+ const userLoginResponse = useAppSelector((state) => state.login.user);
 
+ const handleDayStart = () => {
+    Alert.alert(
+      "Confirm Day Start",
+      "Are you sure you want to start the day?",
+      [
+        { text: "No", style: "cancel" },
+        {
+          text: "Yes",
+          onPress: async () => {
+            try {
+              let { status } =
+                await Location.requestForegroundPermissionsAsync();
+              if (status !== "granted") {
+                Alert.alert(
+                  "Permission Denied",
+                  "Location access is required."
+                );
+                return;
+              }
 
+              let location = await Location.getCurrentPositionAsync({});
+              const { latitude, longitude } = location.coords;
+              console.log("Current Location Day Start:", latitude, longitude);
 
-  // const handleDayStart = async () => {
-  //   setLoading(true);
-  //   setLoading(true);
-  //   try {
-  //     let { status } = await Location.requestForegroundPermissionsAsync();
-  //     if (status !== 'granted') {
-  //       Alert.alert('Permission denied', 'Location permission is required.');
-  //       setLoading(false);
-  //       return;
-  //     }
-  //     let location = await Location.getCurrentPositionAsync({});
-  //     const { latitude, longitude } = location.coords;
+              const userId = userLoginResponse?.data?.userId;
+              if (!userId) {
+                Alert.alert("Error", "User ID not found. Cannot start day.");
+                return;
+              }
 
-  //     const response = await fetch('https://your-api-url.com/daystart', {
-  //       method: 'POST',
-  //       headers: { 'Content-Type': 'application/json' },
-  //       body: JSON.stringify({ latitude, longitude ,DayStart:1}),
-  //     });
-  //     const data = await response.json();
+              await dispatch(DayStartUser({ userId, latitude, longitude, gpsStatus: true }));
+              navigation.replace("Home"); // Use lowercase "login" if your screen name is defined like that
+            } catch (error) {
+              console.error("Logout error:", error);
+              Alert.alert("Error", "Something went wrong while logging out.");
+            }
+          },
+          style: "destructive",
+        },
+      ]
+    );
+  };
 
-  //     if (response.ok && data.code === 200) {
-  //       navigation.navigate('Home');
-  //     } else {
-  //       Alert.alert('Error', data.message || 'Failed to start day.');
-  //     }
-  //   } catch (err) {
-  //     Alert.alert('Error', 'Could not get location or connect to backend.');
-  //   } finally {
-  //     setLoading(false);
-  //   }
-  // };
-
+  
 
 
   return (
@@ -73,8 +89,8 @@ const DayStart = ({ navigation }: DayStartScreenProps) => {
           <TouchableOpacity
             style={styles.buttonStyle}
             activeOpacity={1}
-           // onPress={handleDayStart} disabled={loading}
-            onPress={() => navigation.navigate('Home')}
+            onPress={handleDayStart} disabled={loading}
+           // onPress={() => navigation.navigate('Home')}
           >
             <Text style={styles.buttonTextStyle}>Day Start</Text>
               {loading && <ActivityIndicator />}

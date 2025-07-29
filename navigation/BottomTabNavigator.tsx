@@ -1,53 +1,47 @@
 import React from "react";
 import { StyleSheet } from "react-native";
 import BottomTabNavigationBar from "../components/ui/BottomTabNavigator";
-import CreateInvoice from "../screens/InvoiceScreen/CreateInvoice";
-import HomeScreen from "../screens/HomeScreen";
-import HomeReport from "../screens/ReportScreen/HomeReport";
-import HomeOutlet from "../screens/OutletScreen/HomeOutlet";
-import HomeSurvey from "../screens/SurveyScreen/HomeSurvey";
+import InvoiceStack from "../screens/InvoiceScreen/HomeInvoice";
+import SurveyStack from "../screens/SurveyScreen/HomeSurvey";
+import OutletStack from "../screens/OutletScreen/HomeOutlet";
+import ReportStack from "../screens/ReportScreen/HomeReport";
+import HomeStack from "../screens/HomeScreen";
 import UDImages from "../UDImages";
 import UDColors from "../constants/UDColors";
 
 function AppBottomTabNavigator() {
   const screens = [
-
-     
     {
       name: "HomeSurvey",
-      component: HomeSurvey,
+      component: SurveyStack,
       icon: UDImages.survey,
       hideTabBar: true,
       tabLabel: "Survey",
     },
     {
-      name: "CreateInvoice",
-      component: CreateInvoice,
+      name: "HomeInvoice",
+      component: InvoiceStack,
       icon: UDImages.bill,
       hideTabBar: true,
       tabLabel: "Invoice",
     },
-
-
-       {
+    {
       name: "HomeScreen",
-      component: HomeScreen,
+      component: HomeStack,
       icon: UDImages.dashboard,
       isHomeScreen: true,
       tabLabel: "",
     },
-    
-
     {
       name: "Report",
-      component: HomeReport,
+      component: ReportStack,
       icon: UDImages.report,
       hideTabBar: true,
       tabLabel: "Report",
     },
     {
       name: "OutletAddScreen",
-      component: HomeOutlet,
+      component: OutletStack,
       icon: UDImages.outlet,
       hideTabBar: true,
       tabLabel: "Outlet",
@@ -58,7 +52,7 @@ function AppBottomTabNavigator() {
     <BottomTabNavigationBar
       tabBarStyle={styles.tabBarStyle}
       screens={screens}
-      initialRouteName="HomeScreen" // Set the initial route to HomeScreen
+      initialRouteName="HomeScreen"
       outerCircleOtherStyle={styles.outerCircleOtherStyle}
       otherButtonImageStyle={styles.otherButtonImageStyle}
       homeButtonStyle={styles.homeButtonStyle}
@@ -71,12 +65,11 @@ export default AppBottomTabNavigator;
 
 const styles = StyleSheet.create({
   tabBarStyle: {
-    backgroundColor: UDColors.bottomNavBar || "#ffffff", // Fallback color if undefined
+    backgroundColor: UDColors.bottomNavBar || "#ffffff",
     borderTopLeftRadius: 30,
     borderTopRightRadius: 30,
     height: 90,
     marginBottom: 10,
-    
   },
   outerCircleOtherStyle: {
     backgroundColor: "transparent",
@@ -89,10 +82,10 @@ const styles = StyleSheet.create({
     height: 25,
   },
   homeButtonStyle: {
-    backgroundColor: UDColors.bottomNavBar || "#ffffff", // Fallback color if undefined
+    backgroundColor: UDColors.bottomNavBar || "#ffffff",
   },
   homeButtonIconStyle: {
     height: 26,
-    width: 26, // Ensure consistent width and height
+    width: 26,
   },
 });

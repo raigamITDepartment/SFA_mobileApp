@@ -6,7 +6,12 @@ import {
   setLogoutSuccess,
   setLogoutError,
 } from "../reducers/LogoutReducer";
-import AsyncStorage from "@react-native-async-storage/async-storage";
+import {
+  setDayStartLoading,
+  setDayStartSuccess,
+  setDayStartError,
+} from "../reducers/DayStartReducer";
+import { getToken, removeToken } from "../services/AsyncStoreService";
 import { userManagementApi } from "../services/Api";
 
 
@@ -53,16 +58,16 @@ const loginUser = (
 // };
 
 const logoutUser = (
-  data: { latitude: number; longitude: number; dayend: number }
+  data: { userId: number; latitude: number; longitude: number; gpsStatus: boolean }
 ): ThunkAction<void, RootState, unknown, AnyAction> => {
   return async (dispatch) => {
     dispatch(setLogoutLoading());
     console.log("Logout Data:", data);
     try {
-      const token = await AsyncStorage.getItem("userToken");
+      const token = await getToken();
 
       await userManagementApi().post(
-        `/api/v1/auth/logout`,
+        `/api/v1/auth/dayEnd`,
         data,
         {
           headers: {
@@ -72,7 +77,7 @@ const logoutUser = (
         }
       );
 
-      await AsyncStorage.removeItem("userToken");
+      await removeToken();
       dispatch(setLogoutSuccess());
     } catch (error: any) {
       console.error("Logout error:", error.response?.data || error.message);
@@ -82,9 +87,54 @@ const logoutUser = (
 };
 
 
+
+ const DayStartUser = (
+  data: { userId: number; latitude: number; longitude: number; gpsStatus: boolean }
+): ThunkAction<void, RootState, unknown, AnyAction> => {
+  return async (dispatch, getState) => {
+    dispatch(setDayStartLoading());
+    console.log("Day Start Payload:", data);
+    try {
+      const token = getState().login.user.data.token;
+
+      if (!token) {
+        const errorMessage = "Authentication token not found. Cannot start day.";
+        console.error(errorMessage);
+        dispatch(setDayStartError({ message: errorMessage }));
+        return;
+      }
+
+      await userManagementApi().post(`/api/v1/auth/dayStart`, data, {
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+      });
+      // The token should not be removed here. It is needed for the entire session.
+      dispatch(setDayStartSuccess());
+    } catch (error: any) {
+      console.error("Day Start error:", error.response?.data || error.message);
+      dispatch(setDayStartError(error.response?.data || { message: error.message }));
+    }
+  };
+};
+
+
+
+
+
+
+
+
+
+
+
+
+
 export {
   loginUser,
-  logoutUser
+  logoutUser,
+  DayStartUser,
  // loginByEmail,
  // loginByToken,
 

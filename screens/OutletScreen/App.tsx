@@ -8,7 +8,7 @@ import HomeScreen from '../HomeScreen';
 type RootStackParamList = {
   OutletAdd: undefined;
   UpdateOutlet: undefined;
-  Home: undefined;
+  HomeScreen: undefined;
 };
 
 const Stack = createStackNavigator<RootStackParamList>();
@@ -16,9 +16,9 @@ const Stack = createStackNavigator<RootStackParamList>();
 export default function App() {
   return (
     <NavigationContainer>
-      <Stack.Navigator initialRouteName="Home">
+      <Stack.Navigator initialRouteName="HomeScreen">
         <Stack.Screen
-          name="Home"
+          name="HomeScreen"
           component={HomeScreen}
           options={{ headerShown: false }}
         />

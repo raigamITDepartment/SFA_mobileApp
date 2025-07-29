@@ -40,13 +40,17 @@ const testItemNames = [
 interface ItemType {
   category: string;
   itemName: string;
+  unitPrice: string;
   quantity: string;
+  specialDiscount: string;
   goodReturnQty: string;
   goodReturnFreeQty: string;
   marketReturnQty: string;
   marketReturnFreeQty: string;
   freeIssue: string;
   lineTotal: string;
+  unitPriceGR: string;
+  unitPriceMR: string;
   [key: string]: any;
 }
 
@@ -86,13 +90,17 @@ const CreateInvoiceScreen = ({ navigation, route }: CreateInvoiceScreenProps): R
           const testItems: ItemType[] = testItemNames.filter(name => !existingItemNames.has(name)).map(name => ({
             category: categorizeItem(name),
             itemName: name,
+            unitPrice: '0',
             quantity: '0',
+            specialDiscount: '0',
             goodReturnQty: '0',
             goodReturnFreeQty: '0',
             marketReturnQty: '0',
             marketReturnFreeQty: '0',
             freeIssue: '0',
             lineTotal: '0.00',
+            unitPriceGR: '0',
+            unitPriceMR: '0',
           }));
 
           setSavedItems([...items, ...testItems]);
@@ -104,7 +112,7 @@ const CreateInvoiceScreen = ({ navigation, route }: CreateInvoiceScreenProps): R
       loadItems();
     }, [])
   );
-
+  
   const categorizedItems = useMemo(() => {
     const filtered = savedItems.filter(item =>
       item.itemName.toLowerCase().includes(searchQuery.toLowerCase())
@@ -224,6 +232,15 @@ const CreateInvoiceScreen = ({ navigation, route }: CreateInvoiceScreenProps): R
           </Text>
           <Text style={styles.invoiceRow}>
             Invoice Net Value : <Text style={styles.bold}>Rs. {invoiceNetValue.toFixed(2)}</Text>
+          </Text>
+          <Text style={[styles.invoiceRow, { marginTop: 10 }]}>
+            Total Free Issues: <Text style={styles.bold}>{totalFreeIssue}</Text>
+          </Text>
+          <Text style={styles.invoiceRow}>
+            Total Good Returns: <Text style={styles.bold}>{totalGoodReturns}</Text>
+          </Text>
+          <Text style={styles.invoiceRow}>
+            Total Market Returns: <Text style={styles.bold}>{totalMarketReturns}</Text>
           </Text>
         </View>
 

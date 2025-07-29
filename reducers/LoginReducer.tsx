@@ -19,6 +19,7 @@ const initialLoginState = {
       userName: "",
       userType: null,
       userTypeId: null,
+      rangeId: "",
     },
     error: "",
     // loginType: "",
@@ -38,11 +39,11 @@ const loginSlice = createSlice({
     setSuccess: (state, { payload }) => {
       state.loading = false;
       state.error = false;
-      //console.log("Login Success Reducer Payload:", payload);
+      //console.log("Login Success Reducer Payload newwwwwwwwwwww:", payload.data);
       // Decode the JWT token if it exists
       if (payload) {
         if (payload.token) {
-          //  console.log("Login Success Reducer Payload Token:", payload.token);
+          
           //state.user.isOnboarding = payload.isOnboarding || false;
           //console.log("Login Success Reducer Payload isOnboarding:", state.user.isOnboarding);
 
@@ -66,6 +67,7 @@ const loginSlice = createSlice({
           state.user.data.userName = payload.userName;
           state.user.data.userType = payload.userType;
           state.user.data.userTypeId = payload.userTypeId;
+          state.user.data.rangeId = payload.rangeId;
 
           //console.log("Login Success Reducer User Data:", state.user.data);
           // state.user.loginType = payload.loginType;
@@ -86,6 +88,7 @@ const loginSlice = createSlice({
             userName: "",
             userType: null,
             userTypeId: null,
+            rangeId: "",
           };
          // state.user.isOnboarding = false;
         }

@@ -81,7 +81,10 @@ const LoginScreen = ({ navigation }: LoginScreenProps) => {
 
       if (userLoginResponse.data.token) {
         setAsyncToken(userLoginResponse.data.token);
-        if (userLoginResponse.data.gpsStatus === false) {
+        // The API sometimes returns gpsStatus as a string ("false") instead of a boolean.
+        // This check correctly handles both boolean `false` and string `"false"`.
+        const isDayStarted = userLoginResponse.data.gpsStatus === true ;
+        if (!isDayStarted) {
           navigation.navigate("start");
         } else {
           navigation.navigate("Home");

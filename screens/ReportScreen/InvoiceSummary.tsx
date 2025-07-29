@@ -6,6 +6,7 @@ import {
   StyleSheet,
   Pressable,
   Platform,
+  TextInput,
 } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import DateTimePicker from '@react-native-community/datetimepicker';
@@ -19,6 +20,7 @@ type InvoiceItem = {
 
 type Invoice = {
   date: string;
+  shopCode: string;
   customerName: string;
   invoiceType: string;
   invoiceMode: string;
@@ -33,6 +35,7 @@ const InvoiceSummaryByDateScreen = () => {
   const [invoices, setInvoices] = useState<Invoice[]>([]);
   const [selectedDate, setSelectedDate] = useState(new Date());
   const [showDatePicker, setShowDatePicker] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
 
   useEffect(() => {
     saveSampleData(); // 👈 Load sample data first (remove this line in production)
@@ -42,8 +45,9 @@ const InvoiceSummaryByDateScreen = () => {
   const saveSampleData = async () => {
     const sampleInvoices: Invoice[] = [
 
-              {
+      {
         date: '2025-07-12',
+        shopCode: 'SK001',
         customerName: 'Super K',
         invoiceType: 'Retail',
         invoiceMode: 'Cash',
@@ -68,6 +72,7 @@ const InvoiceSummaryByDateScreen = () => {
       },
       {
         date: '2025-07-12',
+        shopCode: 'JD001',
         customerName: 'John Doe',
         invoiceType: 'Retail',
         invoiceMode: 'Cash',
@@ -92,6 +97,7 @@ const InvoiceSummaryByDateScreen = () => {
       },
       {
         date: '2025-07-11',
+        shopCode: 'JS001',
         customerName: 'Jane Smith',
         invoiceType: 'Wholesale',
         invoiceMode: 'Credit',
@@ -140,8 +146,11 @@ const InvoiceSummaryByDateScreen = () => {
     return date.toISOString().split('T')[0]; // 'YYYY-MM-DD'
   };
 
-  const filteredInvoices = invoices.filter(
-    (inv) => inv.date === formatDate(selectedDate)
+  const filteredInvoices = invoices.filter((inv) =>
+    inv.date === formatDate(selectedDate) &&
+    (searchQuery === '' ||
+      inv.customerName.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      inv.shopCode.toLowerCase().includes(searchQuery.toLowerCase()))
   );
 
   const { dailyTotalNet, dailyInvoiceCount } = useMemo(() => {
@@ -168,6 +177,13 @@ const InvoiceSummaryByDateScreen = () => {
         />
       )}
 
+      <TextInput
+        style={styles.searchInput}
+        placeholder="Search by Customer Name / Code"
+        value={searchQuery}
+        onChangeText={setSearchQuery}
+      />
+
       <View style={styles.summaryBox}>
         <Text style={styles.summaryText}>
           Total Productive Calls: {dailyInvoiceCount}
@@ -184,6 +200,7 @@ const InvoiceSummaryByDateScreen = () => {
         filteredInvoices.map((invoice, idx) => (
           <View key={idx} style={styles.invoiceBox}>
             <Text style={styles.subTitle}>Customer: {invoice.customerName}</Text>
+            <Text>Shop Code: {invoice.shopCode}</Text>
             <Text>Invoice Type: {invoice.invoiceType}</Text>
             <Text>Mode: {invoice.invoiceMode}</Text>
 
@@ -226,6 +243,15 @@ const styles = StyleSheet.create({
   dateText: {
     fontSize: 16,
     color: '#1D4ED8',
+  },
+  searchInput: {
+    height: 40,
+    backgroundColor: '#fff',
+    borderRadius: 8,
+    paddingHorizontal: 12,
+    borderWidth: 1,
+    borderColor: '#ddd',
+    marginBottom: 20,
   },
   subTitle: {
     fontWeight: '600',

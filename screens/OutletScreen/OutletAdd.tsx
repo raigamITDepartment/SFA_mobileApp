@@ -8,31 +8,47 @@ import {
   ScrollView,
   Image,
   ActivityIndicator,
+  Alert,
 } from "react-native";
 import { Text, Card, Button } from "react-native-paper";
 import { Picker } from "@react-native-picker/picker";
 import { LinearGradient } from "expo-linear-gradient";
 import * as ImagePicker from "expo-image-picker";
+import * as Location from "expo-location";
 import type { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { RootStackParamList } from "@/navigation/AuthNavigator";
 import { useAppDispatch, useAppSelector } from "../../store/Hooks";
-import { fetchRoutesByTerritoryId } from "../../actions/OutletAction";
-import type { AppDispatch } from "../../store"; // adjust the path as needed
-
+import {
+  fetchRoutesByTerritoryId,
+  createOutlet,
+} from "../../actions/OutletAction";
+import { resetCreateOutletState } from "../../reducers/OutletReducer";
+import type { AppDispatch } from "../../store";
 
 type StockProps = NativeStackScreenProps<RootStackParamList, "OutletAdd">;
-
 
 const OutletAdd = ({ navigation }: StockProps): React.JSX.Element => {
   const dispatch: AppDispatch = useDispatch();
   const [date, setDate] = useState(new Date());
-  const [selectedRoute, setSelectedRoute] = useState("");
-
+  const [selectedRoute, setSelectedRoute] = useState<any>(null);
   const territoryId = useSelector(
     (state: any) => state.login?.user?.data?.territoryId
   );
+  const rangeId = useSelector((state: any) => state.login?.user?.data?.rangeId);
+  console.log("Range ID:", );
+  const userId = useSelector((state: any) => state.login?.user?.data?.userId);
+  const agencyCode = useSelector(
+    (state: any) => state.login?.user?.data?.agencyCode
+  );
+
+   const userLoginResponse = useAppSelector((state) => state.login.user);
+
   const Route = useAppSelector((state) => state.root);
 
+  const [shopCode, setShopCode] = useState("");
+  const [outletSequence, setOutletSequence] = useState("");
+  const [displayOrder, setDisplayOrder] = useState("");
+  const [vatNum, setVatNum] = useState("");
   const [outletName, setOutletName] = useState("");
   const [address1, setAddress1] = useState("");
   const [address2, setAddress2] = useState("");
@@ -41,11 +57,44 @@ const OutletAdd = ({ navigation }: StockProps): React.JSX.Element => {
   const [mobile, setMobile] = useState("");
   const [category, setCategory] = useState("");
   const [image, setImage] = useState<string | null>(null);
-  const loading = useSelector((state: any) => state.outlet?.loading);
-  const error = useSelector((state: any) => state.outlet?.error);
+  const [selectedAfter, setSelectedAfter] = useState("");
+  const { loading, error, success } = useAppSelector((state) => ({
+    loading: state.outlet.loading,
+    error: state.outlet.error,
+    success: state.outlet.success,
+  }));
+  const [latitude, setLatitude] = useState<number | null>(null);
+  const [longitude, setLongitude] = useState<number | null>(null);
 
+  const resetForm = () => {
+    setShopCode("");
+    setOutletSequence("");
+    setDisplayOrder("");
+    setOutletName("");
+    setAddress1("");
+    setAddress2("");
+    setAddress3("");
+    setContactPerson("");
+    setMobile("");
+    setCategory("");
+    setImage(null);
+    setSelectedAfter("");
+    setSelectedRoute(null);
+  };
 
+  useEffect(() => {
+    (async () => {
+      let { status } = await Location.requestForegroundPermissionsAsync();
+      if (status !== "granted") {
+        Alert.alert("Permission to access location was denied");
+        return;
+      }
 
+      let location = await Location.getCurrentPositionAsync({});
+      setLatitude(location.coords.latitude);
+      setLongitude(location.coords.longitude);
+    })();
+  }, []);
 
   useEffect(() => {
     if (
@@ -58,12 +107,27 @@ const OutletAdd = ({ navigation }: StockProps): React.JSX.Element => {
     }
   }, [territoryId, dispatch]);
 
-  if (loading) return <ActivityIndicator />;
-  if (error)
-    return <Text style={{ color: "red" }}>{error.error || error}</Text>;
+  useEffect(() => {
+    if (success) {
+      Alert.alert("Success", "Outlet created successfully!", [
+        {
+          text: "OK",
+          onPress: () => {
+            dispatch(resetCreateOutletState());
+            resetForm();
+            navigation.navigate("Home");
+          },
+        },
+      ]);
+    }
+    if (error) {
+      Alert.alert("Error", (error as any).message || "Failed to create outlet.", [
+        { text: "OK", onPress: () => dispatch(resetCreateOutletState()) },
+      ]);
+    }
+  }, [success, error, navigation, dispatch]);
 
-  console.log("Selected Route:", Route.routes);
-
+  console.log("Available Routes:", Route.routes);
 
   const takePhoto = async () => {
     const { status } = await ImagePicker.requestCameraPermissionsAsync();
@@ -81,19 +145,68 @@ const OutletAdd = ({ navigation }: StockProps): React.JSX.Element => {
   };
 
   const handleCreateOutlet = () => {
-    // Submit outlet creation logic
-    console.log({
-      date,
+    if (
 
-      // outlet,
-      outletName,
-      address1,
-      address2,
-      address3,
-      contactPerson,
-      mobile,
-      category,
-    });
+      !shopCode ||
+      !outletName ||
+      !contactPerson ||
+      !mobile ||
+      !address1 ||
+      !address2 ||
+      !address3 ||
+      !category ||
+      !outletSequence ||
+      !displayOrder ||
+      !selectedRoute
+    ) {
+      Alert.alert("Missing Fields", "Please fill in all required fields.");
+      return;
+    }
+    if (latitude === null || longitude === null) {
+      Alert.alert("Location Error", "Could not determine current location.");
+      return;
+    }
+
+
+    const formData = new FormData();
+
+    formData.append("shopCode", shopCode);
+    formData.append("outletName", outletName);
+    formData.append("ownerName", contactPerson);
+    formData.append("mobileNo", mobile);
+    formData.append("address1", address1);
+    formData.append("address2", address2);
+    formData.append("address3", address3);
+    formData.append("outletCategoryId", category || "0");
+    formData.append("outletSequence", outletSequence || "0");
+    formData.append("displayOrder", displayOrder || "0");
+    if (latitude) formData.append("latitude", String(latitude));
+    if (longitude) formData.append("longitude", String(longitude));
+    formData.append("isNew", "true");
+    formData.append("isApproved", "false");
+    formData.append("isClose", "false");
+    formData.append("routeId", selectedRoute.id);
+    formData.append("routeCode", selectedRoute.routeCode);
+    formData.append("rangeId", userLoginResponse.data.rangeId);
+    
+    if (userId) formData.append("userId", String(userId));
+    if (agencyCode) formData.append("agencyCode", String(agencyCode));
+    formData.append("openTime", "08:00");
+    formData.append("closeTime", "17:00");
+    formData.append("vatNum", vatNum);
+
+    if (image) {
+      const uriParts = image.split(".");
+      const fileType = uriParts[uriParts.length - 1];
+      formData.append("image", {
+        uri: image,
+        name: `photo.${fileType}`,
+        type: `image/${fileType}`,
+      } as any);
+    }
+
+    dispatch(createOutlet(formData));
+    console.log("Creating Outlet with FormData");
   };
 
   return (
@@ -105,11 +218,7 @@ const OutletAdd = ({ navigation }: StockProps): React.JSX.Element => {
           <View style={styles.field}>
             <Text style={styles.label}>Date / Time</Text>
             <TouchableOpacity
-              onPress={() => {
-                // Get current device date/time and set it
-                const now = new Date();
-                setDate(now);
-              }}
+              onPress={() => setDate(new Date())}
               style={styles.datePicker}
             >
               <Text style={styles.dateText}>
@@ -124,22 +233,18 @@ const OutletAdd = ({ navigation }: StockProps): React.JSX.Element => {
 
           <View style={styles.field}>
             <Text>Select Route:</Text>
-            {/* <Picker
-              selectedValue={selectedRoute}
+            <Picker
+      selectedValue={selectedRoute ? selectedRoute.id : ""}
               onValueChange={(itemValue) => {
-                setSelectedRoute(itemValue);
-                const selected = (routes || []).find((route: any) => route.id === itemValue);
+                const selected = (Route.routes || []).find(
+                  (route: any) => route.id == itemValue
+                );
+                 setSelectedRoute(selected);
                 if (selected) {
-                  console.log("Selected Route Name...............:", selected.routeName);
+               
                 }
               }}
-              style={{ height: 50, width: 250 }}
-            > */}
-
-            <Picker
-              selectedValue={selectedRoute}
-              onValueChange={(itemValue) => setSelectedRoute(itemValue)}
-               style={styles.picker}
+              style={styles.picker}
             >
               <Picker.Item label="Select a route" value="" />
               {(Route.routes || []).map((route: any) => (
@@ -153,10 +258,10 @@ const OutletAdd = ({ navigation }: StockProps): React.JSX.Element => {
           </View>
 
           <View style={styles.field}>
-            <Text style={styles.label}>Add After</Text>
+            <Text style={styles.label}>Add After (Optional)</Text>
             <Picker
-              selectedValue={selectedRoute}
-              onValueChange={(itemValue) => setSelectedRoute(itemValue)}
+              selectedValue={selectedAfter}
+              onValueChange={(itemValue) => setSelectedAfter(itemValue)}
               style={styles.picker}
             >
               <Picker.Item label="Select Outlet" value="" />
@@ -165,27 +270,42 @@ const OutletAdd = ({ navigation }: StockProps): React.JSX.Element => {
             </Picker>
           </View>
 
-          <View style={styles.field}>
-            <View style={styles.imageContainer}>
-              <Button
-                icon="camera"
-                mode="outlined"
-                style={styles.imageButton}
-                onPress={takePhoto}
-              >
-                Take Photo
-              </Button>
-            </View>
-          </View>
-
-          <View style={styles.fieldImg}>
+          <View style={styles.imageContainer}>
+            <Button
+              icon="camera"
+              mode="outlined"
+              style={styles.imageButton}
+              onPress={takePhoto}
+            >
+              Take Photo
+            </Button>
             {image && (
               <Image
                 source={{ uri: image }}
-                style={{ width: 100, height: 100, marginBottom: 10 }}
+                style={{ width: 100, height: 100, marginTop: 10 }}
               />
             )}
           </View>
+            <TextInput
+            style={styles.input}
+            placeholder="Enter Shop Code"
+            value={shopCode}
+            onChangeText={setShopCode}
+          />
+          <TextInput
+            style={styles.input}
+            placeholder="Enter Outlet Sequence"
+            value={outletSequence}
+            keyboardType="numeric"
+            onChangeText={setOutletSequence}
+          />
+          <TextInput
+            style={styles.input}
+            placeholder="Enter Display Order"
+            value={displayOrder}
+            keyboardType="numeric"
+            onChangeText={setDisplayOrder}
+          />
 
           <TextInput
             style={styles.input}
@@ -233,10 +353,19 @@ const OutletAdd = ({ navigation }: StockProps): React.JSX.Element => {
               style={styles.picker}
             >
               <Picker.Item label="Select Category" value="" />
-              <Picker.Item label="Category 1" value="category1" />
-              <Picker.Item label="Category 2" value="category2" />
+              <Picker.Item label="Grocery" value="1" />
+              <Picker.Item label="Pharmacy" value="2" />
+              <Picker.Item label="Bakery" value="3" />
             </Picker>
           </View>
+
+           <TextInput
+            style={styles.input}
+            placeholder="Enter Vat No."
+            value={vatNum}
+            keyboardType="phone-pad"
+            onChangeText={setVatNum}
+          />
 
           <View style={styles.buttonContainer}>
             <TouchableOpacity
@@ -248,8 +377,9 @@ const OutletAdd = ({ navigation }: StockProps): React.JSX.Element => {
             <TouchableOpacity
               onPress={handleCreateOutlet}
               style={styles.createButton}
+              disabled={loading}
             >
-              <Text style={styles.createText}>Create</Text>
+              {loading ? <ActivityIndicator color="#fff" /> : <Text style={styles.createText}>Create</Text>}
             </TouchableOpacity>
           </View>
         </Card>
@@ -259,33 +389,17 @@ const OutletAdd = ({ navigation }: StockProps): React.JSX.Element => {
 };
 
 const styles = StyleSheet.create({
-  gradient: {
-    flex: 1,
-  },
-  container: {
-    padding: 16,
-  },
+  gradient: { flex: 1 },
+  container: { padding: 16 },
+  card: { padding: 16, borderRadius: 8, marginTop: 35 },
   title: {
     fontSize: 22,
     fontWeight: "600",
     marginBottom: 16,
-
     textAlign: "center",
   },
-  field: {
-    marginBottom: 16,
-    borderRadius: 8,
-  },
-
-  fieldImg: {
-    marginBottom: 16,
-    borderRadius: 8,
-    alignItems: "center",
-  },
-  label: {
-    fontSize: 16,
-    marginBottom: 8,
-  },
+  field: { marginBottom: 16 },
+  label: { fontSize: 16, marginBottom: 8 },
   input: {
     marginTop: 8,
     borderWidth: 1,
@@ -296,7 +410,7 @@ const styles = StyleSheet.create({
   },
   picker: {
     borderColor: "#CCC",
-    borderRadius: 20,
+    borderRadius: 8,
     backgroundColor: "#FFF",
   },
   datePicker: {
@@ -306,10 +420,13 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     backgroundColor: "#FFF",
   },
-  dateText: {
-    fontSize: 16,
-    color: "#555",
+  dateText: { fontSize: 16, color: "#555" },
+  imageContainer: {
+    flexDirection: "column",
+    alignItems: "center",
+    marginBottom: 16,
   },
+  imageButton: { marginBottom: 10 },
   buttonContainer: {
     flexDirection: "row",
     justifyContent: "space-between",
@@ -323,10 +440,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
     borderRadius: 8,
   },
-  cancelText: {
-    color: "#FFF",
-    fontWeight: "600",
-  },
+  cancelText: { color: "#FFF", fontWeight: "600" },
   createButton: {
     flex: 1,
     marginLeft: 8,
@@ -335,25 +449,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
     borderRadius: 8,
   },
-  createText: {
-    color: "#FFF",
-    fontWeight: "600",
-  },
-  card: {
-    padding: 16,
-    borderRadius: 8,
-    marginTop: 35,
-  },
-
-  imageButton: {
-    flex: 1,
-    marginHorizontal: 8,
-  },
-  imageContainer: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    marginBottom: 16,
-  },
+  createText: { color: "#FFF", fontWeight: "600" },
 });
 
 export default OutletAdd;

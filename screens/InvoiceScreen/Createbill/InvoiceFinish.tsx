@@ -11,7 +11,7 @@ import {
 import { useMemo } from "react";
 import { Ionicons } from "@expo/vector-icons";
 import type { NativeStackScreenProps } from "@react-navigation/native-stack";
-import { RootStackParamList } from "../../navigation/AuthNavigator";
+import { RootStackParamList } from "../../../navigation/AuthNavigator";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import * as Print from "expo-print";
 
@@ -98,7 +98,7 @@ const InvoiceFinish = ({
       <html>
         <head>
           <style>
-            body { font-family: Arial, sans-serif; margin: 20px; font-size: 12px; }
+            body { font-family: Arial, sans-serif; margin: 20px; font-size: 12px; margin-left: 25px; }
             .header { text-align: center; margin-bottom: 20px; }
             .header h1 { font-size: 22px; margin: 0; }
             .header h2 { font-size: 16px; font-weight: bold; margin: 5px 0; }

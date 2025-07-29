@@ -7,7 +7,7 @@ import {
   TouchableOpacity,
   TextInput,
   Alert,
-  BackHandler
+  BackHandler,
 } from "react-native";
 
 import { Dropdown } from "react-native-element-dropdown";
@@ -24,6 +24,7 @@ type RootStackParamList = {
   HomeScreen: undefined;
   Login: undefined;
   start: undefined;
+  AuthLoading: undefined;
 };
 
 type HomeScreenProps = NativeStackScreenProps<RootStackParamList, "HomeScreen">;
@@ -43,6 +44,9 @@ const HomeScreen = ({ navigation }: HomeScreenProps) => {
   const [visitedOutlets, setVisitedOutlets] = useState("");
   const [dropdownValue, setDropdownValue] = useState(null);
   const [isFocus, setIsFocus] = useState(false);
+  const [bookingValue, setBookingValue] = useState("");
+  const [cancelledValue, setCancelledValue] = useState("");
+  const [lateDeliveryBills, setLateDeliveryBills] = useState("");
 
   const dropdownData = [
     { label: "Item 1", value: "1" },
@@ -57,37 +61,53 @@ const HomeScreen = ({ navigation }: HomeScreenProps) => {
       return true;
     };
 
-    const backHandler = BackHandler.addEventListener("hardwareBackPress", backAction);
+    const backHandler = BackHandler.addEventListener(
+      "hardwareBackPress",
+      backAction
+    );
     return () => backHandler.remove();
   }, [navigation]);
 
   const handleLogout = () => {
-    Alert.alert("Confirm Logout", "Are you sure you want to logout and end the day?", [
-      { text: "No", style: "cancel" },
-      {
-        text: "Yes",
-        onPress: async () => {
-          try {
-            let { status } = await Location.requestForegroundPermissionsAsync();
-            if (status !== "granted") {
-              Alert.alert("Permission Denied", "Location access is required.");
-              return;
+    Alert.alert(
+      "Confirm Logout",
+      "Are you sure you want to logout and end the day?",
+      [
+        { text: "No", style: "cancel" },
+        {
+          text: "Yes",
+          onPress: async () => {
+            try {
+              let { status } =
+                await Location.requestForegroundPermissionsAsync();
+              if (status !== "granted") {
+                Alert.alert(
+                  "Permission Denied",
+                  "Location access is required."
+                );
+                return;
+              }
+
+              let location = await Location.getCurrentPositionAsync({});
+              const { latitude, longitude } = location.coords;
+              console.log("Current Location:", latitude, longitude);
+
+              const userId = userLoginResponse?.data?.userId;
+              if (!userId) {
+                Alert.alert("Error", "User ID not found. Cannot log out.");
+                return;
+              }
+              await dispatch(logoutUser({ userId, latitude, longitude, gpsStatus: false }));
+              navigation.replace("AuthLoading"); // Use lowercase "login" if your screen name is defined like that
+            } catch (error) {
+              console.error("Logout error:", error);
+              Alert.alert("Error", "Something went wrong while logging out.");
             }
-
-            let location = await Location.getCurrentPositionAsync({});
-            const { latitude, longitude } = location.coords;
-            console.log("Current Location:", latitude, longitude);
-
-            await dispatch(logoutUser({ latitude, longitude, dayend: 1 }));
-            navigation.replace("Login"); // Use lowercase "login" if your screen name is defined like that
-          } catch (error) {
-            console.error("Logout error:", error);
-            Alert.alert("Error", "Something went wrong while logging out.");
-          }
+          },
+          style: "destructive",
         },
-        style: "destructive",
-      },
-    ]);
+      ]
+    );
   };
 
   return (
@@ -104,9 +124,15 @@ const HomeScreen = ({ navigation }: HomeScreenProps) => {
 
       <View style={styles.card}>
         <Text style={styles.cardTitle}>Welcome</Text>
-        <Text style={styles.input}>User Name: {userLoginResponse?.data?.userName}</Text>
-        <Text style={styles.input}>Hello: {userLoginResponse?.data?.personalName}</Text>
-        <Text style={styles.input}>Territory: {userLoginResponse?.data?.territoryName}</Text>
+        <Text style={styles.input}>
+          User Name: {userLoginResponse?.data?.userName}
+        </Text>
+        <Text style={styles.input}>
+          Hello: {userLoginResponse?.data?.personalName}
+        </Text>
+        <Text style={styles.input}>
+          Territory: {userLoginResponse?.data?.territoryName}
+        </Text>
       </View>
 
       <View style={styles.card}>
@@ -187,6 +213,32 @@ const HomeScreen = ({ navigation }: HomeScreenProps) => {
         />
       </View>
 
+         <View style={styles.card}>
+        <View style={styles.row}>
+          <Entypo name="shop" size={24} color="black" />
+          <Text style={styles.cardTitle}>Invoice</Text>
+        </View>
+
+        <TextInput
+          style={styles.input}
+          placeholder="Booking Value:"
+          value={bookingValue}
+          onChangeText={setBookingValue}
+        />
+        <TextInput
+          style={styles.input}
+          placeholder="Cancelled Value:"
+          value={cancelledValue}
+          onChangeText={setCancelledValue}
+        />
+        <TextInput
+          style={styles.input}
+          placeholder="Late Delivery bills:"
+          value={lateDeliveryBills}
+          onChangeText={setLateDeliveryBills}
+        />
+      </View>
+
       <View style={styles.card}>
         <Text style={styles.cardTitle}>Category Wise Target</Text>
 
@@ -218,6 +270,8 @@ const HomeScreen = ({ navigation }: HomeScreenProps) => {
         <Text style={styles.input}>Pkt:</Text>
         <Text style={styles.input}>Value:</Text>
         <Text style={styles.input}>Percentage:</Text>
+        <Text style={styles.input}>Average Pc:</Text>
+        <Text style={styles.input}>Heart Count:</Text>
       </View>
     </ScrollView>
   );

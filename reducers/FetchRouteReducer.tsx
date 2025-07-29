@@ -6,8 +6,8 @@ const initialState = {
   error: null,
 };
 
-const outletSlice = createSlice({
-  name: "outlet",
+const fetchRouteSlice = createSlice({
+  name: "fetchRoute",
   initialState,
   reducers: {
     setRoutesLoading: (state) => {
@@ -18,8 +18,8 @@ const outletSlice = createSlice({
       state.loading = false;
       state.routes = payload; // payload is the array from API response
       state.error = null;
-      console.log("setRoutesSuccess payload:", payload); // Log the payload
-      console.log("Updated state.routes:", state.routes); // Log the updated state
+     // console.log("setRoutesSuccess payload:", payload); // Log the payload
+      //console.log("Updated state.routes:", state.routes); // Log the updated state
     },
     setRoutesError: (state, { payload }) => {
       state.loading = false;
@@ -28,5 +28,5 @@ const outletSlice = createSlice({
   },
 });
 
-export const { setRoutesLoading, setRoutesSuccess, setRoutesError } = outletSlice.actions;
-export default outletSlice.reducer;
+export const { setRoutesLoading, setRoutesSuccess, setRoutesError } = fetchRouteSlice.actions;
+export default fetchRouteSlice.reducer;
