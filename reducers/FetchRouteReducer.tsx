@@ -19,7 +19,7 @@ const fetchRouteSlice = createSlice({
       state.routes = payload; // payload is the array from API response
       state.error = null;
      // console.log("setRoutesSuccess payload:", payload); // Log the payload
-      //console.log("Updated state.routes:", state.routes); // Log the updated state
+     // console.log("Updated state.routes:", state.routes); // Log the updated state
     },
     setRoutesError: (state, { payload }) => {
       state.loading = false;

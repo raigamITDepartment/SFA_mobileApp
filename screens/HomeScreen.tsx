@@ -97,7 +97,9 @@ const HomeScreen = ({ navigation }: HomeScreenProps) => {
                 Alert.alert("Error", "User ID not found. Cannot log out.");
                 return;
               }
-              await dispatch(logoutUser({ userId, latitude, longitude, gpsStatus: false }));
+              await dispatch(
+                logoutUser({ userId, latitude, longitude, gpsStatus: false })
+              );
               navigation.replace("AuthLoading"); // Use lowercase "login" if your screen name is defined like that
             } catch (error) {
               console.error("Logout error:", error);
@@ -141,24 +143,10 @@ const HomeScreen = ({ navigation }: HomeScreenProps) => {
           <Text style={styles.cardTitle}> Target</Text>
         </View>
 
-        <TextInput
-          style={styles.input}
-          placeholder="Territory Target:"
-          value={monthlyTarget}
-          onChangeText={setMonthlyTarget}
-        />
-        <TextInput
-          style={styles.input}
-          placeholder="My Achievement Value:"
-          value={achievementValue}
-          onChangeText={setAchievementValue}
-        />
-        <TextInput
-          style={styles.input}
-          placeholder="My Achievement Percentage:"
-          value={achievementPercentage}
-          onChangeText={setAchievementPercentage}
-        />
+        <Text style={styles.input}>Territory Target:</Text>
+        <Text style={styles.input}>My Achievement Value:</Text>
+        <Text style={styles.input}>My Achievement Percentage:</Text>
+
       </View>
 
       <View style={styles.card}>
@@ -167,24 +155,9 @@ const HomeScreen = ({ navigation }: HomeScreenProps) => {
           <Text style={styles.cardTitle}> PC Target</Text>
         </View>
 
-        <TextInput
-          style={styles.input}
-          placeholder="Territory PC Target:"
-          value={pcTarget}
-          onChangeText={setPcTarget}
-        />
-        <TextInput
-          style={styles.input}
-          placeholder="My Achieved PC Target:"
-          value={pcAchievement}
-          onChangeText={setPcAchievement}
-        />
-        <TextInput
-          style={styles.input}
-          placeholder="My Unproductive calls:"
-          value={pcUnproductive}
-          onChangeText={setPcUnproductive}
-        />
+        <Text style={styles.input}>PC Target:</Text>
+        <Text style={styles.input}>My Achieved PC Target:</Text>
+        <Text style={styles.input}>My Unproductive calls:</Text>
       </View>
 
       <View style={styles.card}>
@@ -193,50 +166,21 @@ const HomeScreen = ({ navigation }: HomeScreenProps) => {
           <Text style={styles.cardTitle}>Outlets</Text>
         </View>
 
-        <TextInput
-          style={styles.input}
-          placeholder="Active Outlets"
-          value={activeOutlets}
-          onChangeText={setActiveOutlets}
-        />
-        <TextInput
-          style={styles.input}
-          placeholder="Closed Outlets"
-          value={closedOutlets}
-          onChangeText={setClosedOutlets}
-        />
-        <TextInput
-          style={styles.input}
-          placeholder="Visited Outlets"
-          value={visitedOutlets}
-          onChangeText={setVisitedOutlets}
-        />
+        <Text style={styles.input}>Active Outlets:</Text>
+        <Text style={styles.input}>Closed Outlets:</Text>
+        <Text style={styles.input}>Visited Outlets:</Text>
       </View>
 
-         <View style={styles.card}>
+      <View style={styles.card}>
         <View style={styles.row}>
           <Entypo name="shop" size={24} color="black" />
           <Text style={styles.cardTitle}>Invoice</Text>
         </View>
 
-        <TextInput
-          style={styles.input}
-          placeholder="Booking Value:"
-          value={bookingValue}
-          onChangeText={setBookingValue}
-        />
-        <TextInput
-          style={styles.input}
-          placeholder="Cancelled Value:"
-          value={cancelledValue}
-          onChangeText={setCancelledValue}
-        />
-        <TextInput
-          style={styles.input}
-          placeholder="Late Delivery bills:"
-          value={lateDeliveryBills}
-          onChangeText={setLateDeliveryBills}
-        />
+    
+        <Text style={styles.input}>Booking Value:</Text>
+        <Text style={styles.input}>Cancelled Value:</Text>
+        <Text style={styles.input}>Late Delivery bills:</Text>
       </View>
 
       <View style={styles.card}>
@@ -324,6 +268,7 @@ const styles = StyleSheet.create({
     padding: 10,
     fontSize: 16,
     marginTop: 8,
+    color: "#333",
   },
   row: {
     flexDirection: "row",

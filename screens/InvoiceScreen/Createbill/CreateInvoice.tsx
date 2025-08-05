@@ -6,6 +6,7 @@ import {
   StyleSheet,
   Alert,
 } from "react-native";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 import { Ionicons } from "@expo/vector-icons";
 import { LinearGradient } from "expo-linear-gradient";
 import { useDispatch, useSelector } from "react-redux";
@@ -17,15 +18,17 @@ import SearchableDropdown from "../../../components/ui/CustomerDropdown";
 type RootStackParamList = {
   Home: undefined;
   CreateInvoice:
-    | { customerId?: string; invoiceType?: string; invoiceMode?: string }
+    | { routeId?: string; customerId?: string; invoiceType?: string; invoiceMode?: string }
     | undefined;
   CreateInvoiceScreen: {
+    routeId: string;
     customerId: string;
     customerName: string;
     invoiceType: string;
     invoiceMode: string;
   };
   ViewLastBillScreen: {
+    routeId: string;
     customerId: string;
     customerName: string;
     invoiceType: string;
@@ -44,9 +47,11 @@ const CreateInvoice = ({ navigation, route }: CreateInvoiceProps): React.JSX.Ele
   const [invoiceMode, setInvoiceMode] = useState<string>("1"); // Default to 'Booking'
   const [date] = useState(new Date());
 
+  // By providing a default empty object `|| {}` and default values for destructured properties,
+  // we prevent crashes if the Redux state slice is not yet available.
+  const { routes = [], loading: routesLoading = true } = useAppSelector((state) => state.fetchRoute) || {};
+  const { outlets = [], loading: outletsLoading = true } = useAppSelector((state) => state.fetchOutlet) || {};
   const territoryId = useSelector((state: any) => state.login?.user?.data?.territoryId);
-  const { routes, loading: routesLoading } = useAppSelector((state) => state.fetchRoute);
-  const { outlets, loading: outletsLoading } = useAppSelector((state) => state.fetchOutlet);
 
   useEffect(() => {
     if (territoryId) {
@@ -56,6 +61,7 @@ const CreateInvoice = ({ navigation, route }: CreateInvoiceProps): React.JSX.Ele
 
   useEffect(() => {
     if (route.params) {
+      if (route.params.routeId) setSelectedRoute(route.params.routeId);
       if (route.params.customerId) setSelectedCustomer(route.params.customerId);
       if (route.params.invoiceType) setInvoiceType(route.params.invoiceType);
       if (route.params.invoiceMode) setInvoiceMode(route.params.invoiceMode);
@@ -70,7 +76,7 @@ const CreateInvoice = ({ navigation, route }: CreateInvoiceProps): React.JSX.Ele
     }
   };
 
-  const handleCreateInvoice = () => {
+  const handleCreateInvoice = async () => {
     if (!selectedCustomer || !invoiceType || !invoiceMode) {
       Alert.alert("Can't Create the Bill", "Please select all fields before proceeding.");
       return;
@@ -78,12 +84,27 @@ const CreateInvoice = ({ navigation, route }: CreateInvoiceProps): React.JSX.Ele
 
     const customer = outlets.find((c: any) => String(c.id) === selectedCustomer);
     if (customer) {
-      navigation.navigate("ViewLastBillScreen", {
-        customerId: String(customer.id),
-        customerName: customer.outletName,
-        invoiceType,
-        invoiceMode,
-      });
+      const selectedRouteObject = routes.find((r: any) => String(r.id) === selectedRoute);
+      const routeName = selectedRouteObject ? selectedRouteObject.routeName : '';
+      try {
+        // Save invoice details to AsyncStorage
+        await AsyncStorage.setItem('RouteName', routeName);
+        await AsyncStorage.setItem('customerName', customer.outletName);
+        await AsyncStorage.setItem('invoiceType', invoiceType);
+        await AsyncStorage.setItem('invoiceMode', invoiceMode);
+
+        // Navigate to the next screen, passing the data as params for immediate use
+        navigation.navigate("ViewLastBillScreen", {
+          routeId: selectedRoute,
+          customerId: String(customer.id),
+          customerName: customer.outletName,
+          invoiceType,
+          invoiceMode,
+        });
+      } catch (e) {
+        console.error("Failed to save data to AsyncStorage", e);
+        Alert.alert("Error", "Failed to save invoice details. Please try again.");
+      }
     } else {
       Alert.alert("Error", "Customer not found");
     }
@@ -110,7 +131,7 @@ const CreateInvoice = ({ navigation, route }: CreateInvoiceProps): React.JSX.Ele
           label="Route"
           selectedValue={selectedRoute}
           setSelectedValue={handleRouteChanged}
-          options={(routes || []).map((r: any) => ({ id: r.id, name: r.routeName }))}
+          options={routes.map((r: any) => ({ id: r.id, name: r.routeName }))}
           loading={routesLoading}
         />
 
@@ -118,10 +139,9 @@ const CreateInvoice = ({ navigation, route }: CreateInvoiceProps): React.JSX.Ele
           label="Customer"
           selectedValue={selectedCustomer}
           setSelectedValue={setSelectedCustomer}
-          options={(outlets || [])
-            .filter((c: any) => selectedRoute === "" || String(c.routeId) === selectedRoute)
-            .map((c: any) => ({ id: c.id, name: c.outletName }))}
+          options={outlets.map((c: any) => ({ id: c.id, name: c.outletName }))}
           loading={outletsLoading}
+          disabled={!selectedRoute || outletsLoading}
         />
 
         <SearchableDropdown

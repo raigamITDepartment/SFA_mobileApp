@@ -83,14 +83,15 @@ export default function CustomerDropdown({
                 </TouchableOpacity>
               </View>
 
-              <TextInput
+                <TextInput
                 placeholder={`Search ${label.toLowerCase()}...`}
+                placeholderTextColor="#000"
                 value={searchQuery}
                 onChangeText={setSearchQuery}
                 style={styles.searchInput}
-              />
+                />
 
-              <FlatList
+                <FlatList
                 data={filteredOptions}
                 keyExtractor={(item) => String(item.id)}
                 ListEmptyComponent={
@@ -178,6 +179,7 @@ const styles = StyleSheet.create({
     marginBottom: 10,
     fontSize: 15,
     backgroundColor: '#fafafa',
+    color: '#333',
   },
   item: {
     paddingVertical: 12,

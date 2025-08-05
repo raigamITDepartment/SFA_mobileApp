@@ -21,33 +21,29 @@ import { useAppDispatch, useAppSelector } from "../../store/Hooks";
 import {
   fetchRoutesByTerritoryId,
   createOutlet,
+  fetchRouteIdbyOutlet,
 } from "../../actions/OutletAction";
+
 import { resetCreateOutletState } from "../../reducers/OutletReducer";
 import type { AppDispatch } from "../../store";
+
+import SearchableDropdown from "../../components/ui/CustomerDropdown";
 
 type StockProps = NativeStackScreenProps<RootStackParamList, "OutletAdd">;
 
 const OutletAdd = ({ navigation }: StockProps): React.JSX.Element => {
   const dispatch: AppDispatch = useDispatch();
   const [date, setDate] = useState(new Date());
-  const [selectedRoute, setSelectedRoute] = useState<any>(null);
-  const territoryId = useSelector(
-    (state: any) => state.login?.user?.data?.territoryId
+  const [selectedRoute, setSelectedRoute] = useState<string>("");
+
+  const territoryId = useAppSelector(
+    (state) => state.login.user?.data?.territoryId
   );
-  const rangeId = useSelector((state: any) => state.login?.user?.data?.rangeId);
-  console.log("Range ID:", );
-  const userId = useSelector((state: any) => state.login?.user?.data?.userId);
-  const agencyCode = useSelector(
-    (state: any) => state.login?.user?.data?.agencyCode
-  );
-
-   const userLoginResponse = useAppSelector((state) => state.login.user);
-
-  const Route = useAppSelector((state) => state.root);
-
+  const rangeId = useAppSelector((state) => state.login.user?.data?.rangeId);
+  const userId = useAppSelector((state) => state.login.user?.data?.userId);
+  const agencyCode = useAppSelector((state) => state.login.user?.data?.agencyCode);
+  const [selectedCustomer, setSelectedCustomer] = useState<string>("");
   const [shopCode, setShopCode] = useState("");
-  const [outletSequence, setOutletSequence] = useState("");
-  const [displayOrder, setDisplayOrder] = useState("");
   const [vatNum, setVatNum] = useState("");
   const [outletName, setOutletName] = useState("");
   const [address1, setAddress1] = useState("");
@@ -58,18 +54,19 @@ const OutletAdd = ({ navigation }: StockProps): React.JSX.Element => {
   const [category, setCategory] = useState("");
   const [image, setImage] = useState<string | null>(null);
   const [selectedAfter, setSelectedAfter] = useState("");
-  const { loading, error, success } = useAppSelector((state) => ({
-    loading: state.outlet.loading,
-    error: state.outlet.error,
-    success: state.outlet.success,
-  }));
+  const loading = useAppSelector((state) => state.outlet.loading);
+  const error = useAppSelector((state) => state.outlet.error);
+  const success = useAppSelector((state) => state.outlet.success);
   const [latitude, setLatitude] = useState<number | null>(null);
   const [longitude, setLongitude] = useState<number | null>(null);
+  const { routes = [], loading: routesLoading = true } =
+    useAppSelector((state) => state.fetchRoute) || {};
+
+  const { outlets = [], loading: outletsLoading = true } =
+    useAppSelector((state) => state.fetchOutlet) || {};
 
   const resetForm = () => {
-    setShopCode("");
-    setOutletSequence("");
-    setDisplayOrder("");
+    //setShopCode("");
     setOutletName("");
     setAddress1("");
     setAddress2("");
@@ -79,7 +76,7 @@ const OutletAdd = ({ navigation }: StockProps): React.JSX.Element => {
     setCategory("");
     setImage(null);
     setSelectedAfter("");
-    setSelectedRoute(null);
+    setSelectedRoute("");
   };
 
   useEffect(() => {
@@ -96,6 +93,14 @@ const OutletAdd = ({ navigation }: StockProps): React.JSX.Element => {
     })();
   }, []);
 
+  const handleRouteChanged = (routeId: string) => {
+    setSelectedRoute(routeId);
+    setSelectedCustomer("");
+    if (routeId) {
+      dispatch(fetchRouteIdbyOutlet(Number(routeId)));
+    }
+  };
+
   useEffect(() => {
     if (
       territoryId !== undefined &&
@@ -103,7 +108,7 @@ const OutletAdd = ({ navigation }: StockProps): React.JSX.Element => {
       territoryId !== ""
     ) {
       dispatch(fetchRoutesByTerritoryId(territoryId));
-      console.log("Fetching routes for territoryId:", territoryId);
+      //console.log("Fetching routes for territoryId:", territoryId);
     }
   }, [territoryId, dispatch]);
 
@@ -121,13 +126,15 @@ const OutletAdd = ({ navigation }: StockProps): React.JSX.Element => {
       ]);
     }
     if (error) {
-      Alert.alert("Error", (error as any).message || "Failed to create outlet.", [
-        { text: "OK", onPress: () => dispatch(resetCreateOutletState()) },
-      ]);
+      Alert.alert(
+        "Error",
+        (error as any).message || "Failed to create outlet.",
+        [{ text: "OK", onPress: () => dispatch(resetCreateOutletState()) }]
+      );
     }
   }, [success, error, navigation, dispatch]);
 
-  console.log("Available Routes:", Route.routes);
+  
 
   const takePhoto = async () => {
     const { status } = await ImagePicker.requestCameraPermissionsAsync();
@@ -147,7 +154,6 @@ const OutletAdd = ({ navigation }: StockProps): React.JSX.Element => {
   const handleCreateOutlet = () => {
     if (
 
-      !shopCode ||
       !outletName ||
       !contactPerson ||
       !mobile ||
@@ -155,11 +161,13 @@ const OutletAdd = ({ navigation }: StockProps): React.JSX.Element => {
       !address2 ||
       !address3 ||
       !category ||
-      !outletSequence ||
-      !displayOrder ||
-      !selectedRoute
+      !vatNum
     ) {
       Alert.alert("Missing Fields", "Please fill in all required fields.");
+      return;
+    }
+    if (!selectedRoute) {
+      Alert.alert("Missing Fields", "Please select a route.");
       return;
     }
     if (latitude === null || longitude === null) {
@@ -167,10 +175,42 @@ const OutletAdd = ({ navigation }: StockProps): React.JSX.Element => {
       return;
     }
 
-
+    const selectedRouteObject = routes.find(
+      (r: any) => String(r.id) === selectedRoute
+    );
+    if (!selectedRouteObject) {
+      Alert.alert("Error", "Selected route is invalid.");
+      return;
+    }
     const formData = new FormData();
 
-    formData.append("shopCode", shopCode);
+    let newDisplayOrder = 1; // Default to 1 if no outlets exist
+    let newOutletSequence = 1; // Default to 1 if no outlets exist
+
+    if (selectedCustomer) {
+      // If an "Add After" customer is selected, find their display order and add 1
+      const afterOutlet = outlets.find(
+        (o: any) => String(o.id) === selectedCustomer
+      );
+      if (afterOutlet) {
+        if (typeof afterOutlet.displayOrder === "number") {
+          newDisplayOrder = afterOutlet.displayOrder + 1;
+        }
+        if (typeof afterOutlet.outletSequence === "number") {
+          newOutletSequence = afterOutlet.outletSequence + 1;
+        }
+      }
+    } else {
+      // If no "Add After" customer is selected, find the max order and add 1
+      // to place the new outlet at the end of the list.
+      if (outlets.length > 0) {
+        const maxDisplayOrder = Math.max(...outlets.map((o: any) => o.displayOrder || 0));
+        newDisplayOrder = maxDisplayOrder + 1;
+        const maxOutletSequence = Math.max(...outlets.map((o: any) => o.outletSequence || 0));
+        newOutletSequence = maxOutletSequence + 1;
+      }
+    }
+
     formData.append("outletName", outletName);
     formData.append("ownerName", contactPerson);
     formData.append("mobileNo", mobile);
@@ -178,17 +218,17 @@ const OutletAdd = ({ navigation }: StockProps): React.JSX.Element => {
     formData.append("address2", address2);
     formData.append("address3", address3);
     formData.append("outletCategoryId", category || "0");
-    formData.append("outletSequence", outletSequence || "0");
-    formData.append("displayOrder", displayOrder || "0");
+    formData.append("outletSequence", String(newOutletSequence));
+    formData.append("displayOrder", String(newDisplayOrder));
     if (latitude) formData.append("latitude", String(latitude));
     if (longitude) formData.append("longitude", String(longitude));
     formData.append("isNew", "true");
     formData.append("isApproved", "false");
     formData.append("isClose", "false");
-    formData.append("routeId", selectedRoute.id);
-    formData.append("routeCode", selectedRoute.routeCode);
-    formData.append("rangeId", userLoginResponse.data.rangeId);
-    
+    formData.append("routeId", selectedRouteObject.id);
+    formData.append("routeCode", selectedRouteObject.routeCode);
+    if (rangeId) formData.append("rangeId", String(rangeId));
+
     if (userId) formData.append("userId", String(userId));
     if (agencyCode) formData.append("agencyCode", String(agencyCode));
     formData.append("openTime", "08:00");
@@ -206,7 +246,7 @@ const OutletAdd = ({ navigation }: StockProps): React.JSX.Element => {
     }
 
     dispatch(createOutlet(formData));
-    console.log("Creating Outlet with FormData");
+    console.log("Creating Outlet with FormData", formData);
   };
 
   return (
@@ -233,41 +273,33 @@ const OutletAdd = ({ navigation }: StockProps): React.JSX.Element => {
 
           <View style={styles.field}>
             <Text>Select Route:</Text>
-            <Picker
-      selectedValue={selectedRoute ? selectedRoute.id : ""}
-              onValueChange={(itemValue) => {
-                const selected = (Route.routes || []).find(
-                  (route: any) => route.id == itemValue
-                );
-                 setSelectedRoute(selected);
-                if (selected) {
-               
-                }
-              }}
-              style={styles.picker}
-            >
-              <Picker.Item label="Select a route" value="" />
-              {(Route.routes || []).map((route: any) => (
-                <Picker.Item
-                  key={route.id}
-                  label={route.routeName}
-                  value={route.id}
-                />
-              ))}
-            </Picker>
+
+            <SearchableDropdown
+              label=""
+              selectedValue={selectedRoute}
+              setSelectedValue={handleRouteChanged}
+              options={routes.map((r: any) => ({
+                id: r.id,
+                name: r.routeName,
+              }))}
+              loading={routesLoading}
+            />
           </View>
 
           <View style={styles.field}>
             <Text style={styles.label}>Add After (Optional)</Text>
-            <Picker
-              selectedValue={selectedAfter}
-              onValueChange={(itemValue) => setSelectedAfter(itemValue)}
-              style={styles.picker}
-            >
-              <Picker.Item label="Select Outlet" value="" />
-              <Picker.Item label="Outlet 1" value="outlet1" />
-              <Picker.Item label="Outlet 2" value="outlet2" />
-            </Picker>
+
+            <SearchableDropdown
+              label="Customer"
+              selectedValue={selectedCustomer}
+              setSelectedValue={setSelectedCustomer}
+              options={outlets.map((c: any) => ({
+                id: c.id,
+                name: c.outletName,
+              }))}
+              loading={outletsLoading}
+              disabled={!selectedRoute || outletsLoading}
+            />
           </View>
 
           <View style={styles.imageContainer}>
@@ -286,13 +318,13 @@ const OutletAdd = ({ navigation }: StockProps): React.JSX.Element => {
               />
             )}
           </View>
-            <TextInput
+            {/* <TextInput
             style={styles.input}
             placeholder="Enter Shop Code"
             value={shopCode}
             onChangeText={setShopCode}
-          />
-          <TextInput
+          /> */}
+          {/* <TextInput
             style={styles.input}
             placeholder="Enter Outlet Sequence"
             value={outletSequence}
@@ -305,7 +337,7 @@ const OutletAdd = ({ navigation }: StockProps): React.JSX.Element => {
             value={displayOrder}
             keyboardType="numeric"
             onChangeText={setDisplayOrder}
-          />
+          /> */}
 
           <TextInput
             style={styles.input}
@@ -359,7 +391,7 @@ const OutletAdd = ({ navigation }: StockProps): React.JSX.Element => {
             </Picker>
           </View>
 
-           <TextInput
+          <TextInput
             style={styles.input}
             placeholder="Enter Vat No."
             value={vatNum}
@@ -379,15 +411,18 @@ const OutletAdd = ({ navigation }: StockProps): React.JSX.Element => {
               style={styles.createButton}
               disabled={loading}
             >
-              {loading ? <ActivityIndicator color="#fff" /> : <Text style={styles.createText}>Create</Text>}
+              {loading ? (
+                <ActivityIndicator color="#fff" />
+              ) : (
+                <Text style={styles.createText}>Create</Text>
+              )}
             </TouchableOpacity>
           </View>
         </Card>
       </ScrollView>
     </LinearGradient>
   );
-};
-
+}
 const styles = StyleSheet.create({
   gradient: { flex: 1 },
   container: { padding: 16 },

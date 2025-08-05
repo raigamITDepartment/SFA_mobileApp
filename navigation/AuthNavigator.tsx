@@ -48,8 +48,8 @@ export type RootStackParamList = {
     start: undefined;
     Home: undefined;
     HomeScreen: undefined;
-    CreateInvoice: { customerId?: string; invoiceType?: string; invoiceMode?: string } | undefined;
-    CreateInvoiceScreen: { customerId: string; customerName: string; invoiceType: string; invoiceMode: string };
+    CreateInvoice: { routeId?: string; customerId?: string; invoiceType?: string; invoiceMode?: string } | undefined;
+    CreateInvoiceScreen: { routeId: string; customerId: string; customerName: string; invoiceType: string; invoiceMode: string };
     ItemDetailsScreen: { customerName: string; item: Partial<InvoiceItem> & { itemName: string } };
     InvoiceFinish: { invoiceData: any };
     Stock:undefined;
@@ -60,7 +60,7 @@ export type RootStackParamList = {
     HomeSurvey:undefined;
     InvoiceSummary: undefined;
     StockLevel: undefined;
-    ViewLastBillScreen: { customerId: string; customerName: string; invoiceType: string; invoiceMode: string };
+    ViewLastBillScreen: { routeId: string; customerId: string; customerName: string; invoiceType: string; invoiceMode: string };
     HomeInvoice: undefined;
     InvoiceEditScreen: undefined;
     InvoiceItemEditScreen: { invoiceData: any };

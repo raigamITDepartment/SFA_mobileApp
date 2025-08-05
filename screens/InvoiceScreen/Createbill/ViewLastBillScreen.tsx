@@ -39,17 +39,15 @@ interface BillData {
 const ViewLastBillScreen = ({ navigation, route }: ViewLastBillScreenProps): React.JSX.Element => {
   const [bill, setBill] = useState<BillData | null>(null);
   const [loading, setLoading] = useState(true);
+  const [storedCustomerName, setStoredCustomerName] = useState<string | null>(null);
   const {
+    routeId,
     customerId,
     customerName,
     invoiceType,
     invoiceMode,
+    
   } = route.params;
-  const customers = [
-    { id: 'customerA', name: 'Pathirana Super City' },
-    { id: 'customerB', name: 'Customer B' },
-    { id: 'customerC', name: 'Super K' },
-  ];
   const shopId = customerId;
 
  // const { shopId } = route.params as { shopId: string };
@@ -77,8 +75,12 @@ const ViewLastBillScreen = ({ navigation, route }: ViewLastBillScreenProps): Rea
   };
 
   // 🟢 Fetch bill from storage
-  const fetchBill = async () => {
+  const fetchData = async () => {
     try {
+      // Fetch customer name from async storage as requested
+      const nameFromStorage = await AsyncStorage.getItem('customerName');
+      setStoredCustomerName(nameFromStorage);
+
       const data = await AsyncStorage.getItem(`lastBill_${shopId}`);
       if (data) {
         setBill(JSON.parse(data));
@@ -88,14 +90,14 @@ const ViewLastBillScreen = ({ navigation, route }: ViewLastBillScreenProps): Rea
         setBill(newData ? JSON.parse(newData) : null);
       }
     } catch (err) {
-      Alert.alert("Error", "Failed to load bill");
+      Alert.alert("Error", "Failed to load data");
     } finally {
       setLoading(false);
     }
   };
 
   useEffect(() => {
-    fetchBill();
+    fetchData();
   }, [shopId]);
 
   if (loading) {
@@ -115,15 +117,14 @@ const ViewLastBillScreen = ({ navigation, route }: ViewLastBillScreenProps): Rea
   }
 
   const handleInvoice = () => {
-    const customer = customers.find(c => c.id === customerId);
-    if (customer) {
-      navigation.navigate('CreateInvoiceScreen', {
-        customerId: customer.id,
-        customerName: customer.name,
-        invoiceType: invoiceType,
-        invoiceMode: invoiceMode,
-      });
-    }
+    // Use the customerId and customerName passed via navigation params
+    navigation.navigate('CreateInvoiceScreen', {
+      routeId: routeId,
+      customerId: customerId,
+      customerName: customerName,
+      invoiceType: invoiceType,
+      invoiceMode: invoiceMode,
+    });
   };
 
 
@@ -148,7 +149,7 @@ const ViewLastBillScreen = ({ navigation, route }: ViewLastBillScreenProps): Rea
    <View style={styles.form}>
       <Text style={styles.heading}>Last Bill</Text>
       <Text style={styles.label}>
-        Shop Name: <Text style={styles.value}>{bill.shopName}</Text>
+        Shop Name: <Text style={styles.value}>{storedCustomerName || customerName}</Text>
       </Text>
       <Text style={styles.label}>
         Bill No: <Text style={styles.value}>{bill.billNo}</Text>

@@ -71,7 +71,8 @@ const CreateInvoiceScreen = ({ navigation, route }: CreateInvoiceScreenProps): R
   const [searchQuery, setSearchQuery] = useState<string>('');
 
   const {
-    customerId,
+    routeId,
+    customerId = '',
     customerName = 'No Customer',
     invoiceType = 'N/A',
     invoiceMode = 'N/A',
@@ -176,7 +177,8 @@ const CreateInvoiceScreen = ({ navigation, route }: CreateInvoiceScreenProps): R
       <ScrollView style={styles.container}>
         <View style={styles.headerBar}>
           <Text style={styles.headerText}>{customerName}</Text>
-          <Text style={styles.subHeaderText}>{`Type: ${invoiceType} | Mode: ${invoiceMode}`}</Text>
+          <Text style={styles.subHeaderText}>{`Type: ${invoiceType} | Mode: ${invoiceMode} | Route: ${routeId}`}</Text>
+          <Text style={styles.subHeaderText}> </Text>
         </View>
 
         <TextInput
@@ -247,7 +249,7 @@ const CreateInvoiceScreen = ({ navigation, route }: CreateInvoiceScreenProps): R
         <View style={styles.buttonRow}>
           <TouchableOpacity
             style={styles.cancelButton}
-            onPress={() => navigation.navigate('CreateInvoice', { customerId, invoiceType, invoiceMode })}
+            onPress={() => navigation.navigate('CreateInvoice', { routeId,customerId, invoiceType, invoiceMode })}
           >
             <Text style={styles.buttonText}>Cancel Invoice</Text>
           </TouchableOpacity>
@@ -256,7 +258,9 @@ const CreateInvoiceScreen = ({ navigation, route }: CreateInvoiceScreenProps): R
             style={styles.completeButton}
             onPress={async () => {
               const invoiceData = {
+                routeId: routeId,
                 customerName,
+                customerId,
                 invoiceType,
                 invoiceMode,
                 items: savedItems,

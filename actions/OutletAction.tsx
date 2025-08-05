@@ -24,7 +24,7 @@ const fetchRoutesByTerritoryId = (
 
     try {
       const response = await userManagementApi().get(url, { headers: { Authorization: `Bearer ${token}` } });
-     // console.log("API response:", response.data);
+    // console.log("API response routes:", response.data);
       dispatch(setRoutesSuccess(response.data.payload));
     } catch (err) {
       const error = err as { response?: { data?: any }; message?: string };
@@ -76,7 +76,7 @@ const fetchRouteIdbyOutlet = (
    // console.log("Create Outlet Response11111111111111111:", response);
       // Explicitly check for the success message from the API
       if (response.data && response.data.message === "Success") {
-        //console.log("Create Outlet Response:", response.data);
+        console.log("Create Outlet Response:", response.data);
         dispatch(setCreateOutletSuccess(response.data.payload));
       } else {
         // Handle cases where the API returns 2xx but indicates an error in the body
