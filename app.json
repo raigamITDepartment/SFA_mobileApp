@@ -6,6 +6,12 @@
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
     "scheme": "raigamsfa",
+    "updates": {
+      "url": "https://firebasestorage.googleapis.com/v0/b/sfamobile-1eab9.firebasestorage.app/o/version.json?alt=media&token=475a390f-be20-4aca-8477-5f9e31f7fdda"
+    },
+    "runtimeVersion": {
+      "policy": "appVersion"
+    },
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
     "splash": {
@@ -39,7 +45,7 @@
     "android": {
       "adaptiveIcon": {
         "foregroundImage": "./assets/images/icon.png",
-        "backgroundColor": "#0C056D"
+        "backgroundColor": "#FFFFFF"
       },
       "edgeToEdgeEnabled": true,
       "package": "com.raigams.Raigamsfa"

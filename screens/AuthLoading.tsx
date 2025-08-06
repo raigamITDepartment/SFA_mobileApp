@@ -1,6 +1,7 @@
-import React, { useEffect } from 'react';
-import { View, Text, StyleSheet, Image } from "react-native";
+import React, { useEffect, useState } from 'react';
+import { View, Text, StyleSheet, Image, Alert } from "react-native";
 import { StackNavigationProp } from "@react-navigation/stack";
+import * as Updates from 'expo-updates';
 import { RootStackParamList } from '../navigation/AuthNavigator';
 import UDColors from '../constants/UDColors';
 import UDImages from '../UDImages';
@@ -11,13 +12,46 @@ type AuthLoadingProps = {
 };
 
 const AuthLoading: React.FC<AuthLoadingProps> = ({ navigation }) => {
-    const appVersion = Constants.manifest?.version || "1.0.0";
+    const [status, setStatus] = useState('Checking for updates...');
+    // Use expoConfig instead of the deprecated manifest
+    const appVersion = Constants.expoConfig?.version ?? "1.0.0";
 
     useEffect(() => {
-        const timer = setTimeout(() => {
-            navigation.replace('Login');
-        }, 2000); // 2 seconds
-        return () => clearTimeout(timer);
+        const onFetchUpdate = async () => {
+            try {
+                // Check for updates
+                const update = await Updates.checkForUpdateAsync();
+
+                if (update.isAvailable) {
+                    setStatus('Downloading update...');
+                    // Download the update
+                    await Updates.fetchUpdateAsync();
+                    // Reload the app to apply the update
+                    await Updates.reloadAsync();
+                } else {
+                    // No update available, navigate to Login
+                    navigation.replace('Login');
+                }
+            } catch (error) {
+                // Handle errors, e.g., no network connection
+                Alert.alert('Update Error', `Error fetching latest update: ${error instanceof Error ? error.message : String(error)}`);
+                // Proceed to login even if update check fails
+                navigation.replace('Login');
+            }
+        };
+
+        // In development, updates are disabled.
+        // To test updates, you need to create a development build or a production build.
+        if (!__DEV__) {
+            onFetchUpdate();
+        } else {
+            // In dev mode, just navigate to Login after a delay
+            setStatus('Development mode, skipping updates.');
+            const timer = setTimeout(() => {
+                navigation.replace('Login');
+            }, 2000);
+            return () => clearTimeout(timer);
+        }
     }, [navigation]);
 
     return (
@@ -30,6 +64,7 @@ const AuthLoading: React.FC<AuthLoadingProps> = ({ navigation }) => {
                 />
             </View>
             <View style={styles.versionContainer}>
+                <Text style={styles.statusText}>{status}</Text>
                 <Text style={styles.versionText}>{`Version ${appVersion}`}</Text>
             </View>
         </View>
@@ -48,6 +83,11 @@ const styles = StyleSheet.create({
     logoContainer: {
         flex: 2,
         justifyContent: 'flex-end',
+    },
+    statusText: {
+        fontSize: 16,
+        color: UDColors.secondry,
+        marginBottom: 10,
     },
     versionText: {
         fontSize: 14,

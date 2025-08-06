@@ -209,6 +209,7 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     padding: 12,
     backgroundColor: '#FFF',
+     color: '#555',
   },
   picker: {
 
