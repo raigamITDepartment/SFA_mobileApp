@@ -2,7 +2,6 @@ import React from 'react';
 import { View, Text, TouchableOpacity, StyleSheet, StatusBar } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
-//import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 //import { RootStackParamList } from '@/navigation/AuthNavigator';
 
@@ -25,7 +24,7 @@ type HomeOutletProps = NativeStackScreenProps<RootStackParamList, 'HomeReport'>;
 
 
 
-const HomeOutlet = ({ navigation }: HomeOutletProps): React.JSX.Element => {
+const HomeOutlet = ({ navigation }: HomeOutletProps): React.ReactElement => {
   const reports = [
     { title: 'OutletAdd', route: 'OutletAdd' },
     { title: 'UpdateOutletScreen', route: 'UpdateOutlet' },

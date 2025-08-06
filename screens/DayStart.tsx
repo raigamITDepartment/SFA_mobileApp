@@ -1,23 +1,77 @@
-import React from "react";
+import React, { useState } from "react";
 import {
   StyleSheet,
   Text,
   View,
   Image,
   TouchableOpacity,
+  Alert,
+  ActivityIndicator,
 } from "react-native";
 import UDImages from "../UDImages";
 import { NativeStackNavigationProp } from "@react-navigation/native-stack";
+import * as Location from 'expo-location';
+import { DayStartUser } from "../actions/UserAction";
+import { useAppDispatch ,useAppSelector} from "@/store/Hooks";
+
 
 type DayStartScreenProps = {
   navigation: NativeStackNavigationProp<any>;
 };
-
 const DayStart = ({ navigation }: DayStartScreenProps) => {
+    const dispatch = useAppDispatch();
+  const [loading, setLoading] = useState(false);
   // const handleSubmitPress = () => {
   //   // Navigate to the home screen
   //   navigation.navigate("Home");
   // };
+ const userLoginResponse = useAppSelector((state) => state.login.user);
+
+ const handleDayStart = () => {
+    Alert.alert(
+      "Confirm Day Start",
+      "Are you sure you want to start the day?",
+      [
+        { text: "No", style: "cancel" },
+        {
+          text: "Yes",
+          onPress: async () => {
+            try {
+              let { status } =
+                await Location.requestForegroundPermissionsAsync();
+              if (status !== "granted") {
+                Alert.alert(
+                  "Permission Denied",
+                  "Location access is required."
+                );
+                return;
+              }
+
+              let location = await Location.getCurrentPositionAsync({});
+              const { latitude, longitude } = location.coords;
+              console.log("Current Location Day Start:", latitude, longitude);
+
+              const userId = userLoginResponse?.data?.userId;
+              if (!userId) {
+                Alert.alert("Error", "User ID not found. Cannot start day.");
+                return;
+              }
+
+              await dispatch(DayStartUser({ userId, latitude, longitude, gpsStatus: true }));
+              navigation.replace("Home"); // Use lowercase "login" if your screen name is defined like that
+            } catch (error) {
+              console.error("Logout error:", error);
+              Alert.alert("Error", "Something went wrong while logging out.");
+            }
+          },
+          style: "destructive",
+        },
+      ]
+    );
+  };
+
+  
+
 
   return (
     <View style={styles.container}>
@@ -35,10 +89,11 @@ const DayStart = ({ navigation }: DayStartScreenProps) => {
           <TouchableOpacity
             style={styles.buttonStyle}
             activeOpacity={1}
-            
-             onPress={() => navigation.navigate('Home')}
+            onPress={handleDayStart} disabled={loading}
+           // onPress={() => navigation.navigate('Home')}
           >
             <Text style={styles.buttonTextStyle}>Day Start</Text>
+              {loading && <ActivityIndicator />}
           </TouchableOpacity>
         </View>
       </View>

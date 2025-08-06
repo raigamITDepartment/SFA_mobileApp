@@ -1,114 +1,221 @@
-import React, { useState } from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, TextInput } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
-import { Dropdown } from 'react-native-element-dropdown';
-import AntDesign from '@expo/vector-icons/AntDesign';
+import React, { useState, useEffect } from "react";
+import {
+  View,
+  Text,
+  StyleSheet,
+  ScrollView,
+  TouchableOpacity,
+  TextInput,
+  Alert,
+  BackHandler,
+} from "react-native";
 
-const HomeScreen = () => {
-  const [monthlyTarget, setMonthlyTarget] = useState('');
-  const [monthlyGrowth, setMonthlyGrowth] = useState('');
+import { Dropdown } from "react-native-element-dropdown";
+import AntDesign from "@expo/vector-icons/AntDesign";
+import Feather from "@expo/vector-icons/Feather";
+import Entypo from "@expo/vector-icons/Entypo";
+import * as Location from "expo-location";
+import { useAppDispatch, useAppSelector } from "../store/Hooks";
+import type { NativeStackScreenProps } from "@react-navigation/native-stack";
+import { logoutUser } from "../actions/UserAction";
+// import useBackToHome from '../store/UseBackToHome';
 
+type RootStackParamList = {
+  HomeScreen: undefined;
+  Login: undefined;
+  start: undefined;
+  AuthLoading: undefined;
+};
 
- const data = [
-    { label: 'Item 1', value: '1' },
-    { label: 'Item 2', value: '2' },
-    { label: 'Item 3', value: '3' },
-    { label: 'Item 4', value: '4' },
-    { label: 'Item 5', value: '5' },
-    { label: 'Item 6', value: '6' },
-    { label: 'Item 7', value: '7' },
-    { label: 'Item 8', value: '8' },
+type HomeScreenProps = NativeStackScreenProps<RootStackParamList, "HomeScreen">;
+
+const HomeScreen = ({ navigation }: HomeScreenProps) => {
+  const dispatch = useAppDispatch();
+  const userLoginResponse = useAppSelector((state) => state.login.user);
+
+  const [monthlyTarget, setMonthlyTarget] = useState("");
+  const [achievementValue, setAchievementValue] = useState("");
+  const [achievementPercentage, setAchievementPercentage] = useState("");
+  const [pcTarget, setPcTarget] = useState("");
+  const [pcAchievement, setPcAchievement] = useState("");
+  const [pcUnproductive, setPcUnproductive] = useState("");
+  const [activeOutlets, setActiveOutlets] = useState("");
+  const [closedOutlets, setClosedOutlets] = useState("");
+  const [visitedOutlets, setVisitedOutlets] = useState("");
+  const [dropdownValue, setDropdownValue] = useState(null);
+  const [isFocus, setIsFocus] = useState(false);
+  const [bookingValue, setBookingValue] = useState("");
+  const [cancelledValue, setCancelledValue] = useState("");
+  const [lateDeliveryBills, setLateDeliveryBills] = useState("");
+
+  const dropdownData = [
+    { label: "Item 1", value: "1" },
+    { label: "Item 2", value: "2" },
+    { label: "Item 3", value: "3" },
+    { label: "Item 4", value: "4" },
   ];
 
+  useEffect(() => {
+    const backAction = () => {
+      navigation.navigate("HomeScreen");
+      return true;
+    };
 
+    const backHandler = BackHandler.addEventListener(
+      "hardwareBackPress",
+      backAction
+    );
+    return () => backHandler.remove();
+  }, [navigation]);
 
-  const [value, setValue] = useState(null);
-    const [isFocus, setIsFocus] = useState(false);
+  const handleLogout = () => {
+    Alert.alert(
+      "Confirm Logout",
+      "Are you sure you want to logout and end the day?",
+      [
+        { text: "No", style: "cancel" },
+        {
+          text: "Yes",
+          onPress: async () => {
+            try {
+              let { status } =
+                await Location.requestForegroundPermissionsAsync();
+              if (status !== "granted") {
+                Alert.alert(
+                  "Permission Denied",
+                  "Location access is required."
+                );
+                return;
+              }
 
- 
+              let location = await Location.getCurrentPositionAsync({});
+              const { latitude, longitude } = location.coords;
+              console.log("Current Location:", latitude, longitude);
+
+              const userId = userLoginResponse?.data?.userId;
+              if (!userId) {
+                Alert.alert("Error", "User ID not found. Cannot log out.");
+                return;
+              }
+              await dispatch(
+                logoutUser({ userId, latitude, longitude, gpsStatus: false })
+              );
+              navigation.replace("AuthLoading"); // Use lowercase "login" if your screen name is defined like that
+            } catch (error) {
+              console.error("Logout error:", error);
+              Alert.alert("Error", "Something went wrong while logging out.");
+            }
+          },
+          style: "destructive",
+        },
+      ]
+    );
+  };
 
   return (
     <ScrollView style={styles.container}>
       <View style={styles.header}>
         <Text style={styles.title}>Dashboard</Text>
-        <TouchableOpacity style={styles.profileIcon}
-        
-         // onPress={() => navigation.navigate('HomeScreen')}
-        
-        >
-          <Ionicons name="person-circle" size={40} color="white" />
+        <TouchableOpacity style={styles.profileIcon} onPress={handleLogout}>
+          <View style={{ flexDirection: "row", alignItems: "center" }}>
+            <Entypo name="log-out" size={24} color="black" />
+            <Text style={{ marginLeft: 8, fontSize: 16 }}>Day End</Text>
+          </View>
         </TouchableOpacity>
       </View>
 
       <View style={styles.card}>
-        <Text style={styles.cardTitle}>Monthly Target</Text>
-        <TextInput
-          style={styles.input}
-          placeholder="Enter Monthly Target"
-          value={monthlyTarget}
-          onChangeText={setMonthlyTarget}
-        />
+        <Text style={styles.cardTitle}>Welcome</Text>
+        <Text style={styles.input}>
+          User Name: {userLoginResponse?.data?.userName}
+        </Text>
+        <Text style={styles.input}>
+          Hello: {userLoginResponse?.data?.personalName}
+        </Text>
+        <Text style={styles.input}>
+          Territory: {userLoginResponse?.data?.territoryName}
+        </Text>
       </View>
 
       <View style={styles.card}>
-        <Text style={styles.cardTitle}>Monthly Growth</Text>
-        <TextInput
-          style={styles.input}
-          placeholder="Enter Monthly Growth"
-          value={monthlyGrowth}
-          onChangeText={setMonthlyGrowth}
-        />
+        <View style={styles.row}>
+          <Feather name="target" size={24} color="black" />
+          <Text style={styles.cardTitle}> Target</Text>
+        </View>
+
+        <Text style={styles.input}>Territory Target:</Text>
+        <Text style={styles.input}>My Achievement Value:</Text>
+        <Text style={styles.input}>My Achievement Percentage:</Text>
+
+      </View>
+
+      <View style={styles.card}>
+        <View style={styles.row}>
+          <Feather name="target" size={24} color="black" />
+          <Text style={styles.cardTitle}> PC Target</Text>
+        </View>
+
+        <Text style={styles.input}>PC Target:</Text>
+        <Text style={styles.input}>My Achieved PC Target:</Text>
+        <Text style={styles.input}>My Unproductive calls:</Text>
+      </View>
+
+      <View style={styles.card}>
+        <View style={styles.row}>
+          <Entypo name="shop" size={24} color="black" />
+          <Text style={styles.cardTitle}>Outlets</Text>
+        </View>
+
+        <Text style={styles.input}>Active Outlets:</Text>
+        <Text style={styles.input}>Closed Outlets:</Text>
+        <Text style={styles.input}>Visited Outlets:</Text>
+      </View>
+
+      <View style={styles.card}>
+        <View style={styles.row}>
+          <Entypo name="shop" size={24} color="black" />
+          <Text style={styles.cardTitle}>Invoice</Text>
+        </View>
+
+    
+        <Text style={styles.input}>Booking Value:</Text>
+        <Text style={styles.input}>Cancelled Value:</Text>
+        <Text style={styles.input}>Late Delivery bills:</Text>
       </View>
 
       <View style={styles.card}>
         <Text style={styles.cardTitle}>Category Wise Target</Text>
-     
-      
-      
-          <View style={styles.containers}>
 
         <Dropdown
-          style={[styles.dropdown, isFocus && { borderColor: 'blue' }]}
-          placeholderStyle={styles.placeholderStyle}
-          selectedTextStyle={styles.selectedTextStyle}
-          inputSearchStyle={styles.inputSearchStyle}
-          iconStyle={styles.iconStyle}
-          data={data}
-          search
-          maxHeight={300}
+          style={[styles.dropdown, isFocus && { borderColor: "blue" }]}
+          data={dropdownData}
           labelField="label"
           valueField="value"
-          placeholder={!isFocus ? 'Select item' : '...'}
+          placeholder={!isFocus ? "Select item" : "..."}
           searchPlaceholder="Search..."
-          value={value}
+          value={dropdownValue}
           onFocus={() => setIsFocus(true)}
           onBlur={() => setIsFocus(false)}
-          onChange={(item: { label: string; value: string }) => {
-           // setValue(item.value);
+          onChange={(item) => {
+            setDropdownValue(item.value);
             setIsFocus(false);
           }}
           renderLeftIcon={() => (
             <AntDesign
               style={styles.icon}
-              color={isFocus ? 'blue' : 'black'}
+              color={isFocus ? "blue" : "black"}
               name="Safety"
               size={20}
             />
           )}
         />
-        
-                <Text style={styles.cardTitle}>Soya</Text>
-                 <Text style={styles.cardTitle}>1200pkt</Text>
-                  <Text style={styles.cardTitle}> Progress</Text>
-                   <Text style={styles.cardTitle}>10%</Text>
-      </View>
-      </View>
 
-    <View style={styles.card}>
-        <Text style={styles.cardTitle}>End The Day</Text>
-       <TouchableOpacity style={styles.button}>
-                 <Text style={styles.buttonText}>Day End</Text>
-               </TouchableOpacity>
+        <Text style={styles.input}>Item:</Text>
+        <Text style={styles.input}>Pkt:</Text>
+        <Text style={styles.input}>Value:</Text>
+        <Text style={styles.input}>Percentage:</Text>
+        <Text style={styles.input}>Average Pc:</Text>
+        <Text style={styles.input}>Heart Count:</Text>
       </View>
     </ScrollView>
   );
@@ -117,34 +224,33 @@ const HomeScreen = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#F5F5F5',
+    backgroundColor: "#F5F5F5",
     paddingHorizontal: 16,
   },
   header: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    backgroundColor: '#ff0000',
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    backgroundColor: "#ff0000",
     paddingVertical: 16,
     paddingHorizontal: 8,
     borderRadius: 10,
-    marginVertical: 8,
     marginTop: 22,
   },
   title: {
-    color: 'white',
+    color: "white",
     fontSize: 24,
-    fontWeight: 'bold',
+    fontWeight: "bold",
   },
   profileIcon: {
-    alignItems: 'center',
+    alignItems: "center",
   },
   card: {
-    backgroundColor: 'white',
+    backgroundColor: "white",
     borderRadius: 10,
     padding: 16,
     marginVertical: 8,
-    shadowColor: '#000',
+    shadowColor: "#000",
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
     shadowRadius: 4,
@@ -152,86 +258,34 @@ const styles = StyleSheet.create({
   },
   cardTitle: {
     fontSize: 18,
-    fontWeight: 'bold',
+    fontWeight: "bold",
     marginBottom: 12,
   },
   input: {
-    backgroundColor: '#F5F5F5',
-    borderWidth: 1,
-    borderColor: '#E0E0E0',
+    backgroundColor: "#F5F5F5",
+    borderColor: "#E0E0E0",
     borderRadius: 8,
     padding: 10,
     fontSize: 16,
-    color: '#333',
+    marginTop: 8,
+    color: "#333",
   },
- 
-  actionsContainer: {
-    flexDirection: 'row',
-    justifyContent: 'space-around',
+  row: {
+    flexDirection: "row",
+    alignItems: "center",
+    flexWrap: "wrap",
+    marginBottom: 8,
   },
-  actionButton: {
-    alignItems: 'center',
-    backgroundColor: '#6200EE',
-    padding: 12,
+  dropdown: {
+    height: 50,
+    borderColor: "gray",
+    borderWidth: 0.5,
     borderRadius: 8,
+    paddingHorizontal: 8,
+    marginBottom: 16,
   },
-  actionText: {
-    color: 'white',
-    fontSize: 14,
-    marginTop: 4,
-  },
-
-
-    containers: {
-      backgroundColor: 'white',
-      padding: 16,
-    },
-    dropdown: {
-      height: 50,
-      borderColor: 'gray',
-      borderWidth: 0.5,
-      borderRadius: 8,
-      paddingHorizontal: 8,
-    },
-    icon: {
-      marginRight: 5,
-    },
-    label: {
-      position: 'absolute',
-      backgroundColor: 'white',
-      left: 22,
-      top: 8,
-      zIndex: 999,
-      paddingHorizontal: 8,
-      fontSize: 14,
-    },
-    placeholderStyle: {
-      fontSize: 16,
-    },
-    selectedTextStyle: {
-      fontSize: 16,
-    },
-    iconStyle: {
-      width: 20,
-      height: 20,
-    },
-    inputSearchStyle: {
-      height: 40,
-      fontSize: 16,
-    },
-
-      button: {
-    backgroundColor: '#ff0000',
-    padding: 10,
-    borderRadius: 8,
-    width: '40%',
-    alignItems: 'center',
-    marginInlineStart: '30%',
-  },
-
-    buttonText: {
-    color: '#fff',
-    fontWeight: 'bold',
+  icon: {
+    marginRight: 5,
   },
 });
 

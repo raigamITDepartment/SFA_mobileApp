@@ -8,6 +8,10 @@ const setToken = async (value: string) => {
     return await SecureStore.setItemAsync('token', value);
 }
 
+const removeToken = async () => {
+    return await SecureStore.deleteItemAsync('token');
+}
+
 const getUserName = async () => {
     return await SecureStore.getItemAsync("user_name");
 }
@@ -72,6 +76,7 @@ export {
     getBioEnabled,
     setToken,
     getToken,
+    removeToken,
     setRememberMe,
     getRememberMe,
     setAppVisited,

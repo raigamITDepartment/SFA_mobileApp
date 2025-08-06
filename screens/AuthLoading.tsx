@@ -46,7 +46,7 @@ const AuthLoading: React.FC<AuthLoadingProps> = ({ navigation }) => {
             onFetchUpdate();
         } else {
             // In dev mode, just navigate to Login after a delay
-            setStatus('Development mode, skipping updates.');
+            setStatus('No updates are available. Skipping update');
             const timer = setTimeout(() => {
                 navigation.replace('Login');
             }, 2000);

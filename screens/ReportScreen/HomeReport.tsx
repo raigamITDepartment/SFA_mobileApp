@@ -3,42 +3,33 @@ import { View, Text, TouchableOpacity, StyleSheet, StatusBar } from 'react-nativ
 import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
 //import { NativeStackScreenProps } from '@react-navigation/native-stack';
-import type { NativeStackScreenProps } from '@react-navigation/native-stack';
-//import { RootStackParamList } from '@/navigation/AuthNavigator';
+import type { NativeStackScreenProps } from "@react-navigation/native-stack";
+//import { RootStackParamList } from "@/navigation/AuthNavigator";
+// Define navigation types
 
 
 
 type RootStackParamList = {
-  Home:undefined;
-  HomeReport: undefined; // Add HomeReport to the list
   InvoiceSummary: undefined;
   ProductiveCalls: undefined;
   TotalSales: undefined;
-  TotalPC: undefined;
   StockLevel: undefined;
   PromoTarget: undefined;
-  TargetAchievement: undefined;
   HomeScreen:undefined;
+  HomeReport: undefined;
 };
 
 
 
-
-
-// Define navigation types
-type HomeReportProps = NativeStackScreenProps<RootStackParamList, 'HomeReport'>;
-
-
+type HomeReportProps = NativeStackScreenProps<RootStackParamList, "HomeReport">;
 
 const HomeReport = ({ navigation }: HomeReportProps): React.JSX.Element => {
   const reports = [
     { title: 'Invoice Summary Report', route: 'InvoiceSummary' },
-    { title: 'Productive & Unproductive Calls', route: 'ProductiveCalls' },
     { title: 'Total Sales Report', route: 'TotalSales' },
-    { title: 'Total PC Report', route: 'TotalPC' },
     { title: 'Stock Level Report', route: 'StockLevel' },
     { title: 'Promo Target VS Achievement', route: 'PromoTarget' },
-    { title: 'Target VS Achievement', route: 'TargetAchievement' },
+    
   ];
 
   return (
@@ -46,9 +37,7 @@ const HomeReport = ({ navigation }: HomeReportProps): React.JSX.Element => {
       <StatusBar barStyle="light-content" />
       <View style={styles.header}>
         <Ionicons name="arrow-back-outline" size={28} color="white" 
-        
-        onPress={() => navigation.navigate('HomeScreen')}
-        
+          onPress={() => navigation.navigate('HomeScreen')}
         />
         <Text style={styles.title}>Raigam SFA Report</Text>
         <Ionicons name="notifications-outline" size={28} color="white" />
@@ -58,7 +47,7 @@ const HomeReport = ({ navigation }: HomeReportProps): React.JSX.Element => {
           <TouchableOpacity
             key={index}
             style={styles.button}
-            onPress={() => navigation.navigate(report.route as keyof RootStackParamList)}
+            onPress={() => navigation.navigate(report.route as "InvoiceSummary" | "TotalSales" | "StockLevel" | "PromoTarget")}
           >
             <Text style={styles.buttonText}>{report.title}</Text>
           </TouchableOpacity>
