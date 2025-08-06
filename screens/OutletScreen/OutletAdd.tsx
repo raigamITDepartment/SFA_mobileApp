@@ -41,7 +41,9 @@ const OutletAdd = ({ navigation }: StockProps): React.JSX.Element => {
   );
   const rangeId = useAppSelector((state) => state.login.user?.data?.rangeId);
   const userId = useAppSelector((state) => state.login.user?.data?.userId);
-  const agencyCode = useAppSelector((state) => state.login.user?.data?.agencyCode);
+  const agencyCode = useAppSelector(
+    (state) => state.login.user?.data?.agencyCode
+  );
   const [selectedCustomer, setSelectedCustomer] = useState<string>("");
   const [shopCode, setShopCode] = useState("");
   const [vatNum, setVatNum] = useState("");
@@ -134,8 +136,6 @@ const OutletAdd = ({ navigation }: StockProps): React.JSX.Element => {
     }
   }, [success, error, navigation, dispatch]);
 
-  
-
   const takePhoto = async () => {
     const { status } = await ImagePicker.requestCameraPermissionsAsync();
     if (status !== "granted") {
@@ -153,7 +153,6 @@ const OutletAdd = ({ navigation }: StockProps): React.JSX.Element => {
 
   const handleCreateOutlet = () => {
     if (
-
       !outletName ||
       !contactPerson ||
       !mobile ||
@@ -204,9 +203,13 @@ const OutletAdd = ({ navigation }: StockProps): React.JSX.Element => {
       // If no "Add After" customer is selected, find the max order and add 1
       // to place the new outlet at the end of the list.
       if (outlets.length > 0) {
-        const maxDisplayOrder = Math.max(...outlets.map((o: any) => o.displayOrder || 0));
+        const maxDisplayOrder = Math.max(
+          ...outlets.map((o: any) => o.displayOrder || 0)
+        );
         newDisplayOrder = maxDisplayOrder + 1;
-        const maxOutletSequence = Math.max(...outlets.map((o: any) => o.outletSequence || 0));
+        const maxOutletSequence = Math.max(
+          ...outlets.map((o: any) => o.outletSequence || 0)
+        );
         newOutletSequence = maxOutletSequence + 1;
       }
     }
@@ -290,7 +293,7 @@ const OutletAdd = ({ navigation }: StockProps): React.JSX.Element => {
             <Text style={styles.label}>Add After (Optional)</Text>
 
             <SearchableDropdown
-              label="Customer"
+              label=""
               selectedValue={selectedCustomer}
               setSelectedValue={setSelectedCustomer}
               options={outlets.map((c: any) => ({
@@ -318,7 +321,7 @@ const OutletAdd = ({ navigation }: StockProps): React.JSX.Element => {
               />
             )}
           </View>
-            {/* <TextInput
+          {/* <TextInput
             style={styles.input}
             placeholder="Enter Shop Code"
             value={shopCode}
@@ -340,38 +343,44 @@ const OutletAdd = ({ navigation }: StockProps): React.JSX.Element => {
           /> */}
 
           <TextInput
-            style={styles.input}
+            style={[styles.input, { color: "#000" }]}
             placeholder="Enter Outlet Name"
+            placeholderTextColor="#000"
             value={outletName}
             onChangeText={setOutletName}
           />
           <TextInput
-            style={styles.input}
+            style={[styles.input, { color: "#000" }]}
             placeholder="Enter Address 1"
+            placeholderTextColor="#000"
             value={address1}
             onChangeText={setAddress1}
           />
           <TextInput
-            style={styles.input}
+            style={[styles.input, { color: "#000" }]}
             placeholder="Enter Address 2"
+            placeholderTextColor="#000"
             value={address2}
             onChangeText={setAddress2}
           />
           <TextInput
-            style={styles.input}
+            style={[styles.input, { color: "#000" }]}
             placeholder="Enter Address 3"
+            placeholderTextColor="#000"
             value={address3}
             onChangeText={setAddress3}
           />
           <TextInput
-            style={styles.input}
+            style={[styles.input, { color: "#000" }]}
             placeholder="Contact Person Name"
+            placeholderTextColor="#000"
             value={contactPerson}
             onChangeText={setContactPerson}
           />
           <TextInput
-            style={styles.input}
+            style={[styles.input, { color: "#000" }]}
             placeholder="Enter Mobile No."
+            placeholderTextColor="#000"
             value={mobile}
             keyboardType="phone-pad"
             onChangeText={setMobile}
@@ -392,8 +401,9 @@ const OutletAdd = ({ navigation }: StockProps): React.JSX.Element => {
           </View>
 
           <TextInput
-            style={styles.input}
+            style={[styles.input, { color: "#000" }]}
             placeholder="Enter Vat No."
+            placeholderTextColor="#000"
             value={vatNum}
             keyboardType="phone-pad"
             onChangeText={setVatNum}
@@ -422,7 +432,7 @@ const OutletAdd = ({ navigation }: StockProps): React.JSX.Element => {
       </ScrollView>
     </LinearGradient>
   );
-}
+};
 const styles = StyleSheet.create({
   gradient: { flex: 1 },
   container: { padding: 16 },
@@ -433,7 +443,7 @@ const styles = StyleSheet.create({
     marginBottom: 16,
     textAlign: "center",
   },
-  field: { marginBottom: 16 },
+  field: { marginBottom: 16, marginTop: 8 },
   label: { fontSize: 16, marginBottom: 8 },
   input: {
     marginTop: 8,
@@ -442,6 +452,7 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     padding: 12,
     backgroundColor: "#FFF",
+    color: "#555",
   },
   picker: {
     borderColor: "#CCC",

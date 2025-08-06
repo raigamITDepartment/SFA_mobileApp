@@ -1,13 +1,43 @@
 {
   "expo": {
-    "name": "RaigamSFA",
+    "name": "Raigamsfa",
     "slug": "raigamsfa",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
     "scheme": "raigamsfa",
+    "updates": {
+      "url": "https://firebasestorage.googleapis.com/v0/b/sfamobile-1eab9.firebasestorage.app/o/version.json?alt=media&token=475a390f-be20-4aca-8477-5f9e31f7fdda"
+    },
+    "runtimeVersion": {
+      "policy": "appVersion"
+    },
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
+    "splash": {
+      "backgroundColor": "#FFFFFF"
+    },
+    "doctor": {
+      "reactNativeDirectoryCheck": {
+        "exclude": [
+          "@mui/icons-material",
+          "expo-checkbox",
+          "undici"
+        ]
+      }
+    },
+    "extends": [
+      "eslint:recommended",
+      "plugin:react/recommended"
+    ],
+    "parserOptions": {
+      "ecmaFeatures": {
+        "jsx": true
+      }
+    },
+    "cli": {
+      "appVersionSource": "remote"
+    },
     "ios": {
       "supportsTablet": true,
       "bundleIdentifier": "com.raigam.Raigamsfa"
@@ -19,7 +49,6 @@
       },
       "edgeToEdgeEnabled": true,
       "package": "com.raigams.Raigamsfa"
-     
     },
     "web": {
       "bundler": "metro",
@@ -31,11 +60,11 @@
       [
         "expo-splash-screen",
         {
-          "backgroundColor": "#0C056D",
-          "image": "./assets/images/splash_screen_logo.png",
-            "resizeMode": "cover",
-            "imageResizeMode": "contain",
-            "imageResizeModeMaxSize": true
+          "backgroundColor": "#232323",
+          "image": "./assets/images/splash-icon.png",
+          "resizeMode": "contain",
+          "imageResizeMode": "contain",
+          "imageWidth": 1200
         }
       ],
       "expo-font",
@@ -50,7 +79,6 @@
         "projectId": "92c42144-c096-47a3-8ff4-1150faf65f9a"
       }
     },
-    "owner": "raigamsfa",
-    "jsEngine": "hermes"
+    "owner": "raigamsfa"
   }
 }
