@@ -1,5 +1,5 @@
 const UDColors = {
-  primary: "#0C056D",
+  primary: "#fff",
   
   buttonColor: "#DBA80E",
   modalBackground: "#fff",
@@ -8,7 +8,7 @@ const UDColors = {
   black: "#000",
   white: "#fff",
   notificationColor: "#F4E6A5",
-  homeTxt: "#0C056D",
+  homeTxt: "#fff",
   gray: "#827D7D",
   gray1: "#A6A5A4",
   gray2: "rgba(242, 243, 250, 1)",
@@ -22,7 +22,7 @@ const UDColors = {
   approvedStatus: "#0E9113",
   rejectStatus: "#DE1C2B",
   cancelledStatus: "rgba(25, 196, 234, 0.80)",
-  darkGreen: "#0C056D",
+  darkGreen: "#ffff",
   error:'#FF0000',
   shadow:"rgba(3, 3, 3, 0.30)",
   yellow:"#DBA80E",

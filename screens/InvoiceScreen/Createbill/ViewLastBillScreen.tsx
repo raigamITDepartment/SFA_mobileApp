@@ -68,7 +68,7 @@ const ViewLastBillScreen = ({ navigation, route }: ViewLastBillScreenProps): Rea
 
     try {
       await AsyncStorage.setItem(`lastBill_${shopId}`, JSON.stringify(sampleBill));
-      console.log("Sample bill stored.");
+      console.log("Sample bill stored.", sampleBill);
     } catch (err) {
       Alert.alert("Error", "Failed to store sample bill");
     }
@@ -130,6 +130,7 @@ const ViewLastBillScreen = ({ navigation, route }: ViewLastBillScreenProps): Rea
 
 
 
+console.log("Bill Data:", customerName, customerId, invoiceType, invoiceMode);
 
 
 
@@ -187,7 +188,7 @@ const ViewLastBillScreen = ({ navigation, route }: ViewLastBillScreenProps): Rea
 const styles = StyleSheet.create({
  container: {
     flex: 1,
-    backgroundColor: "#0C056D",
+  //  backgroundColor: "#0C056D",
     padding: 20,
   },
   centered: {

@@ -26,6 +26,7 @@ import ReverseInvoiceScreen from "../screens/InvoiceScreen/EditeBill/ReverseInvo
 
 export type InvoiceItem = {
   itemName: string;
+  itemId: number;
   unitPrice: string;
   quantity: string;
   specialDiscount: string;
@@ -50,7 +51,7 @@ export type RootStackParamList = {
     HomeScreen: undefined;
     CreateInvoice: { routeId?: string; customerId?: string; invoiceType?: string; invoiceMode?: string } | undefined;
     CreateInvoiceScreen: { routeId: string; customerId: string; customerName: string; invoiceType: string; invoiceMode: string };
-    ItemDetailsScreen: { customerName: string; item: Partial<InvoiceItem> & { itemName: string } };
+    ItemDetailsScreen: { customerName: string; item: Partial<InvoiceItem> & { itemName: string; itemId: number } };
     InvoiceFinish: { invoiceData: any };
     Stock:undefined;
     OutletAdd:undefined;

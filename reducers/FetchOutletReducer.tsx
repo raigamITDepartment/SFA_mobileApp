@@ -6,7 +6,7 @@ const initialState = {
   error: null,
 };
 
-const outletSlice = createSlice({
+const ItemSlice = createSlice({
   name: "fetchoutlet",
   initialState,
   reducers: {
@@ -28,5 +28,5 @@ const outletSlice = createSlice({
   },
 });
 
-export const { setOutletLoading, setOutletSuccess, setOutletError } = outletSlice.actions;
-export default outletSlice.reducer;
+export const { setOutletLoading, setOutletSuccess, setOutletError } = ItemSlice.actions;
+export default ItemSlice.reducer;

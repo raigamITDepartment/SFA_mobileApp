@@ -9,10 +9,13 @@ import {
   StyleSheet,
   TouchableOpacity,
 } from 'react-native';
-import { Button } from 'react-native-paper';
+import { Button, Menu } from 'react-native-paper';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { RootStackParamList } from '@/navigation/AuthNavigator';
+import { useAppDispatch, useAppSelector } from '../../../store/Hooks';
+import { fetchItemIdbyPrice } from '../../../actions/InvoiceAction';
+import { RootState } from '@/store';
 
 type LabelInputProps = {
   label: string;
@@ -38,23 +41,38 @@ type ItemDetailsScreenProps = NativeStackScreenProps<RootStackParamList, 'ItemDe
 
 const ItemDetailsScreen = ({ navigation, route }: ItemDetailsScreenProps): React.JSX.Element => {
   const { customerName, item } = route.params;
-  const { itemName } = item;
+  const { itemName, itemId } = item;
 
-  const [unitPrice, setUnitPrice] = useState(item.unitPrice || '100.00');
-  const [unitPriceGR, setUnitPriceGR] = useState(item.unitPriceGR || '0');
-  const [unitPriceMR, setUnitPriceMR] = useState(item.unitPriceMR || '0');
-  const [quantity, setQuantity] = useState(item.quantity || '0');
-  const [specialDiscount, setSpecialDiscount] = useState(item.specialDiscount || '0');
-  const [freeIssue, setFreeIssue] = useState(item.freeIssue || '0');
+  const dispatch = useAppDispatch();
+  const rangeId = useAppSelector((state: RootState) => state.login.user.data.rangeId);
+  const { Price: prices, loading: priceLoading } = useAppSelector(
+    (state: RootState) => state.Price
+  );
+
+  const [priceMenuVisible, setPriceMenuVisible] = useState(false);
+
+  const [unitPrice, setUnitPrice] = useState(item.unitPrice || '');
+  const [unitPriceGR, setUnitPriceGR] = useState(item.unitPriceGR || '');
+  const [unitPriceMR, setUnitPriceMR] = useState(item.unitPriceMR || '');
+  const [quantity, setQuantity] = useState(item.quantity || '');
+  const [specialDiscount, setSpecialDiscount] = useState(item.specialDiscount || '');
+  const [freeIssue, setFreeIssue] = useState(item.freeIssue || '');
   const [showGoodReturn, setShowGoodReturn] = useState(false);
   const [showMarketReturn, setShowMarketReturn] = useState(false);
-  const [goodReturnQty, setGoodReturnQty] = useState(item.goodReturnQty || '0');
-  const [goodReturnFreeQty, setGoodReturnFreeQty] = useState(item.goodReturnFreeQty || '0');
-  const [goodReturnTotal, setGoodReturnTotal] = useState('0');
-  const [marketReturnQty, setMarketReturnQty] = useState(item.marketReturnQty || '0');
-  const [marketReturnFreeQty, setMarketReturnFreeQty] = useState(item.marketReturnFreeQty || '0');
-  const [marketReturnTotal, setMarketReturnTotal] = useState('0');
-  const [lineTotal, setLineTotal] = useState(item.lineTotal || '0');
+  const [goodReturnQty, setGoodReturnQty] = useState(item.goodReturnQty || '');
+  const [goodReturnFreeQty, setGoodReturnFreeQty] = useState(item.goodReturnFreeQty || '');
+  const [goodReturnTotal, setGoodReturnTotal] = useState('');
+  const [marketReturnQty, setMarketReturnQty] = useState(item.marketReturnQty || '');
+  const [marketReturnFreeQty, setMarketReturnFreeQty] = useState(item.marketReturnFreeQty || '');
+  const [marketReturnTotal, setMarketReturnTotal] = useState('');
+  const [lineTotal, setLineTotal] = useState(item.lineTotal || '');
+  const [itemDiscountValue, setItemDiscountValue] = useState('');
+
+  useEffect(() => {
+    if (itemId && rangeId) {
+      dispatch(fetchItemIdbyPrice(itemId, Number(rangeId)));
+    }
+  }, [dispatch, itemId, rangeId]);
 
   useEffect(() => {
     const parse = (val: string) => parseFloat(val) || 0;
@@ -76,8 +94,9 @@ const ItemDetailsScreen = ({ navigation, route }: ItemDetailsScreenProps): React
     setMarketReturnTotal(marketTotal.toFixed(2));
 
     const baseAmount = unit * Math.max(qty - free, 0);
-    const discountedAmount = baseAmount * (1 - discount / 100);
-    const finalTotal = discountedAmount - goodTotal - marketTotal;
+    const discountValue = baseAmount * (discount / 100);
+    setItemDiscountValue(discountValue.toFixed(2));
+    const finalTotal = baseAmount - discountValue - goodTotal - marketTotal;
 
     setLineTotal(finalTotal.toFixed(2));
   }, [unitPrice, quantity, freeIssue, specialDiscount, goodReturnQty,unitPriceGR ,goodReturnFreeQty, marketReturnQty,unitPriceMR, marketReturnFreeQty]);
@@ -85,6 +104,7 @@ const ItemDetailsScreen = ({ navigation, route }: ItemDetailsScreenProps): React
   const handleSave = async () => {
     const itemData = {
       itemName,
+      itemId,
       unitPrice,
       quantity,
       specialDiscount,
@@ -99,7 +119,7 @@ const ItemDetailsScreen = ({ navigation, route }: ItemDetailsScreenProps): React
     };
 
     try {
-      await AsyncStorage.setItem(`item_${itemName}`, JSON.stringify(itemData));
+      await AsyncStorage.setItem(`item_${itemId}`, JSON.stringify(itemData));
       navigation.goBack();
     } catch (error) {
       console.error('Failed to save item', error);
@@ -111,16 +131,49 @@ const ItemDetailsScreen = ({ navigation, route }: ItemDetailsScreenProps): React
       <Text style={styles.title}>Item Stock Details</Text>
       <Text style={styles.customerName}>{customerName}</Text>
       <Text style={styles.itemName}>Item name : {itemName}</Text>
-      <Text style={styles.itemCode}>Item code : 866543CF</Text>
+        <Text style={styles.itemName}>Item ID : {itemId}</Text>
+      {/* <Text style={styles.itemCode}>Item code : 866543CF</Text> */}
 
       <View style={styles.inputGroup}>
         <LabelInput label="Available Stock" value="10000" editable={false} />
         <LabelInput label="Unit of Measure" value="Pkt" editable={false} />
-        <LabelInput label="Unit Price" value={unitPrice} onChangeText={setUnitPrice} />
-        <LabelInput label="Adjusted Unit Price Rs." value={unitPrice} editable={false} />
+        <View style={styles.labelInput}>
+          <Text style={styles.label}>Unit Price</Text>
+          <Menu
+            visible={priceMenuVisible}
+            onDismiss={() => setPriceMenuVisible(false)}
+            anchor={
+              <TouchableOpacity
+                style={[styles.input, styles.dropdown]}
+                onPress={() => setPriceMenuVisible(true)}
+                disabled={priceLoading}
+              >
+                <Text style={styles.dropdownText}>
+                  {priceLoading
+                    ? 'Loading prices...'
+                    : unitPrice
+                    ? `Rs. ${unitPrice}`
+                    : 'Select a price'}
+                </Text>
+              </TouchableOpacity>
+            }
+          >
+            {prices && prices.length > 0 ? (
+              prices.map((p: any) => (
+                <Menu.Item
+                  key={p.priceListId}
+                  onPress={() => { setUnitPrice(String(p.price)); setPriceMenuVisible(false); }}
+                  title={`Rs. ${p.price}`}
+                />
+              ))
+            ) : (<Menu.Item disabled title={priceLoading ? 'Loading...' : 'No prices available'} />)}
+          </Menu>
+        </View>
+        <LabelInput label="Adjusted Unit Price Rs." value={unitPrice || '0.00'} editable={false} />
         <LabelInput label="Quantity" value={quantity} onChangeText={setQuantity} />
         <LabelInput label="Special Discount (%)" value={specialDiscount} onChangeText={setSpecialDiscount} />
         <LabelInput label="Free Issue" value={freeIssue} onChangeText={setFreeIssue} />
+        <LabelInput label="Item Discount Value" value={itemDiscountValue} editable={false} />
       </View>
 
       <View style={styles.accordionSection}>
@@ -176,6 +229,12 @@ const styles = StyleSheet.create({
   label: { fontSize: 14, marginBottom: 4 },
   input: { height: 40, borderWidth: 1, borderColor: '#bbb', borderRadius: 6, paddingHorizontal: 8, backgroundColor: '#fff' },
   inputDisabled: { backgroundColor: '#eee' },
+  dropdown: {
+    justifyContent: 'center',
+  },
+  dropdownText: {
+    fontSize: 14,
+  },
   accordionSection: { marginVertical: 10 },
   accordionHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', backgroundColor: '#ccc', padding: 12, borderRadius: 6, marginBottom: 6 },
   accordionHeaderText: { fontWeight: '600', fontSize: 16 },

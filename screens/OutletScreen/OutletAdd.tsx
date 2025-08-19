@@ -11,7 +11,6 @@ import {
   Alert,
 } from "react-native";
 import { Text, Card, Button } from "react-native-paper";
-import { Picker } from "@react-native-picker/picker";
 import { LinearGradient } from "expo-linear-gradient";
 import * as ImagePicker from "expo-image-picker";
 import * as Location from "expo-location";
@@ -154,6 +153,7 @@ const OutletAdd = ({ navigation }: StockProps): React.JSX.Element => {
   const handleCreateOutlet = () => {
     if (
       !outletName ||
+      !image ||
       !contactPerson ||
       !mobile ||
       !address1 ||
@@ -206,11 +206,11 @@ const OutletAdd = ({ navigation }: StockProps): React.JSX.Element => {
         const maxDisplayOrder = Math.max(
           ...outlets.map((o: any) => o.displayOrder || 0)
         );
-        newDisplayOrder = maxDisplayOrder + 1;
+        newDisplayOrder = maxDisplayOrder + 0;
         const maxOutletSequence = Math.max(
           ...outlets.map((o: any) => o.outletSequence || 0)
         );
-        newOutletSequence = maxOutletSequence + 1;
+        newOutletSequence = maxOutletSequence + 0;
       }
     }
 
@@ -260,10 +260,7 @@ const OutletAdd = ({ navigation }: StockProps): React.JSX.Element => {
 
           <View style={styles.field}>
             <Text style={styles.label}>Date / Time</Text>
-            <TouchableOpacity
-              onPress={() => setDate(new Date())}
-              style={styles.datePicker}
-            >
+            <View style={styles.datePicker}>
               <Text style={styles.dateText}>
                 {date.toLocaleDateString()}{" "}
                 {date.toLocaleTimeString([], {
@@ -271,11 +268,11 @@ const OutletAdd = ({ navigation }: StockProps): React.JSX.Element => {
                   minute: "2-digit",
                 })}
               </Text>
-            </TouchableOpacity>
+            </View>
           </View>
 
           <View style={styles.field}>
-            <Text>Select Route:</Text>
+            <Text style={styles.label}>Select Route:</Text>
 
             <SearchableDropdown
               label=""
@@ -388,16 +385,31 @@ const OutletAdd = ({ navigation }: StockProps): React.JSX.Element => {
 
           <View style={styles.field}>
             <Text style={styles.label}>Shop Category</Text>
-            <Picker
+            <SearchableDropdown
+              label=""
               selectedValue={category}
-              onValueChange={(itemValue) => setCategory(itemValue)}
-              style={styles.picker}
-            >
-              <Picker.Item label="Select Category" value="" />
-              <Picker.Item label="Grocery" value="1" />
-              <Picker.Item label="Pharmacy" value="2" />
-              <Picker.Item label="Bakery" value="3" />
-            </Picker>
+              setSelectedValue={setCategory}
+              options={[
+                { id: "1", name: "Small Bakery" },
+                { id: "2", name: "Large Bakery" },
+                { id: "3", name: "Grocery" },
+                { id: "4", name: "Small Whole Sale" },
+                { id: "5", name: "Large Whole Sale" },
+                { id: "6", name: "Co-Operative" },
+                { id: "7", name: "Super Market" },
+                { id: "8", name: "Hotel or Others" },
+                { id: "9", name: "Canteen" },
+                { id: "10", name: "Pharmacy" },
+                { id: "11", name: "Super Market" },
+                { id: "12", name: "Co-op City" },
+                { id: "13", name: "Beauty Salons" },
+                { id: "14", name: "Ayurveda" },
+                { id: "15", name: "Fancy House" },
+                { id: "16", name: "Textile Shop" },
+                { id: "17", name: "School" },
+              ]}
+              loading={false}
+            />
           </View>
 
           <TextInput
@@ -443,7 +455,7 @@ const styles = StyleSheet.create({
     marginBottom: 16,
     textAlign: "center",
   },
-  field: { marginBottom: 16, marginTop: 8 },
+  field: { marginBottom: 16, marginTop: 8, color: "#000" },
   label: { fontSize: 16, marginBottom: 8 },
   input: {
     marginTop: 8,

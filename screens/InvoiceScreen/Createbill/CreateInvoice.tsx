@@ -37,6 +37,20 @@ type RootStackParamList = {
   UpproductiveCall: undefined;
 };
 
+interface RouteType {
+  id: number;
+  routeName: string;
+  // Add other properties as necessary
+}
+
+interface OutletType {
+  id: number;
+  outletName: string;
+  // Add other properties as necessary
+}
+
+
+
 type CreateInvoiceProps = NativeStackScreenProps<RootStackParamList, "CreateInvoice">;
 
 const CreateInvoice = ({ navigation, route }: CreateInvoiceProps): React.JSX.Element => {
@@ -49,8 +63,8 @@ const CreateInvoice = ({ navigation, route }: CreateInvoiceProps): React.JSX.Ele
 
   // By providing a default empty object `|| {}` and default values for destructured properties,
   // we prevent crashes if the Redux state slice is not yet available.
-  const { routes = [], loading: routesLoading = true } = useAppSelector((state) => state.fetchRoute) || {};
-  const { outlets = [], loading: outletsLoading = true } = useAppSelector((state) => state.fetchOutlet) || {};
+  const { routes = [], loading: routesLoading = true } = useAppSelector((state) => state.fetchRoute) as { routes: RouteType[], loading: boolean }|| {routes:[], loading:true};
+  const { outlets = [], loading: outletsLoading = true } = useAppSelector((state) => state.fetchOutlet) as {outlets: OutletType[], loading: boolean} || {outlets:[], loading: true};
   const territoryId = useSelector((state: any) => state.login?.user?.data?.territoryId);
 
   useEffect(() => {
@@ -76,7 +90,7 @@ const CreateInvoice = ({ navigation, route }: CreateInvoiceProps): React.JSX.Ele
     }
   };
 
-  const handleCreateInvoice = async () => {
+  const handleCreateInvoice = async (): Promise<void> => {
     if (!selectedCustomer || !invoiceType || !invoiceMode) {
       Alert.alert("Can't Create the Bill", "Please select all fields before proceeding.");
       return;
@@ -84,7 +98,7 @@ const CreateInvoice = ({ navigation, route }: CreateInvoiceProps): React.JSX.Ele
 
     const customer = outlets.find((c: any) => String(c.id) === selectedCustomer);
     if (customer) {
-      const selectedRouteObject = routes.find((r: any) => String(r.id) === selectedRoute);
+      const selectedRouteObject = routes.find((r: RouteType) => String(r.id) === selectedRoute);
       const routeName = selectedRouteObject ? selectedRouteObject.routeName : '';
       try {
         // Save invoice details to AsyncStorage

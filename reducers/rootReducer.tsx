@@ -6,6 +6,10 @@ import FeOutletReducer from "./FetchOutletReducer";
 import LogoutReducer, { setLogoutSuccess } from "./LogoutReducer";
 import DayStartSlice from "./DayStartReducer";
 import OutletSlice from "./OutletReducer";
+import ItemSlice from "./FetchItemsReducer";
+import PriceSlice from "./FetchPriceReducer"
+import InvoiceSlice from "./CreateInvoiceReducer";
+
 
 
 const appReducer = combineReducers({
@@ -15,6 +19,9 @@ const appReducer = combineReducers({
   logout: LogoutReducer,
   dayStart: DayStartSlice,
   outlet: OutletSlice,
+  Items: ItemSlice,
+  Price: PriceSlice,
+  Invoice: InvoiceSlice,
 });
 
 const rootReducer = (state: ReturnType<typeof appReducer> | undefined, action: AnyAction) => {

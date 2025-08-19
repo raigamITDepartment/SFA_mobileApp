@@ -39,6 +39,12 @@ const InvoiceFinish = ({
     totalGoodReturns,
     totalMarketReturns,
     invoiceDate,
+    userId,
+    rangeId,
+    latitude,
+    longitude,
+    routeId,
+    customerId,
   } = invoiceData;
 
   const displayDate = new Date(invoiceDate);
@@ -121,11 +127,12 @@ const InvoiceFinish = ({
             <p>Address: _________________________</p>
             <p>Vat Invoice Number: ______________</p>
             <p>Date: ${formattedDate}</p>
-            <p>Type: ${invoiceType} | Mode: ${invoiceMode}</p>
+            <p>Location: ${latitude?.toFixed(6)}, ${longitude?.toFixed(6)}</p>
+            <p>Type: ${invoiceType} | Mode: ${invoiceMode} | Route: ${routeId}</p>
           </div>
           <div class="details-row">
-            <p>Sale Rep: ________ | Territory: ________ | Distributor: ________</p>
-            <p>Invoice No: ________ | Dealer Code: ________</p>
+            <p>Sale Rep: ${userId} | Territory: ${rangeId} | Distributor: ________</p>
+            <p>Invoice No: ________ | Dealer Code: ${customerId}</p>
           </div>
           <table>
             <thead>
@@ -181,13 +188,17 @@ const InvoiceFinish = ({
           <Text style={styles.subHeader}>Address: </Text>
           <Text style={styles.subHeader}>Vat Invoice Number:</Text>
           <Text style={styles.subHeader}>Date: {formattedDate}</Text>
-          <Text style={styles.subHeader}>Type: {invoiceType}</Text>
-          <Text style={styles.subHeader}>Mode: {invoiceMode}</Text>
+          <Text style={styles.subHeader}>
+            Location: {latitude?.toFixed(6)}, {longitude?.toFixed(6)}
+          </Text>
+          <Text style={styles.subHeader}>
+            Type: {invoiceType} | Mode: {invoiceMode} | Route: {routeId}
+          </Text>
         </View>
 
         <View style={styles.detailsRow}>
-          <Text style={styles.detailsText}>Sale Rep: | Territory: | Distributor:</Text>
-          <Text style={styles.detailsText}>Invoice No: | Dealer Code:</Text>
+          <Text style={styles.detailsText}>Sale Rep: {userId} | Territory: {rangeId} | Distributor:</Text>
+          <Text style={styles.detailsText}>Invoice No: | Dealer Code: {customerId}</Text>
         </View>
 
         <View style={styles.table}>
