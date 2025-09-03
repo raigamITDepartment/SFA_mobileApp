@@ -26,8 +26,8 @@ type HomeOutletProps = NativeStackScreenProps<RootStackParamList, 'HomeReport'>;
 
 const HomeOutlet = ({ navigation }: HomeOutletProps): React.ReactElement => {
   const reports = [
-    { title: 'OutletAdd', route: 'OutletAdd' },
-    { title: 'UpdateOutletScreen', route: 'UpdateOutlet' },
+    { title: 'Outlet Add', route: 'OutletAdd' },
+    { title: 'Update Outlet Screen', route: 'UpdateOutlet' },
  
   ];
 

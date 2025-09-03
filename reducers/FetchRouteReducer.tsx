@@ -1,7 +1,12 @@
-import { createSlice } from "@reduxjs/toolkit";
+import { createSlice, PayloadAction } from "@reduxjs/toolkit";
+
+interface RouteType {
+  id: number;
+  routeName: string;
+}
 
 const initialState = {
-  routes: [],
+  routes: [] as RouteType[],
   loading: false,
   error: null,
 };
@@ -14,7 +19,7 @@ const fetchRouteSlice = createSlice({
       state.loading = true;
       state.error = null;
     },
-    setRoutesSuccess: (state, { payload }) => {
+    setRoutesSuccess: (state, { payload }: PayloadAction<RouteType[]>) => {
       state.loading = false;
       state.routes = payload; // payload is the array from API response
       state.error = null;

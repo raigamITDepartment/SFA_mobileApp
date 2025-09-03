@@ -255,7 +255,8 @@ const OutletAdd = ({ navigation }: StockProps): React.JSX.Element => {
   return (
     <LinearGradient colors={["#ff6666", "#ff0000"]} style={styles.gradient}>
       <ScrollView contentContainerStyle={styles.container}>
-        <Card style={styles.card}>
+        {/* <Card style={styles.card}> */}
+           <View style={styles.card}>
           <Text style={styles.title}>Add New Outlet</Text>
 
           <View style={styles.field}>
@@ -440,15 +441,16 @@ const OutletAdd = ({ navigation }: StockProps): React.JSX.Element => {
               )}
             </TouchableOpacity>
           </View>
-        </Card>
+        {/* </Card> */}
+        </View>
       </ScrollView>
     </LinearGradient>
   );
 };
 const styles = StyleSheet.create({
   gradient: { flex: 1 },
-  container: { padding: 16 },
-  card: { padding: 16, borderRadius: 8, marginTop: 35 },
+  container: { padding: 16 ,color: "#280dc0"},
+ // card: { padding: 16, borderRadius: 8, marginTop: 35 },
   title: {
     fontSize: 22,
     fontWeight: "600",
@@ -508,6 +510,20 @@ const styles = StyleSheet.create({
     borderRadius: 8,
   },
   createText: { color: "#FFF", fontWeight: "600" },
+
+ card: {
+     backgroundColor: "white", // Let the theme handle the background color
+    borderRadius: 10,
+    padding: 16,
+    marginVertical: 8,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 3,
+  },
+
+
 });
 
 export default OutletAdd;

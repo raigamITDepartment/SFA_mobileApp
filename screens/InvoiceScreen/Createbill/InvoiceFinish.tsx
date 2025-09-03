@@ -255,9 +255,13 @@ const InvoiceFinish = ({
         <TouchableOpacity
           style={styles.button}
           onPress={async () => {
+            // TODO: Implement actual sync logic here
             try {
-              await AsyncStorage.clear();
-              navigation.navigate("Home");
+              // Selectively clear only the invoice draft data
+              const keys = await AsyncStorage.getAllKeys();
+              const invoiceKeys = keys.filter(key => key.startsWith('item_') || key.startsWith('lastBill_') || ['RouteName', 'customerName', 'invoiceType', 'invoiceMode'].includes(key));
+              await AsyncStorage.multiRemove(invoiceKeys);
+              navigation.navigate('Home');
             } catch (e) {
               console.error("Failed to clear AsyncStorage.", e);
             }

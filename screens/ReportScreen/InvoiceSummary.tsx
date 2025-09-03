@@ -5,135 +5,27 @@ import {
   ScrollView,
   StyleSheet,
   Pressable,
-  Platform,
   TextInput,
+  ActivityIndicator,
+  Platform,
 } from 'react-native';
-import AsyncStorage from '@react-native-async-storage/async-storage';
 import DateTimePicker from '@react-native-community/datetimepicker';
-
-type InvoiceItem = {
-  itemName: string;
-  quantity: number;
-  unitPrice: number;
-  total: number;
-};
-
-type Invoice = {
-  date: string;
-  shopCode: string;
-  customerName: string;
-  invoiceType: string;
-  invoiceMode: string;
-  items: InvoiceItem[];
-  invoiceSubtotal: number;
-  billDiscount: number;
-  billDiscountValue: number;
-  invoiceNetValue: number;
-};
+import { useAppDispatch, useAppSelector } from '../../store/Hooks';
+import { fetchInvoiceSummaryReport } from '../../actions/ReportAction';
+import { InvoiceReportItem } from '../../reducers/InvoiceReportReducer';
 
 const InvoiceSummaryByDateScreen = () => {
-  const [invoices, setInvoices] = useState<Invoice[]>([]);
+  const dispatch = useAppDispatch();
+  const { territoryId } = useAppSelector((state) => state.login.user.data);
+
+  // ✅ Safe default: invoices = []
+  const { invoices = [], loading, error } = useAppSelector(
+    (state) => state.invoiceReport
+  );
+
   const [selectedDate, setSelectedDate] = useState(new Date());
   const [showDatePicker, setShowDatePicker] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
-
-  useEffect(() => {
-    saveSampleData(); // 👈 Load sample data first (remove this line in production)
-    fetchInvoices();
-  }, []);
-
-  const saveSampleData = async () => {
-    const sampleInvoices: Invoice[] = [
-
-      {
-        date: '2025-07-12',
-        shopCode: 'SK001',
-        customerName: 'Super K',
-        invoiceType: 'Retail',
-        invoiceMode: 'Cash',
-        items: [
-          {
-            itemName: 'Dazzling Face Wash 90ml',
-            quantity: 2,
-            unitPrice: 500,
-            total: 100,
-          },
-          {
-            itemName: 'Nenaposha 80g',
-            quantity: 1,
-            unitPrice: 250,
-            total: 250,
-          },
-        ],
-        invoiceSubtotal: 3250,
-        billDiscount: 10,
-        billDiscountValue: 125,
-        invoiceNetValue: 2125,
-      },
-      {
-        date: '2025-07-12',
-        shopCode: 'JD001',
-        customerName: 'John Doe',
-        invoiceType: 'Retail',
-        invoiceMode: 'Cash',
-        items: [
-          {
-            itemName: 'Dazzling Face Wash 90ml',
-            quantity: 2,
-            unitPrice: 500,
-            total: 1000,
-          },
-          {
-            itemName: 'Nenaposha 80g',
-            quantity: 1,
-            unitPrice: 250,
-            total: 250,
-          },
-        ],
-        invoiceSubtotal: 1250,
-        billDiscount: 10,
-        billDiscountValue: 125,
-        invoiceNetValue: 1125,
-      },
-      {
-        date: '2025-07-11',
-        shopCode: 'JS001',
-        customerName: 'Jane Smith',
-        invoiceType: 'Wholesale',
-        invoiceMode: 'Credit',
-        items: [
-          {
-            itemName: 'Deveni Batha Kotthu Mix White',
-            quantity: 5,
-            unitPrice: 200,
-            total: 1000,
-          },
-        ],
-        invoiceSubtotal: 1000,
-        billDiscount: 5,
-        billDiscountValue: 50,
-        invoiceNetValue: 950,
-      },
-    ];
-
-    try {
-      await AsyncStorage.setItem('allInvoices', JSON.stringify(sampleInvoices));
-      console.log('Sample invoices saved!');
-    } catch (error) {
-      console.error('Error saving sample invoices:', error);
-    }
-  };
-
-  const fetchInvoices = async () => {
-    try {
-      const data = await AsyncStorage.getItem('allInvoices');
-      if (data !== null) {
-        setInvoices(JSON.parse(data));
-      }
-    } catch (error) {
-      console.error('Failed to fetch invoices:', error);
-    }
-  };
 
   const handleDateChange = (_event: any, date?: Date) => {
     setShowDatePicker(Platform.OS === 'ios');
@@ -146,16 +38,31 @@ const InvoiceSummaryByDateScreen = () => {
     return date.toISOString().split('T')[0]; // 'YYYY-MM-DD'
   };
 
-  const filteredInvoices = invoices.filter((inv) =>
-    inv.date === formatDate(selectedDate) &&
-    (searchQuery === '' ||
-      inv.customerName.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      inv.shopCode.toLowerCase().includes(searchQuery.toLowerCase()))
+  useEffect(() => {
+    if (territoryId) {
+      const dateStr = formatDate(selectedDate);
+      dispatch(
+        fetchInvoiceSummaryReport({ territoryId, startDate: dateStr, endDate: dateStr })
+      );
+
+       console.log('Fetching invoice report for date:', dateStr, territoryId, dateStr )
+       console.log('Invoices data:', invoices);
+    }
+  }, [dispatch, territoryId, selectedDate]);
+
+  const filteredInvoices = invoices.filter(
+    (inv) =>
+      searchQuery === '' ||
+      inv.invoiceNo?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      String(inv.outletId).includes(searchQuery)
   );
 
   const { dailyTotalNet, dailyInvoiceCount } = useMemo(() => {
     return {
-      dailyTotalNet: filteredInvoices.reduce((total, inv) => total + inv.invoiceNetValue, 0),
+      dailyTotalNet: filteredInvoices.reduce(
+        (total, inv) => total + (inv.totalBookValue || 0),
+        0,
+      ),
       dailyInvoiceCount: filteredInvoices.length,
     };
   }, [filteredInvoices]);
@@ -165,7 +72,9 @@ const InvoiceSummaryByDateScreen = () => {
       <Text style={styles.title}>Invoice Summary By Date</Text>
 
       <Pressable onPress={() => setShowDatePicker(true)} style={styles.dateButton}>
-        <Text style={styles.dateText}>Selected Date: {formatDate(selectedDate)}</Text>
+        <Text style={styles.dateText}>
+          Selected Date: {formatDate(selectedDate)}
+        </Text>
       </Pressable>
 
       {showDatePicker && (
@@ -179,7 +88,7 @@ const InvoiceSummaryByDateScreen = () => {
 
       <TextInput
         style={styles.searchInput}
-        placeholder="Search by Customer Name / Code"
+        placeholder="Search by Invoice No / Outlet ID"
         value={searchQuery}
         onChangeText={setSearchQuery}
       />
@@ -189,33 +98,35 @@ const InvoiceSummaryByDateScreen = () => {
           Total Productive Calls: {dailyInvoiceCount}
         </Text>
         <Text style={styles.summaryText}>
-          Total UnProductive Calls: 
+          Total UnProductive Calls:
         </Text>
-        <Text style={styles.summaryText}>Total Net Value: Rs. {dailyTotalNet.toFixed(2)}</Text>
+        <Text style={styles.summaryText}>
+          Total Net Value: Rs. {dailyTotalNet.toFixed(2)}
+        </Text>
       </View>
 
-      {filteredInvoices.length === 0 ? (
+      {loading ? (
+        <ActivityIndicator size="large" color="#1D4ED8" />
+      ) : error ? (
+        <Text style={styles.noData}>Error fetching data. Please try again.</Text>
+      ) : filteredInvoices.length === 0 ? (
         <Text style={styles.noData}>No invoices found for this date.</Text>
       ) : (
-        filteredInvoices.map((invoice, idx) => (
-          <View key={idx} style={styles.invoiceBox}>
-            <Text style={styles.subTitle}>Customer: {invoice.customerName}</Text>
-            <Text>Shop Code: {invoice.shopCode}</Text>
-            <Text>Invoice Type: {invoice.invoiceType}</Text>
-            <Text>Mode: {invoice.invoiceMode}</Text>
-
-            {invoice.items.map((item, i) => (
-              <View key={i} style={styles.itemBox}>
-                <Text style={styles.itemName}>{item.itemName}</Text>
-                <Text>Qty: {item.quantity}</Text>
-                <Text>Price: Rs. {item.unitPrice}</Text>
-                <Text>Total: Rs. {item.total}</Text>
-              </View>
-            ))}
-
-            <Text>Subtotal: Rs. {invoice.invoiceSubtotal}</Text>
-            <Text>Discount ({invoice.billDiscount}%): Rs. {invoice.billDiscountValue}</Text>
-            <Text style={styles.total}>Net: Rs. {invoice.invoiceNetValue}</Text>
+        filteredInvoices.map((invoice: InvoiceReportItem) => (
+          <View key={`${invoice.id}-${invoice.invoiceNo}`} style={styles.invoiceBox}>
+            <Text style={styles.subTitle}>Invoice: {invoice.invoiceNo}</Text>
+            <View style={styles.detailRow}>
+              <Text>Outlet ID:</Text>
+              <Text style={styles.detailValue}>{invoice.outletId}</Text>
+            </View>
+            <View style={styles.detailRow}>
+              <Text>Type:</Text>
+              <Text style={styles.detailValue}>{invoice.invoiceType}</Text>
+            </View>
+            <Text style={styles.total}>
+              Value: Rs. {(invoice.totalBookValue || 0).toFixed(2)}
+            </Text>
+            <Text style={styles.dateBook}>Date: {invoice.dateBook}</Text>
           </View>
         ))
       )}
@@ -282,20 +193,24 @@ const styles = StyleSheet.create({
     marginBottom: 20,
     elevation: 2,
   },
-  itemBox: {
-    marginTop: 10,
-    backgroundColor: '#F9FAFB',
-    padding: 10,
-    borderRadius: 6,
-  },
-  itemName: {
-    fontWeight: '600',
-  },
   total: {
     marginTop: 10,
     fontWeight: 'bold',
     fontSize: 16,
     color: '#16A34A',
+    textAlign: 'right',
+  },
+  detailRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginVertical: 2,
+  },
+  detailValue: { fontWeight: '600' },
+  dateBook: {
+    textAlign: 'right',
+    fontSize: 12,
+    color: '#666',
+    marginTop: 5,
   },
 });
 

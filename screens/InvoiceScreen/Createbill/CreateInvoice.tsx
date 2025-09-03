@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useCallback } from "react";
 import {
   View,
   Text,
@@ -6,14 +6,17 @@ import {
   StyleSheet,
   Alert,
 } from "react-native";
+import { useFocusEffect } from "@react-navigation/native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { Ionicons } from "@expo/vector-icons";
 import { LinearGradient } from "expo-linear-gradient";
-import { useDispatch, useSelector } from "react-redux";
-import { useAppDispatch, useAppSelector } from "../../../store/Hooks";
+import { useAppDispatch, useAppSelector, RootState } from "../../../store/Hooks";
 import { fetchRoutesByTerritoryId, fetchRouteIdbyOutlet } from "../../../actions/OutletAction";
 import type { NativeStackScreenProps } from "@react-navigation/native-stack";
 import SearchableDropdown from "../../../components/ui/CustomerDropdown";
+import UnproductiveCallDialog from "./UnproductiveCallDialog";
+import { submitUnproductiveCall } from "../../../actions/UnproductiveCallAction";
+import { resetUnproductiveCallState } from "../../../reducers/UnproductiveCallReducer";
 
 type RootStackParamList = {
   Home: undefined;
@@ -34,7 +37,6 @@ type RootStackParamList = {
     invoiceType: string;
     invoiceMode: string;
   };
-  UpproductiveCall: undefined;
 };
 
 interface RouteType {
@@ -54,24 +56,57 @@ interface OutletType {
 type CreateInvoiceProps = NativeStackScreenProps<RootStackParamList, "CreateInvoice">;
 
 const CreateInvoice = ({ navigation, route }: CreateInvoiceProps): React.JSX.Element => {
-  const dispatch: any = useAppDispatch();
+  const dispatch = useAppDispatch();
   const [selectedRoute, setSelectedRoute] = useState<string>("");
   const [selectedCustomer, setSelectedCustomer] = useState<string>("");
   const [invoiceType, setInvoiceType] = useState<string>("");
   const [invoiceMode, setInvoiceMode] = useState<string>("1"); // Default to 'Booking'
   const [date] = useState(new Date());
+  const [isUnproductiveCallDialogVisible, setIsUnproductiveCallDialogVisible] = useState(false);
 
-  // By providing a default empty object `|| {}` and default values for destructured properties,
-  // we prevent crashes if the Redux state slice is not yet available.
-  const { routes = [], loading: routesLoading = true } = useAppSelector((state) => state.fetchRoute) as { routes: RouteType[], loading: boolean }|| {routes:[], loading:true};
-  const { outlets = [], loading: outletsLoading = true } = useAppSelector((state) => state.fetchOutlet) as {outlets: OutletType[], loading: boolean} || {outlets:[], loading: true};
-  const territoryId = useSelector((state: any) => state.login?.user?.data?.territoryId);
+  const { routes, loading: routesLoading } = useAppSelector((state) => state.fetchRoute);
+  const { outlets, loading: outletsLoading } = useAppSelector((state) => state.fetchOutlet);
+  const user = useAppSelector((state: RootState) => state.login.user);
+  const territoryId = user?.data?.territoryId;
+  const userId = user?.data?.userId;
+
+  const {
+    loading: unproductiveLoading,
+    success: unproductiveSuccess,
+    error: unproductiveError,
+  } = useAppSelector((state: RootState) => state.unproductiveCall);
 
   useEffect(() => {
     if (territoryId) {
       dispatch(fetchRoutesByTerritoryId(territoryId));
     }
   }, [territoryId, dispatch]);
+
+  useFocusEffect(
+    useCallback(() => {
+      if (unproductiveSuccess) {
+        Alert.alert("Success", "Unproductive call saved.", [
+          { text: "OK", onPress: () => {
+              dispatch(resetUnproductiveCallState());
+              navigation.navigate("Home");
+            }
+          },
+        ]);
+      }
+      if (unproductiveError) {
+        Alert.alert(
+          "Error",
+          unproductiveError.message || "Failed to save unproductive call.",
+          [
+            {
+              text: "OK",
+              onPress: () => dispatch(resetUnproductiveCallState()),
+            },
+          ]
+        );
+      }
+    }, [unproductiveSuccess, unproductiveError, dispatch, navigation])
+  );
 
   useEffect(() => {
     if (route.params) {
@@ -88,6 +123,29 @@ const CreateInvoice = ({ navigation, route }: CreateInvoiceProps): React.JSX.Ele
     if (routeId) {
       dispatch(fetchRouteIdbyOutlet(Number(routeId)));
     }
+  };
+
+  const handleUnproductiveCall = () => {
+    if (!selectedRoute || !selectedCustomer) {
+      Alert.alert("Selection Required", "Please select a route and a customer first.");
+      return;
+    }
+    setIsUnproductiveCallDialogVisible(true);
+  };
+
+  const handleUnproductiveSubmit = (reason: { id: number; reason: string }) => {
+    if (userId && selectedRoute && selectedCustomer) {
+      dispatch(
+        submitUnproductiveCall({
+          userId: Number(userId),
+          routeId: Number(selectedRoute),
+          outletId: Number(selectedCustomer),
+          reasonId: reason.id,
+          reasonText: reason.reason,
+        })
+      );
+    }
+    setIsUnproductiveCallDialogVisible(false);
   };
 
   const handleCreateInvoice = async (): Promise<void> => {
@@ -163,9 +221,9 @@ const CreateInvoice = ({ navigation, route }: CreateInvoiceProps): React.JSX.Ele
           selectedValue={invoiceType}
           setSelectedValue={setInvoiceType}
           options={[
-            { id: "Normal", name: "Normal Invoice" },
-            { id: "Agency", name: "Agency Direct Invoice" },
-            { id: "Company", name: "Company Direct Invoice" },
+            { id: "NORMAL", name: "Normal Invoice" },
+            { id: "AGENCY", name: "Agency Direct Invoice" },
+            { id: "COMPANY", name: "Company Direct Invoice" },
           ]}
         />
 
@@ -182,7 +240,7 @@ const CreateInvoice = ({ navigation, route }: CreateInvoiceProps): React.JSX.Ele
         <View style={styles.buttonGroup}>
           <TouchableOpacity
             style={[styles.button, styles.unproductiveButton]}
-            onPress={() => navigation.navigate("UpproductiveCall")}
+            onPress={handleUnproductiveCall}
           >
             <Text style={styles.buttonText}>Unproductive Call</Text>
           </TouchableOpacity>
@@ -194,6 +252,12 @@ const CreateInvoice = ({ navigation, route }: CreateInvoiceProps): React.JSX.Ele
           </TouchableOpacity>
         </View>
       </View>
+      <UnproductiveCallDialog
+        visible={isUnproductiveCallDialogVisible}
+        onDismiss={() => setIsUnproductiveCallDialogVisible(false)}
+        onSubmit={handleUnproductiveSubmit}
+        loading={unproductiveLoading}
+      />
     </LinearGradient>
   );
 };

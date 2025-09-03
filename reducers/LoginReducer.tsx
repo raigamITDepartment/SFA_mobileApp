@@ -98,9 +98,11 @@ const loginSlice = createSlice({
       }
     },
     setError: (state, { payload }) => {
-        console.error("Login Error Reducer Payload:", payload);
+      //console.error("Login Error Reducer Payload:", payload);
+      state.loading = false;
       state.error = true;
-      state.user = payload;
+      state.user.error = payload; // Store the error object correctly
+      state.user.data = initialLoginState.user.data; // Reset user data
     },
   },
 });

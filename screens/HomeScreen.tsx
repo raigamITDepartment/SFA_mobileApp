@@ -98,7 +98,7 @@ const HomeScreen = ({ navigation }: HomeScreenProps) => {
                 return;
               }
               await dispatch(
-                logoutUser({ userId, latitude, longitude, gpsStatus: false })
+                logoutUser({ userId, latitude, longitude, isCheckIn: false, isCheckOut : true ,gpsStatus: false})
               );
               navigation.replace("AuthLoading"); // Use lowercase "login" if your screen name is defined like that
             } catch (error) {
@@ -246,7 +246,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   card: {
-    backgroundColor: "white",
+     backgroundColor: "white", // Let the theme handle the background color
     borderRadius: 10,
     padding: 16,
     marginVertical: 8,

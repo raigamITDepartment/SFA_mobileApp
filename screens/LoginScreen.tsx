@@ -9,6 +9,7 @@ import {
   Pressable,
   TouchableOpacity,
   KeyboardAvoidingView,
+  ActivityIndicator,
 } from "react-native";
 import titles from "../Titles";
 import { useAppDispatch, useAppSelector } from "../store/Hooks";
@@ -38,7 +39,7 @@ const LoginScreen = ({ navigation }: LoginScreenProps) => {
   const [password, setPassword] = useState(""); // 👈 Hardcoded
   const [rememberMe, setRememberMe] = useState(false);
   const [error, setError] = useState({ field: "", message: "" });
-  const userLoginResponse = useAppSelector((state) => state.login.user);
+  const { user: userLoginResponse, loading: isLoggingIn } = useAppSelector((state) => state.login);
   const dispatch = useAppDispatch();
   const [loginButtonPressed, setLoginButtonPressed] = useState(false);
   const [passwordVisibility, setPasswordVisibility] = useState(true);
@@ -77,6 +78,7 @@ const LoginScreen = ({ navigation }: LoginScreenProps) => {
         setAsyncUserName(userName);
         setAsyncPassword(password);
         setAsyncRememberMe(rememberMe ? "Y" : "N");
+        console.log('errr user ',userLoginResponse.error)
       }
 
       if (userLoginResponse.data.token) {
@@ -92,9 +94,19 @@ const LoginScreen = ({ navigation }: LoginScreenProps) => {
       }
     }
 
-    if (userLoginResponse?.error?.length > 0) {
+
+    if (userLoginResponse?.error) {
       if (loginButtonPressed) {
-        setError({ field: "fieldValidation", message: titles.loginError });
+        let errorMessage = titles.loginError; // Default fallback message
+        const apiError = userLoginResponse.error as { message?: string };
+
+        if (apiError && typeof apiError.message === 'string') {
+          // The API message might be "Validation Error: {error=Invalid username: Test}"
+          // We try to extract the specific part inside {error=...}
+          const specificErrorMatch = apiError.message.match(/error=([^}]+)/);
+          errorMessage = specificErrorMatch ? specificErrorMatch[1] : apiError.message;
+        }
+        setError({ field: "fieldValidation", message: errorMessage });
       } else if (!verifiedByUserNameAndPassword) {
         verifyUserNameAndPassword();
       }
@@ -186,8 +198,12 @@ const LoginScreen = ({ navigation }: LoginScreenProps) => {
               <Text style={styles.rememberMe}>{titles.rememberMe}</Text>
             </View>
 
-            <TouchableOpacity style={styles.buttonStyle} activeOpacity={0.5} onPress={onLoginPress}>
-              <Text style={styles.buttonTextStyle}>LOGIN</Text>
+            <TouchableOpacity style={styles.buttonStyle} activeOpacity={2} onPress={onLoginPress} disabled={isLoggingIn}>
+              {isLoggingIn ? (
+                <ActivityIndicator color="#080018" />
+              ) : (
+                <Text style={styles.buttonTextStyle}>LOGIN</Text>
+              )}
             </TouchableOpacity>
           </KeyboardAvoidingView>
         </ScrollView>
