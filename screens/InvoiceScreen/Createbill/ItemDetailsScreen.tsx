@@ -148,7 +148,7 @@ const ItemDetailsScreen = ({ navigation, route }: ItemDetailsScreenProps): React
     const marketTotal = unitMR * Math.max(marketQty - marketFree, 0);
     setMarketReturnTotal(marketTotal.toFixed(2));
 
-    const baseAmount = unit * Math.max(qty - free, 0);
+    const baseAmount = unit * qty;
     const discountValue = baseAmount * (discount / 100);
     setItemDiscountValue(discountValue.toFixed(2));
     const finalTotal = baseAmount - discountValue - goodTotal - marketTotal;

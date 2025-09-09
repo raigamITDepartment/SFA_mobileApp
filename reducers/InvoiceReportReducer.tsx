@@ -5,6 +5,8 @@ export interface InvoiceReportItem {
   invoiceNo: string;
   totalBookValue: number;
   invoiceType: string;
+  routeName: string;
+  outletName: string;
   dateBook: string;
   outletId: number;
   // Add other fields from the API response if needed

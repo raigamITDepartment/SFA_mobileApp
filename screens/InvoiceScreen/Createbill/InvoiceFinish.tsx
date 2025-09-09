@@ -9,6 +9,7 @@ import {
   TouchableOpacity,
 } from "react-native";
 import { useMemo } from "react";
+import { Alert } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import type { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { RootStackParamList } from "../../../navigation/AuthNavigator";
@@ -255,13 +256,20 @@ const InvoiceFinish = ({
         <TouchableOpacity
           style={styles.button}
           onPress={async () => {
-            // TODO: Implement actual sync logic here
             try {
               // Selectively clear only the invoice draft data
               const keys = await AsyncStorage.getAllKeys();
               const invoiceKeys = keys.filter(key => key.startsWith('item_') || key.startsWith('lastBill_') || ['RouteName', 'customerName', 'invoiceType', 'invoiceMode'].includes(key));
               await AsyncStorage.multiRemove(invoiceKeys);
-              navigation.navigate('Home');
+
+              Alert.alert(
+                "Success",
+                `Successfully added the Invoice for ${customerName}.`,
+                [
+                  { text: "OK", onPress: () => navigation.navigate('Home') }
+                ],
+                { cancelable: false }
+              );
             } catch (e) {
               console.error("Failed to clear AsyncStorage.", e);
             }

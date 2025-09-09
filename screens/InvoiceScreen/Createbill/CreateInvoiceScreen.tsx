@@ -8,6 +8,7 @@ import {
   TouchableOpacity,
   StyleSheet,
   ScrollView,
+  ActivityIndicator,
   Alert,
 } from "react-native";
 import type { NativeStackScreenProps } from "@react-navigation/native-stack";
@@ -19,7 +20,7 @@ import { RootState } from "@/store";
 import { useFocusEffect } from "@react-navigation/native";
 import * as Location from "expo-location";
 import { useAppDispatch, useAppSelector } from "../../../store/Hooks";
-import { createInvoice, fetchItems } from "../../../actions/InvoiceAction";
+import { createInvoice, fetchItems, resetCreateInvoiceState } from "../../../actions/InvoiceAction";
 
 interface ItemType {
   category: string;
@@ -69,6 +70,11 @@ const CreateInvoiceScreen = ({
   const { Items: apiItems, loading: itemsLoading } = useAppSelector(
     (state: RootState) => state.Items
   );
+
+  const { loading: createInvoiceLoading, success: createInvoiceSuccess, error: createInvoiceError } = useAppSelector(
+    (state: RootState) => state.Invoice
+  );
+  const [latestInvoiceData, setLatestInvoiceData] = useState<any>(null);
 
   const {
     routeId,
@@ -146,6 +152,36 @@ const CreateInvoiceScreen = ({
       loadItems();
     }, [apiItems])
   );
+
+  useEffect(() => {
+    if (createInvoiceSuccess && latestInvoiceData) {
+      Alert.alert(
+        "Success",
+        "Invoice created successfully!",
+        [
+          {
+            text: "OK",
+            onPress: async () => {
+              try {
+                await AsyncStorage.setItem("latest_invoice", JSON.stringify(latestInvoiceData));
+                navigation.navigate("InvoiceFinish", { invoiceData: latestInvoiceData });
+              } catch (e) {
+                console.error("Failed to save or navigate after invoice creation:", e);
+              } finally {
+                dispatch(resetCreateInvoiceState());
+                setLatestInvoiceData(null);
+              }
+            },
+          },
+        ],
+        { cancelable: false }
+      );
+    }
+    if (createInvoiceError) {
+      Alert.alert("Error", "Failed to create invoice. Please try again.");
+      dispatch(resetCreateInvoiceState());
+    }
+  }, [createInvoiceSuccess, createInvoiceError, latestInvoiceData, navigation, dispatch]);
 
   const categorizedItems = useMemo(() => {
     const filtered = savedItems.filter((item) =>
@@ -445,6 +481,7 @@ const CreateInvoiceScreen = ({
                 items: selectedItems, 
               };
 
+              setLatestInvoiceData(uiInvoiceData);
               // This object is for the API call
               const apiInvoiceData = {
                 userId,
@@ -479,19 +516,14 @@ const CreateInvoiceScreen = ({
 
               console.log("Invoice Data for API:", JSON.stringify(apiInvoiceData, null, 2));
               dispatch(createInvoice(apiInvoiceData));
-
-              try {
-                await AsyncStorage.setItem(
-                  "latest_invoice",
-                  JSON.stringify(uiInvoiceData)
-                );
-                navigation.navigate("InvoiceFinish", { invoiceData: uiInvoiceData });
-              } catch (e) {
-                console.error("Failed to save invoice:", e);
-              }
             }}
+            disabled={createInvoiceLoading}
           >
-            <Text style={styles.buttonText}>Complete Invoice</Text>
+            {createInvoiceLoading ? (
+              <ActivityIndicator color="#fff" />
+            ) : (
+              <Text style={styles.buttonText}>Complete Invoice</Text>
+            )}
           </TouchableOpacity>
         </View>
       </ScrollView>
@@ -524,6 +556,14 @@ const styles = StyleSheet.create({
     fontWeight: "bold",
     fontSize: 14,
   },
+  tableHeader: {
+    flexDirection: "row",
+    justifyContent: "space-around",
+    paddingRight: 10,
+    paddingLeft: 50,
+    marginTop: 10,
+  },
+  headerCell: { fontWeight: "bold", color: "#fff", flex: 1, textAlign: "center" },
   itemBox: {
     backgroundColor: "#eaeaea",
     padding: 10,

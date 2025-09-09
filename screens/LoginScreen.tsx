@@ -84,11 +84,27 @@ const LoginScreen = ({ navigation }: LoginScreenProps) => {
       if (userLoginResponse.data.token) {
         setAsyncToken(userLoginResponse.data.token);
         // The API sometimes returns gpsStatus as a string ("false") instead of a boolean.
-        // This check correctly handles both boolean `false` and string `"false"`.
-        const isDayStarted = userLoginResponse.data.gpsStatus === true ;
-        if (!isDayStarted) {
+        const isDayStarted = userLoginResponse.data.gpsStatus === true;
+
+        // Check server time. The format is assumed to be "HH.mm".
+        const serverTime = userLoginResponse.data.serverTime; // e.g., "17.30"
+        let isAfterCutoff = false;
+        if (typeof serverTime === 'string') {
+            const [hours, minutes] = serverTime.split('.').map(Number);
+            if (!isNaN(hours) && !isNaN(minutes)) {
+                // 17.30 is 5:30 PM
+                isAfterCutoff = hours > 17 || (hours === 17 && minutes >= 30);
+            }
+        }
+   console.log('server time',isAfterCutoff, 'day started',isDayStarted)
+
+        if (isDayStarted && !isAfterCutoff) {
           navigation.navigate("start");
         } else {
+          // This covers:
+          // 1. isDayStarted = false and isAfterCutoff = false
+          // 2. isDayStarted = false and isAfterCutoff = true
+          // 3. isDayStarted = true and isAfterCutoff = true
           navigation.navigate("Home");
         }
       }

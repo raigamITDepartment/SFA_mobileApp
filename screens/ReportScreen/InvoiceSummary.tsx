@@ -57,13 +57,18 @@ const InvoiceSummaryByDateScreen = () => {
       String(inv.outletId).includes(searchQuery)
   );
 
-  const { dailyTotalNet, dailyInvoiceCount } = useMemo(() => {
+  const { dailyTotalNet, dailyInvoiceCount, bookingCount, actualCount } = useMemo(() => {
+    const bookings = filteredInvoices.filter(inv => inv.isBook && !inv.isActual).length;
+    const actuals = filteredInvoices.filter(inv => inv.isActual).length;
+
     return {
       dailyTotalNet: filteredInvoices.reduce(
         (total, inv) => total + (inv.totalBookValue || 0),
         0,
       ),
       dailyInvoiceCount: filteredInvoices.length,
+      bookingCount: bookings,
+      actualCount: actuals,
     };
   }, [filteredInvoices]);
 
@@ -95,7 +100,13 @@ const InvoiceSummaryByDateScreen = () => {
 
       <View style={styles.summaryBox}>
         <Text style={styles.summaryText}>
-          Total Productive Calls: {dailyInvoiceCount}
+          Total Productive Calls: {dailyInvoiceCount} 
+        </Text>
+        <Text style={styles.summaryDetailText}>
+          - Bookings: {bookingCount}
+        </Text>
+        <Text style={styles.summaryDetailText}>
+          - Actual: {actualCount}
         </Text>
         <Text style={styles.summaryText}>
           Total UnProductive Calls:
@@ -122,6 +133,19 @@ const InvoiceSummaryByDateScreen = () => {
             <View style={styles.detailRow}>
               <Text>Type:</Text>
               <Text style={styles.detailValue}>{invoice.invoiceType}</Text>
+            </View>
+            <View style={styles.detailRow}>
+              <Text>Mode:</Text>
+              <Text style={styles.detailValue}>{invoice.isActual ? 'Actual' : (invoice.isBook ? 'Booking' : 'N/A')}</Text>
+            </View>
+            <View style={styles.detailRow}>
+              <Text>Route:</Text>
+              <Text style={styles.detailValue}>{invoice.routeName}</Text>
+            </View>
+
+            <View style={styles.detailRow}>
+              <Text>Shop:</Text>
+              <Text style={styles.detailValue}>{invoice.outletName}</Text>
             </View>
             <Text style={styles.total}>
               Value: Rs. {(invoice.totalBookValue || 0).toFixed(2)}
@@ -179,6 +203,11 @@ const styles = StyleSheet.create({
   summaryText: {
     fontSize: 16,
     fontWeight: 'bold',
+  },
+  summaryDetailText: {
+    fontSize: 15,
+    paddingLeft: 15,
+    color: '#374151',
   },
   noData: {
     textAlign: 'center',

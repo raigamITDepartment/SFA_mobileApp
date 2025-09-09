@@ -6,6 +6,7 @@ const initialLoginState = {
     data: {
       agencyCode: "",
       gpsStatus: false,
+      serverTime:"",
       personalName: "",
       role: "",
       roleId: "",
@@ -75,6 +76,7 @@ const loginSlice = createSlice({
           state.user.data = {
             agencyCode: "",
             gpsStatus: false,
+            serverTime:"",
             personalName: "",
             role: "",
             roleId: "",
