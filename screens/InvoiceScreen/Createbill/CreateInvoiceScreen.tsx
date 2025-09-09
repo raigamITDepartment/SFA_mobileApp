@@ -206,8 +206,8 @@ const CreateInvoiceScreen = ({
   }, [savedItems]);
 
   const billDiscountValue = useMemo(() => {
-    const discountPercentage = parseFloat(billDiscount) || 0;
-    return (invoiceSubtotal * discountPercentage) / 100;
+    const d = parseFloat(billDiscount) || 0;
+    return (invoiceSubtotal * d) / 100;
   }, [invoiceSubtotal, billDiscount]);
 
   const invoiceNetValue = useMemo(() => {
@@ -513,15 +513,6 @@ const styles = StyleSheet.create({
     paddingVertical: 8,
     marginBottom: 10,
   },
-  tableHeader: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    backgroundColor: "#d94e4e",
-    paddingVertical: 5,
-    paddingHorizontal: 5,
-    borderRadius: 5,
-  },
-  headerCell: { fontSize: 11, color: "#fff", flex: 1, textAlign: "center" },
   categoryHeader: {
     backgroundColor: "#b30000",
     padding: 8,
