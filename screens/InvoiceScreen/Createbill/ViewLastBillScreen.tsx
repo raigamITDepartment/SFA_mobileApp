@@ -8,12 +8,13 @@ import {
   ActivityIndicator,
   Alert,
 } from "react-native";
-import AsyncStorage from "@react-native-async-storage/async-storage";
 import { Ionicons } from "@expo/vector-icons";
 import type { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { Button } from "react-native-paper";
 import { LinearGradient } from "expo-linear-gradient";
 import { RootStackParamList } from "../../../navigation/AuthNavigator";
+import { useAppDispatch, useAppSelector } from "../../../store/Hooks";
+import { fetchLastThreeInvoices } from "../../../actions/ReportAction";
 
 type ViewLastBillScreenProps = NativeStackScreenProps<
   RootStackParamList,
@@ -39,72 +40,24 @@ const ViewLastBillScreen = ({
   navigation,
   route,
 }: ViewLastBillScreenProps): React.JSX.Element => {
-  const [bill, setBill] = useState<BillData | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [storedCustomerName, setStoredCustomerName] = useState<string | null>(
-    null
-  );
+  const dispatch = useAppDispatch();
   const { routeId, customerId, customerName, invoiceType, invoiceMode } =
     route.params;
-  const shopId = customerId;
+  const outletId = Number(customerId);
 
-  // const { shopId } = route.params as { shopId: string };
+  console.log("Outlet ID:", outletId);
 
-  // 🧪 Store sample bill (run once)
-  const storeSampleBill = async () => {
-    const sampleBill: BillData = {
-      shopName: "Pathirana Super City",
-      billNo: "INV-00123",
-      billDate: "2025-07-15",
-      items: [
-        { itemName: "Soya", quantity: 3, unitPrice: 120.0, total: 360.0 },
-        {
-          itemName: "Deduma Soya",
-          quantity: 2,
-          unitPrice: 450.0,
-          total: 900.0,
-        },
-        { itemName: "", quantity: 1, unitPrice: 250.0, total: 250.0 },
-      ],
-      grandTotal: 1510.0,
-    };
-
-    try {
-      await AsyncStorage.setItem(
-        `lastBill_${shopId}`,
-        JSON.stringify(sampleBill)
-      );
-      console.log("Sample bill stored.", sampleBill);
-    } catch (err) {
-      Alert.alert("Error", "Failed to store sample bill");
-    }
-  };
-
-  // 🟢 Fetch bill from storage
-  const fetchData = async () => {
-    try {
-      // Fetch customer name from async storage as requested
-      const nameFromStorage = await AsyncStorage.getItem("customerName");
-      setStoredCustomerName(nameFromStorage);
-
-      const data = await AsyncStorage.getItem(`lastBill_${shopId}`);
-      if (data) {
-        setBill(JSON.parse(data));
-      } else {
-        await storeSampleBill();
-        const newData = await AsyncStorage.getItem(`lastBill_${shopId}`);
-        setBill(newData ? JSON.parse(newData) : null);
-      }
-    } catch (err) {
-      Alert.alert("Error", "Failed to load data");
-    } finally {
-      setLoading(false);
-    }
-  };
+  const {
+    invoices: lastInvoices,
+    loading,
+    error,
+  } = useAppSelector((state) => state.lastThreeInvoices);
 
   useEffect(() => {
-    fetchData();
-  }, [shopId]);
+    if (outletId) {
+      dispatch(fetchLastThreeInvoices(outletId));
+    }
+  }, [dispatch, outletId]);
 
   if (loading) {
     return (
@@ -114,10 +67,10 @@ const ViewLastBillScreen = ({
     );
   }
 
-  if (!bill) {
+  if (error) {
     return (
       <View style={styles.centered}>
-        <Text>No bill found for this shop.</Text>
+        <Text>Error fetching last bills. Please try again.</Text>
       </View>
     );
   }
@@ -151,33 +104,26 @@ const ViewLastBillScreen = ({
         <Text style={styles.heading}>Last Bill History</Text>
 
         <View style={styles.lastBillsContainer}>
-          <Button
-            mode="contained"
-            onPress={() => {}} // This will be inactive due to the 'disabled' prop
-            disabled={true}
-            style={styles.lastBillButton}
-            labelStyle={styles.lastBillButtonText}
-          >
-            2025.06.07
-          </Button>
-          <Button
-            mode="contained"
-            onPress={() => {}} // This will be inactive due to the 'disabled' prop
-            disabled={true}
-            style={styles.lastBillButton}
-            labelStyle={styles.lastBillButtonText}
-          >
-            2025.05.15
-          </Button> 
-          <Button
-            mode="contained"
-            onPress={() => {}} // This will be inactive due to the 'disabled' prop
-            disabled={true}
-            style={styles.lastBillButton}
-            labelStyle={styles.lastBillButtonText}
-          >
-            2025.04.20
-          </Button>
+          {lastInvoices.length > 0 ? (
+            lastInvoices.map((invoice) => (
+              <Button
+                key={invoice.id}
+                mode="contained"
+                onPress={() => {
+                  /* You can add navigation to a detailed view here if needed */
+                }}
+                style={styles.lastBillButton}
+                labelStyle={styles.lastBillButtonText}
+              >
+                <View>
+                  <Text style={styles.lastBillButtonText}>{`${invoice.invoiceNo} - ${invoice.dateActual}`}</Text>invoiceType
+                  <Text style={styles.lastBillButtonText}>{`Rs. ${invoice.totalActualValue.toFixed(2)}`}</Text>
+                </View>
+              </Button>
+            ))
+          ) : (
+            <Text style={styles.noBillsText}>No recent invoices found.</Text>
+          )}
         </View>
 
         <View style={styles.buttonContainer}>
@@ -254,6 +200,7 @@ const styles = StyleSheet.create({
   },
   lastBillButtonText: {
     fontSize: 14,
+    color: 'white',
   },
   newInvoiceButton: {
     paddingVertical: 8,
@@ -278,6 +225,11 @@ const styles = StyleSheet.create({
     borderRadius: 10,
     padding: 20,
     marginTop: 15,
+  },
+  noBillsText: {
+    textAlign: 'center',
+    color: '#666',
+    marginVertical: 20,
   },
 });
 

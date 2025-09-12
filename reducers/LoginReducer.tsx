@@ -54,6 +54,7 @@ const loginSlice = createSlice({
 
           state.user.data.agencyCode = payload.agencyCode;
           state.user.data.gpsStatus = payload.gpsStatus;
+          state.user.data.serverTime = payload.serverTime;
           state.user.data.personalName = payload.personalName;
           state.user.data.role = payload.role;
           state.user.data.roleId = payload.roleId;

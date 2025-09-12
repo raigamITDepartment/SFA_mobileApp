@@ -10,7 +10,9 @@ import ItemSlice from "./FetchItemsReducer";
 import PriceSlice from "./FetchPriceReducer"
 import InvoiceSlice from "./CreateInvoiceReducer";
 import UnproductiveCallReducer from "./UnproductiveCallReducer";
-import InvoiceReportReducer from "./InvoiceReportReducer";
+import InvoiceReportReducer from "./InvoiceReportReducer"; 
+import DashboardInformReducer from "./DashboardInformReducer";
+import LastThreeInvoicesReducer from "./LastThreeInvoicesReducer";
 
 
 
@@ -26,6 +28,8 @@ const appReducer = combineReducers({
   Invoice: InvoiceSlice,
   unproductiveCall: UnproductiveCallReducer,
   invoiceReport: InvoiceReportReducer,
+  dashboardInfo: DashboardInformReducer,
+  lastThreeInvoices: LastThreeInvoicesReducer,
 });
 
 const rootReducer = (state: ReturnType<typeof appReducer> | undefined, action: AnyAction) => {

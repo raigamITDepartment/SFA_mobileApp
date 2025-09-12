@@ -18,6 +18,7 @@ import * as Location from "expo-location";
 import { useAppDispatch, useAppSelector } from "../store/Hooks";
 import type { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { logoutUser } from "../actions/UserAction";
+import { fetchDashboardInfo } from "../actions/DashboardAction";
 // import useBackToHome from '../store/UseBackToHome';
 
 type RootStackParamList = {
@@ -32,16 +33,11 @@ type HomeScreenProps = NativeStackScreenProps<RootStackParamList, "HomeScreen">;
 const HomeScreen = ({ navigation }: HomeScreenProps) => {
   const dispatch = useAppDispatch();
   const userLoginResponse = useAppSelector((state) => state.login.user);
+  const { info: dashboardInfo, loading: dashboardInfoLoading } = useAppSelector((state) => state.dashboardInfo);
+  const userId = userLoginResponse?.data?.userId;
+  const territoryId = userLoginResponse?.data?.territoryId;
+  // const territoryId =  2 // This was the hardcoded value causing the issue
 
-  const [monthlyTarget, setMonthlyTarget] = useState("");
-  const [achievementValue, setAchievementValue] = useState("");
-  const [achievementPercentage, setAchievementPercentage] = useState("");
-  const [pcTarget, setPcTarget] = useState("");
-  const [pcAchievement, setPcAchievement] = useState("");
-  const [pcUnproductive, setPcUnproductive] = useState("");
-  const [activeOutlets, setActiveOutlets] = useState("");
-  const [closedOutlets, setClosedOutlets] = useState("");
-  const [visitedOutlets, setVisitedOutlets] = useState("");
   const [dropdownValue, setDropdownValue] = useState(null);
   const [isFocus, setIsFocus] = useState(false);
   const [bookingValue, setBookingValue] = useState("");
@@ -54,6 +50,15 @@ const HomeScreen = ({ navigation }: HomeScreenProps) => {
     { label: "Item 3", value: "3" },
     { label: "Item 4", value: "4" },
   ];
+
+  useEffect(() => {
+    if (userId && territoryId) {
+      dispatch(fetchDashboardInfo({ userId: Number(userId), territoryId: Number(territoryId) }));
+    }
+  }, [dispatch, userId, territoryId]);
+
+  console.log("Dashboard Info:", userId, territoryId);
+
 
   useEffect(() => {
     const backAction = () => {
@@ -135,6 +140,9 @@ const HomeScreen = ({ navigation }: HomeScreenProps) => {
         <Text style={styles.input}>
           Territory: {userLoginResponse?.data?.territoryName}
         </Text>
+        <Text style={styles.input}>
+          Check-In Time: {dashboardInfoLoading ? '...' : dashboardInfo?.checkInTime ?? 'N/A'}
+        </Text>
       </View>
 
       <View style={styles.card}>
@@ -166,9 +174,18 @@ const HomeScreen = ({ navigation }: HomeScreenProps) => {
           <Text style={styles.cardTitle}>Outlets</Text>
         </View>
 
-        <Text style={styles.input}>Active Outlets:</Text>
-        <Text style={styles.input}>Closed Outlets:</Text>
-        <Text style={styles.input}>Visited Outlets:</Text>
+        <Text style={styles.input}>
+          Active Outlets: {dashboardInfoLoading ? 'Loading...' : dashboardInfo?.activeOutletCount ?? 'N/A'}
+        </Text>
+        <Text style={styles.input}>
+          Closed Outlets: {dashboardInfoLoading ? 'Loading...' : dashboardInfo?.inactiveOutletCount ?? 'N/A'}
+        </Text>
+        <Text style={styles.input}>
+          Visited Outlets (This Month): {dashboardInfoLoading ? 'Loading...' : dashboardInfo?.visitedOutletCountForThisMonth ?? 'N/A'}
+        </Text>
+        <Text style={styles.input}>
+          Total Visits (This Month): {dashboardInfoLoading ? 'Loading...' : dashboardInfo?.visitCountForThisMonth ?? 'N/A'}
+        </Text>
       </View>
 
       <View style={styles.card}>

@@ -73,42 +73,47 @@ const LoginScreen = ({ navigation }: LoginScreenProps) => {
   }, [dispatch]);
 
   useEffect(() => {
-    if (userLoginResponse?.data) {
-      if (loginButtonPressed) {
-        setAsyncUserName(userName);
-        setAsyncPassword(password);
-        setAsyncRememberMe(rememberMe ? "Y" : "N");
-        console.log('errr user ',userLoginResponse.error)
-      }
+   if (userLoginResponse?.data) {
+  if (loginButtonPressed) {
+    setAsyncUserName(userName);
+    setAsyncPassword(password);
+    setAsyncRememberMe(rememberMe ? "Y" : "N");
+    console.log("errr user ", userLoginResponse.error);
+  }
 
-      if (userLoginResponse.data.token) {
-        setAsyncToken(userLoginResponse.data.token);
-        // The API sometimes returns gpsStatus as a string ("false") instead of a boolean.
-        const isDayStarted = userLoginResponse.data.gpsStatus === true;
+  if (userLoginResponse.data.token) {
+    setAsyncToken(userLoginResponse.data.token);
 
-        // Check server time. The format is assumed to be "HH.mm".
-        const serverTime = userLoginResponse.data.serverTime; // e.g., "17.30"
-        let isAfterCutoff = false;
-        if (typeof serverTime === 'string') {
-            const [hours, minutes] = serverTime.split('.').map(Number);
-            if (!isNaN(hours) && !isNaN(minutes)) {
-                // 17.30 is 5:30 PM
-                isAfterCutoff = hours > 17 || (hours === 17 && minutes >= 30);
-            }
-        }
-   console.log('server time',isAfterCutoff, 'day started',isDayStarted)
+    // The API sometimes returns gpsStatus as a string ("false") instead of a boolean.
+    const isDayStarted = userLoginResponse.data.gpsStatus === true;
+      const isDayEnd = userLoginResponse.data.gpsStatus === false;
 
-        if (isDayStarted && !isAfterCutoff) {
-          navigation.navigate("start");
-        } else {
-          // This covers:
-          // 1. isDayStarted = false and isAfterCutoff = false
-          // 2. isDayStarted = false and isAfterCutoff = true
-          // 3. isDayStarted = true and isAfterCutoff = true
-          navigation.navigate("Home");
-        }
+    // Check server time. The format is assumed to be "HH.mm".
+   const serverTime = userLoginResponse.data.serverTime; // e.g., "17.30"
+     //const serverTime = "19:35:00"; // e.g., "17.30"
+    let isAfterCutoff = false;
+    if (typeof serverTime === "string") {
+      const [hours, minutes] = serverTime.split(":").map(Number);
+      if (!isNaN(hours) && !isNaN(minutes)) {
+        // Check if time is between 17:30 (5:30 PM) and 23:59 (11:59 PM)
+        const isAfterStartTime = hours > 17 || (hours === 17 && minutes >= 30);
+        const isBeforeEndTime = hours < 24;
+        isAfterCutoff = isAfterStartTime && isBeforeEndTime;
       }
     }
+
+    // console.log("cleck loci", isAfterCutoff, "day started", isDayStarted);
+    // console.log("server time", isAfterCutoff, "day started", isDayStarted);
+
+    // Navigation logic
+    if (isDayStarted) { // If day has already started, go to Home
+      navigation.navigate("Home");
+    } else {
+      // If day has not started, check the time
+      isAfterCutoff ? navigation.navigate("Home") : navigation.navigate("start");
+    }
+  }
+}
 
 
     if (userLoginResponse?.error) {
