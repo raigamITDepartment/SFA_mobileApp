@@ -209,7 +209,7 @@ const ItemDetailsScreen = ({ navigation, route }: ItemDetailsScreenProps): React
             setPriceMenuVisible(false);
           }}
         />
-        <LabelInput label="Adjusted Unit Price Rs." value={unitPrice || '0.00'} editable={false} />
+        <LabelInput label="Adjusted Unit Price Rs." value={unitPrice || '0.00'} onChangeText={setUnitPrice} />
         <LabelInput label="Quantity" value={quantity} onChangeText={setQuantity} />
         <LabelInput label="Special Discount (%)" value={specialDiscount} onChangeText={setSpecialDiscount} />
         <LabelInput label="Free Issue" value={freeIssue} onChangeText={setFreeIssue} />
@@ -232,11 +232,12 @@ const ItemDetailsScreen = ({ navigation, route }: ItemDetailsScreenProps): React
               price={unitPriceGR}
               prices={prices}
               onSelect={(price, id) => {
-                setUnitPriceGR(price);
+                  (price);
                 setGoodReturnPriceId(id);
                 setPriceMenuGRVisible(false);
               }}
             />
+                <LabelInput label="Adjusted Unit Price Rs." value={unitPriceGR || '0.00'} onChangeText={setUnitPriceGR} />
             <LabelInput label="Good Return Qty" value={goodReturnQty} onChangeText={setGoodReturnQty} />
             <LabelInput label="Good Return Free Qty" value={goodReturnFreeQty} onChangeText={setGoodReturnFreeQty} />
             <LabelInput label="Good Return Total" value={goodReturnTotal} editable={false} />
@@ -263,6 +264,7 @@ const ItemDetailsScreen = ({ navigation, route }: ItemDetailsScreenProps): React
                 setPriceMenuMRVisible(false);
               }}
             />
+            <LabelInput label="Adjusted Unit Price Rs." value={unitPriceMR || '0.00'} onChangeText={setUnitPriceMR} />
             <LabelInput label="Market Return Qty" value={marketReturnQty} onChangeText={setMarketReturnQty} />
             <LabelInput label="Market Return Free Qty" value={marketReturnFreeQty} onChangeText={setMarketReturnFreeQty} />
             <LabelInput label="Market Return Total" value={marketReturnTotal} editable={false} />

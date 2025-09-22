@@ -13,6 +13,8 @@ import UnproductiveCallReducer from "./UnproductiveCallReducer";
 import InvoiceReportReducer from "./InvoiceReportReducer"; 
 import DashboardInformReducer from "./DashboardInformReducer";
 import LastThreeInvoicesReducer from "./LastThreeInvoicesReducer";
+import InvoiceDetailReducer from "./InvoiceDetailsReducer";
+
 
 
 
@@ -30,6 +32,7 @@ const appReducer = combineReducers({
   invoiceReport: InvoiceReportReducer,
   dashboardInfo: DashboardInformReducer,
   lastThreeInvoices: LastThreeInvoicesReducer,
+  invoiceDetails: InvoiceDetailReducer,
 });
 
 const rootReducer = (state: ReturnType<typeof appReducer> | undefined, action: AnyAction) => {

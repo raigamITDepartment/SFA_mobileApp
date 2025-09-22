@@ -18,7 +18,7 @@ export const fetchDashboardInfo = ({
     dispatch(setDashboardInfoLoading());
 
     const token = getState().login?.user?.data?.token;
-    const url = `/api/v1/reports/outlet/dashboardReportWithRequiredArguments/${territoryId}/${userId}?status=true`;
+    const url = `/api/v1/reports/dashboardReport/dashboardReportWithRequiredArguments/${territoryId}/${userId}?status=true`;
 
      console.log("Fetching dashboard info from API with token:", token);
       console.log("Fetching dashboard info from API with URL:", url);

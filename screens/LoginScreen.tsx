@@ -89,8 +89,8 @@ const LoginScreen = ({ navigation }: LoginScreenProps) => {
       const isDayEnd = userLoginResponse.data.gpsStatus === false;
 
     // Check server time. The format is assumed to be "HH.mm".
-   const serverTime = userLoginResponse.data.serverTime; // e.g., "17.30"
-     //const serverTime = "19:35:00"; // e.g., "17.30"
+  const serverTime = userLoginResponse.data.serverTime; // e.g., "17.30"
+  //   const serverTime = "19:35:00"; // e.g., "17.30"
     let isAfterCutoff = false;
     if (typeof serverTime === "string") {
       const [hours, minutes] = serverTime.split(":").map(Number);

@@ -10,6 +10,11 @@ import {
   setLastInvoicesSuccess,
   setLastInvoicesError,
 } from '../reducers/LastThreeInvoicesReducer';
+import {
+  setInvoiceDetailsLoading,
+  setInvoiceDetailsSuccess,
+  setInvoiceDetailsError,
+} from '../reducers/InvoiceDetailsReducer';
 import { userManagementApi } from '../services/Api';
 
 type FetchParams = {
@@ -26,7 +31,7 @@ export const fetchInvoiceSummaryReport = ({
   return async (dispatch, getState) => {
     dispatch(setInvoiceReportLoading());
     const token = getState().login?.user?.data?.token;
-    const url = `/api/v1/reports/invoiceStatusReport/getAllActiveInvoicesForMobile?territoryId=${territoryId}&startDate=${startDate}&endDate=${endDate}`;
+    const url = `/api/v1/reports/invoiceReport/getAllActiveInvoicesForMobile?territoryId=${territoryId}&startDate=${startDate}&endDate=${endDate}`;
 
     try {
       const response = await userManagementApi().get(url, {
@@ -43,13 +48,37 @@ export const fetchInvoiceSummaryReport = ({
   };
 };
 
+export const fetchInvoiceDetailsById = (
+  invoiceId: number
+): ThunkAction<void, RootState, unknown, UnknownAction> => {
+  return async (dispatch, getState) => {
+    dispatch(setInvoiceDetailsLoading());
+    const token = getState().login?.user?.data?.token;
+    const url = `/api/v1/reports/invoiceReport/findInvoiceWithDetailsByInvoiceId/${invoiceId}`;
+
+    try {
+      const response = await userManagementApi().get(url, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      console.log('Invoice Details API response:', response.data);
+
+      if (response.data && response.data.payload) {
+        dispatch(setInvoiceDetailsSuccess(response.data.payload));
+      }
+    } catch (err) {
+      const error = err as { response?: { data?: any }; message?: string };
+      dispatch(setInvoiceDetailsError(error.response?.data || { error: 'Network error' }));
+    }
+  };
+};
+
 export const fetchLastThreeInvoices = (
   outletId: number
 ): ThunkAction<void, RootState, unknown, UnknownAction> => {
   return async (dispatch, getState) => {
     dispatch(setLastInvoicesLoading());
     const token = getState().login?.user?.data?.token;
-    const url = `/api/v1/reports/invoiceStatusReport/getLastThreeInvoicesByOutletId/${outletId}`;
+    const url = `/api/v1/reports/invoiceReport/getLastThreeInvoicesByOutletId/${outletId}`;
 
     try {
       const response = await userManagementApi().get(url, {

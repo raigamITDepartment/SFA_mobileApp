@@ -9,10 +9,14 @@ import { userManagementApi } from '../services/Api';
 
 type UnproductiveCallData = {
   userId: number;
+  territoryId: number;
   routeId: number;
   outletId: number;
+  latitude: number;
+  longitude: number;
   reasonId: number;
-  reasonText: string;
+  reason: string;
+  isActive: boolean;
 };
 
 export const submitUnproductiveCall = (
@@ -22,7 +26,7 @@ export const submitUnproductiveCall = (
     dispatch(setUnproductiveCallLoading());
     const token = getState().login?.user?.data?.token;
     // NOTE: Please verify this is the correct endpoint for unproductive calls.
-    const url = `/api/v1/sales/unproductiveCall`;
+    const url = `/api/v1/sales/invoice/saveUnproductiveCall`;
 
     try {
       const response = await userManagementApi().post(url, data, {
@@ -31,7 +35,7 @@ export const submitUnproductiveCall = (
           'Content-Type': 'application/json',
         },
       });
-
+       console.log("Unproductive Call Response:", response.data);
       if (response.data && response.data.message === 'Success') {
         dispatch(setUnproductiveCallSuccess(response.data.payload));
       } else {

@@ -9,6 +9,14 @@ export interface InvoiceReportItem {
   outletName: string;
   dateBook: string;
   outletId: number;
+  totalDiscountValue:number;
+  discountPercentage:number;
+  isActual: boolean;
+  isBook: boolean;
+  totalFreeValue:number
+
+
+
   // Add other fields from the API response if needed
 }
 

@@ -13,6 +13,7 @@ import { LinearGradient } from "expo-linear-gradient";
 import { useAppDispatch, useAppSelector, RootState } from "../../../store/Hooks";
 import { fetchRoutesByTerritoryId, fetchRouteIdbyOutlet } from "../../../actions/OutletAction";
 import type { NativeStackScreenProps } from "@react-navigation/native-stack";
+import * as Location from "expo-location";
 import SearchableDropdown from "../../../components/ui/CustomerDropdown";
 import UnproductiveCallDialog from "./UnproductiveCallDialog";
 import { submitUnproductiveCall } from "../../../actions/UnproductiveCallAction";
@@ -63,6 +64,8 @@ const CreateInvoice = ({ navigation, route }: CreateInvoiceProps): React.JSX.Ele
   const [invoiceMode, setInvoiceMode] = useState<string>("1"); // Default to 'Booking'
   const [date] = useState(new Date());
   const [isUnproductiveCallDialogVisible, setIsUnproductiveCallDialogVisible] = useState(false);
+  const [latitude, setLatitude] = useState<number | null>(null);
+  const [longitude, setLongitude] = useState<number | null>(null);
 
   const { routes, loading: routesLoading } = useAppSelector((state) => state.fetchRoute);
   const { outlets, loading: outletsLoading } = useAppSelector((state) => state.fetchOutlet);
@@ -80,6 +83,26 @@ const CreateInvoice = ({ navigation, route }: CreateInvoiceProps): React.JSX.Ele
     if (territoryId) {
       dispatch(fetchRoutesByTerritoryId(territoryId));
     }
+
+    (async () => {
+      let { status } = await Location.requestForegroundPermissionsAsync();
+      if (status !== "granted") {
+        Alert.alert(
+          "Permission Denied",
+          "Permission to access location was denied."
+        );
+        return;
+      }
+
+      try {
+        let location = await Location.getCurrentPositionAsync({});
+        setLatitude(location.coords.latitude);
+        setLongitude(location.coords.longitude);
+      } catch (error) {
+        console.error("Failed to get location", error);
+        Alert.alert("Location Error", "Could not fetch location.");
+      }
+    })();
   }, [territoryId, dispatch]);
 
   useFocusEffect(
@@ -134,14 +157,18 @@ const CreateInvoice = ({ navigation, route }: CreateInvoiceProps): React.JSX.Ele
   };
 
   const handleUnproductiveSubmit = (reason: { id: number; reason: string }) => {
-    if (userId && selectedRoute && selectedCustomer) {
+    if (userId && territoryId && selectedRoute && selectedCustomer && latitude && longitude) {
       dispatch(
         submitUnproductiveCall({
           userId: Number(userId),
+          territoryId: Number(territoryId),
           routeId: Number(selectedRoute),
           outletId: Number(selectedCustomer),
           reasonId: reason.id,
-          reasonText: reason.reason,
+          reason: reason.reason,
+          latitude,
+          longitude,
+          isActive: true,
         })
       );
     }

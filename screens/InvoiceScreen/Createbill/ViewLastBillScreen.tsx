@@ -116,7 +116,7 @@ const ViewLastBillScreen = ({
                 labelStyle={styles.lastBillButtonText}
               >
                 <View>
-                  <Text style={styles.lastBillButtonText}>{`${invoice.invoiceNo} - ${invoice.dateActual}`}</Text>invoiceType
+                  <Text style={styles.lastBillButtonText}>{`${invoice.invoiceNo} - ${invoice.dateActual}`}</Text>
                   <Text style={styles.lastBillButtonText}>{`Rs. ${invoice.totalActualValue.toFixed(2)}`}</Text>
                 </View>
               </Button>
