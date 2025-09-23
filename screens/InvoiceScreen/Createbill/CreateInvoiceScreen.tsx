@@ -292,6 +292,105 @@ const CreateInvoiceScreen = ({
     );
   }, [savedItems]);
 
+  const mappedItems = useMemo(() => {
+    const selectedItems = savedItems.filter(
+      (item: ItemType) =>
+        (parseInt(item.quantity, 10) || 0) > 0 ||
+        (parseInt(item.goodReturnQty, 10) || 0) > 0 ||
+        (parseInt(item.marketReturnQty, 10) || 0) > 0 ||
+        (parseInt(item.freeIssue, 10) || 0) > 0
+    );
+
+    return selectedItems.map((item) => {
+      const parse = (val: string) => parseFloat(val) || 0;
+      const parseIntVal = (val: string) => parseInt(val, 10) || 0;
+
+      const sellUnitPrice = parse(item.unitPrice);
+      const sellPriceId = item.sellPriceId ?? null;
+      const totalBookQty = parseIntVal(item.quantity);
+      const totalFreeQty = parseIntVal(item.freeIssue);
+      const discountPercentage = parse(item.specialDiscount);
+
+      const baseAmount = sellUnitPrice * totalBookQty;
+      const totalDiscountValue = baseAmount * (discountPercentage / 100);
+      const sellTotalPrice =
+        totalDiscountValue === 0
+          ? baseAmount
+          : baseAmount - totalDiscountValue;
+
+          console.log("Item Mapping Debug:",sellTotalPrice )
+  
+
+      const goodReturnUnitPrice = parse(item.unitPriceGR);
+      const goodReturnTotalQty = parseIntVal(item.goodReturnQty); // Quantity of good returns for this item
+      const goodReturnFreeQty = parseIntVal(item.goodReturnFreeQty); // Free quantity of good returns for this item
+      const goodReturnTotalVal =
+        goodReturnUnitPrice *
+        Math.max(goodReturnTotalQty - goodReturnFreeQty, 0);
+
+      const marketReturnUnitPrice = parse(item.unitPriceMR);
+      const marketReturnTotalQty = parseIntVal(item.marketReturnQty); // Quantity of market returns for this item
+      const marketReturnFreeQty = parseIntVal(item.marketReturnFreeQty); // Free quantity of market returns for this item
+      const marketReturnTotalVal =
+        marketReturnUnitPrice *
+        Math.max(marketReturnTotalQty - marketReturnFreeQty, 0);
+
+      const bookingData = {
+        totalBookQty,
+        bookDiscountPercentage: discountPercentage,
+        totalBookDiscountValue: totalDiscountValue,
+        totalBookSellValue: sellTotalPrice,
+        totalBookValue: baseAmount,
+        itemSellTotalPrice: sellTotalPrice, // Net price for this item after special discount
+        sellTotalPrice: 0, // This maps to sell_total in the backend
+        totalActualQty: 0,
+        totalDiscountValue: 0,
+        discountPercentage: 0,
+      };
+
+      const actualData = {
+        totalBookQty,
+        bookDiscountPercentage: discountPercentage,
+        totalBookDiscountValue: totalDiscountValue,
+        totalBookSellValue: sellTotalPrice,
+        totalBookValue: baseAmount,
+        itemSellTotalPrice: sellTotalPrice, // Net price for this item after special discount
+        totalActualQty: totalBookQty, // Assuming actual qty is same as booking qty
+        totalDiscountValue: totalDiscountValue,
+        discountPercentage: discountPercentage,
+        sellTotalPrice: sellTotalPrice, // This maps to sell_total in the backend
+      };
+
+      const commonItemData = {
+        itemId: item.itemId,
+        sellPriceId,
+        sellUnitPrice,
+        totalCancelQty: 0,
+        totalFreeQty,
+        goodReturnPriceId: item.goodReturnPriceId ?? null,
+        goodReturnUnitPrice,
+        goodReturnFreeQty,
+        goodReturnTotalQty,
+        goodReturnTotalVal,
+        marketReturnPriceId: item.marketReturnPriceId ?? null,
+        marketReturnFreeQty,
+        marketReturnTotalQty,
+        marketReturnTotalVal,
+        marketReturnUnitPrice,
+        finalTotalValue: parse(item.lineTotal),
+        isActive: true,
+      };
+
+      if (invoiceMode === "1") {
+        // Booking
+        return { ...commonItemData, ...bookingData };
+      } else {
+        // Actual (invoiceMode === "2")
+        return { ...commonItemData, ...bookingData, ...actualData };
+      }
+    });
+  }, [savedItems, invoiceMode]);
+
   return (
     <LinearGradient colors={["#ff6666", "#ff0000"]} style={styles.container}>
       <ScrollView style={styles.container}>
@@ -394,7 +493,7 @@ const CreateInvoiceScreen = ({
           <TouchableOpacity
             style={styles.completeButton}
             onPress={async () => {
-              const selectedItems = savedItems.filter(
+              const selectedItemsForUI = savedItems.filter(
                 (item: ItemType) =>
                   (parseInt(item.quantity, 10) || 0) > 0 ||
                   (parseInt(item.goodReturnQty, 10) || 0) > 0 ||
@@ -402,89 +501,10 @@ const CreateInvoiceScreen = ({
                   (parseInt(item.freeIssue, 10) || 0) > 0
               );
 
-              const mappedItems = selectedItems.map((item) => {
-                const parse = (val: string) => parseFloat(val) || 0;
-                const parseIntVal = (val: string) => parseInt(val, 10) || 0;
-
-                const sellUnitPrice = parse(item.unitPrice);
-                const sellPriceId = item.sellPriceId ?? null;
-                const totalBookQty = parseIntVal(item.quantity);
-                const totalFreeQty = parseIntVal(item.freeIssue);
-                const discountPercentage = parse(item.specialDiscount);
-
-                const baseAmount = sellUnitPrice * totalBookQty;
-                const totalDiscountValue =
-                  baseAmount * (discountPercentage / 100);
-                const sellTotalPrice = baseAmount - totalDiscountValue;
-
-                const goodReturnUnitPrice = parse(item.unitPriceGR);
-                const goodReturnTotalQty = parseIntVal(item.goodReturnQty); // Quantity of good returns for this item
-                const goodReturnFreeQty = parseIntVal(item.goodReturnFreeQty); // Free quantity of good returns for this item
-                const goodReturnTotalVal =
-                  goodReturnUnitPrice *
-                  Math.max(goodReturnTotalQty - goodReturnFreeQty, 0);
-
-                const marketReturnUnitPrice = parse(item.unitPriceMR);
-                const marketReturnTotalQty = parseIntVal(item.marketReturnQty); // Quantity of market returns for this item
-                const marketReturnFreeQty = parseIntVal(item.marketReturnFreeQty); // Free quantity of market returns for this item
-                const marketReturnTotalVal =
-                  marketReturnUnitPrice *
-                  Math.max(marketReturnTotalQty - marketReturnFreeQty, 0);
-
-                const bookingData = {
-                  totalBookQty,
-                  bookDiscountPercentage: discountPercentage,
-                  totalBookDiscountValue: totalDiscountValue,
-                  totalBookSellValue: sellTotalPrice,
-                  totalBookValue: baseAmount,
-                  itemSellTotalPrice: sellTotalPrice, // Net price for this item after special discount
-                  sellTotalPrice: sellTotalPrice, // This maps to sell_total in the backend
-                  totalActualQty: 0,
-                  totalDiscountValue: 0,
-                  discountPercentage: discountPercentage,
-                };
-
-                const actualData = {
-                  totalBookQty,
-                  bookDiscountPercentage: discountPercentage,
-                  totalBookDiscountValue: totalDiscountValue,
-                  totalBookSellValue: sellTotalPrice,
-                  totalBookValue: baseAmount,
-                  itemSellTotalPrice: sellTotalPrice, // Net price for this item after special discount
-                  totalActualQty: totalBookQty, // Assuming actual qty is same as booking qty
-                  totalDiscountValue: totalDiscountValue,
-                  discountPercentage: discountPercentage,
-                  sellTotalPrice: sellTotalPrice, // This maps to sell_total in the backend
-                };
-
-                const commonItemData = {
-                  itemId: item.itemId,
-                  sellPriceId,
-                  sellUnitPrice,
-                  totalCancelQty: 0,
-                  totalFreeQty,
-                  goodReturnPriceId: item.goodReturnPriceId ?? null,
-                  goodReturnUnitPrice,
-                  goodReturnFreeQty,
-                  goodReturnTotalQty,
-                  goodReturnTotalVal,
-                  marketReturnPriceId: item.marketReturnPriceId ?? null,
-                  marketReturnFreeQty,
-                  marketReturnTotalQty,
-                  marketReturnTotalVal,
-                  marketReturnUnitPrice,
-                  finalTotalValue: parse(item.lineTotal),
-                  isActive: true,
-                };
-
-                if (invoiceMode === "1") {
-                  // Booking
-                  return { ...commonItemData, ...bookingData };
-                } else {
-                  // Actual (invoiceMode === "2")
-                  return { ...commonItemData, ...bookingData, ...actualData };
-                }
-              });
+              const totalValueAllItem = mappedItems.reduce(
+                (sum, item) => sum + item.itemSellTotalPrice,
+                0
+              );
 
               // Sum of (unitPrice * quantity) for all items (Gross total before any item discounts)
               const totalGrossBookValue = mappedItems.reduce(
@@ -503,23 +523,16 @@ const CreateInvoiceScreen = ({
                 (sum, item) => sum + item.sellUnitPrice * item.totalFreeQty,
                 0
               );
-              // Sum of (baseAmount - itemDiscountValue) for all items (Total after item-level discounts, before bill discount)
-              const totalValueAfterItemDiscounts = mappedItems.reduce(
-                (sum, item) => sum + item.finalTotalValue,
-                0
-              );
-
-              const totalValueAllItem = mappedItems.reduce(
-                (sum, item) => sum + item.sellTotalPrice,
-                0
-              );
 
               const totalBillDiscountAmount = billDiscountValue; // The calculated bill discount amount
 
               // Net total after item-level and bill discounts (before considering returns)
-              const netTotalAfterAllDiscounts = totalValueAfterItemDiscounts - totalBillDiscountAmount;
+              const netTotalAfterAllDiscounts = totalValueAllItem - totalBillDiscountAmount;
 
-                      const netTotalwithoutGRMR = totalValueAllItem - totalBillDiscountAmount;
+              const netTotalwithoutGRMR =
+                 totalValueAllItem - totalBillDiscountAmount;
+              console.log("netTotalwithoutGRMR", netTotalwithoutGRMR);
+              console.log("sellTotalPrice", totalValueAllItem);
 
               // Final invoice net value (after all discounts and returns)
               const finalInvoiceNetValue = invoiceNetValue; // This is already calculated in the UI section
@@ -547,7 +560,7 @@ const CreateInvoiceScreen = ({
                 totalGoodReturns,
                 totalMarketReturns,
                 invoiceDate: new Date().toISOString(),
-                items: selectedItems,
+                items: selectedItemsForUI,
               };
 
               setLatestInvoiceData(uiInvoiceData);
@@ -588,11 +601,12 @@ const CreateInvoiceScreen = ({
                 apiInvoiceData = {
                   ...baseApiData,
                   totalBookSellValue: netTotalwithoutGRMR, // Net total after item and bill discounts
+                 
                   totalBookValue: totalGrossBookValue, // Gross total before any discounts
                   totalBookFinalValue: netTotalAfterAllDiscounts, // Total after item-level discounts
 
                   totalActualValue: 0,
-                  totalDiscountValue: totalBillDiscountAmount,
+                  totalDiscountValue: 0,
                 };
               } else {
                 // Actual stage (invoiceMode === "2")
