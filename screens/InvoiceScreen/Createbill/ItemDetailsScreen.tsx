@@ -232,7 +232,7 @@ const ItemDetailsScreen = ({ navigation, route }: ItemDetailsScreenProps): React
               price={unitPriceGR}
               prices={prices}
               onSelect={(price, id) => {
-                  (price);
+                setUnitPriceGR  (price);
                 setGoodReturnPriceId(id);
                 setPriceMenuGRVisible(false);
               }}
