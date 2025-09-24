@@ -5,6 +5,7 @@ import {
   Text,
   StyleSheet,
   ScrollView,
+  Pressable,
   ActivityIndicator,
   Alert,
 } from "react-native";
@@ -14,7 +15,12 @@ import { Button } from "react-native-paper";
 import { LinearGradient } from "expo-linear-gradient";
 import { RootStackParamList } from "../../../navigation/AuthNavigator";
 import { useAppDispatch, useAppSelector } from "../../../store/Hooks";
-import { fetchLastThreeInvoices } from "../../../actions/ReportAction";
+import {
+  fetchLastThreeInvoices,
+  fetchInvoiceDetailsById,
+} from "../../../actions/ReportAction";
+import InvoiceDetailsModal from "./InvoiceDetailsModal";
+import { resetInvoiceDetails } from "../../../reducers/InvoiceDetailsReducer";
 
 type ViewLastBillScreenProps = NativeStackScreenProps<
   RootStackParamList,
@@ -44,6 +50,7 @@ const ViewLastBillScreen = ({
   const { routeId, customerId, customerName, invoiceType, invoiceMode } =
     route.params;
   const outletId = Number(customerId);
+  const [isModalVisible, setModalVisible] = useState(false);
 
   console.log("Outlet ID:", outletId);
 
@@ -74,6 +81,13 @@ const ViewLastBillScreen = ({
       </View>
     );
   }
+
+  const handleInvoicePress = (invoiceId: number) => {
+    if (invoiceId) {
+      dispatch(fetchInvoiceDetailsById(invoiceId));
+      setModalVisible(true);
+    }
+  };
 
   const handleInvoice = () => {
     // Use the customerId and customerName passed via navigation params
@@ -109,25 +123,38 @@ const ViewLastBillScreen = ({
               <Button
                 key={invoice.id}
                 mode="contained"
-                onPress={() => {
-                  /* You can add navigation to a detailed view here if needed */
-                }}
+                onPress={() => handleInvoicePress(invoice.id)}
                 style={styles.lastBillButton}
-                labelStyle={styles.lastBillButtonText}
               >
                 <View>
-                  <Text style={styles.lastBillButtonText}>{`${invoice.invoiceNo} - ${invoice.dateActual}`}</Text>
-                  <Text style={styles.lastBillButtonText}>{`Rs. ${invoice.totalActualValue.toFixed(2)}`}</Text>
+                  <Text
+                    style={styles.lastBillButtonText}
+                  >{`${invoice.invoiceNo} - ${invoice.dateActual}`}</Text>
+                  <Text
+                    style={styles.lastBillButtonText}
+                  >{`Rs. ${invoice.totalActualValue.toFixed(2)}`}</Text>
                 </View>
               </Button>
             ))
           ) : (
             <Text style={styles.noBillsText}>No recent invoices found.</Text>
           )}
+          <InvoiceDetailsModal
+            visible={isModalVisible}
+            onClose={() => {
+              setModalVisible(false);
+              dispatch(resetInvoiceDetails());
+            }}
+          />
         </View>
 
         <View style={styles.buttonContainer}>
-          <Button mode="contained" onPress={handleInvoice} style={styles.newInvoiceButton} labelStyle={styles.newInvoiceButtonText}>
+          <Button
+            mode="contained"
+            onPress={handleInvoice}
+            style={styles.newInvoiceButton}
+            labelStyle={styles.newInvoiceButtonText}
+          >
             Create New Invoice
           </Button>
         </View>
@@ -200,7 +227,7 @@ const styles = StyleSheet.create({
   },
   lastBillButtonText: {
     fontSize: 14,
-    color: 'white',
+    color: "white",
   },
   newInvoiceButton: {
     paddingVertical: 8,
@@ -227,8 +254,8 @@ const styles = StyleSheet.create({
     marginTop: 15,
   },
   noBillsText: {
-    textAlign: 'center',
-    color: '#666',
+    textAlign: "center",
+    color: "#666",
     marginVertical: 20,
   },
 });

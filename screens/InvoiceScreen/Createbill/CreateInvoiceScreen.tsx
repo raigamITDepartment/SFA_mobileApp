@@ -1,6 +1,6 @@
-// File: CreateInvoiceScreen.tsx
+// File: /home/thusitha/SFA_mobile/git2/SFA_mobileApp/screens/InvoiceScreen/Createbill/CreateInvoiceScreen.tsx
 
-import React, { useState, useMemo, useEffect } from "react";
+import React, { useState, useMemo, useEffect, useRef } from "react";
 import {
   View,
   Text,
@@ -65,6 +65,7 @@ const CreateInvoiceScreen = ({
   const [latitude, setLatitude] = useState<number | null>(null);
   const [longitude, setLongitude] = useState<number | null>(null);
   const dispatch = useAppDispatch();
+  const itemsFetchedRef = useRef(false);
   const user = useSelector((state: RootState) => state.login.user);
   const userId = user?.data?.userId || null;
   const rangeId = user?.data?.rangeId || null;
@@ -112,9 +113,10 @@ const CreateInvoiceScreen = ({
     })();
   }, []);
   useEffect(() => {
-    if (territoryId) {
+    if (territoryId && !itemsFetchedRef.current) {
       dispatch(fetchItems(Number(territoryId)));
       console.log("Fetching items from Redux store");
+      itemsFetchedRef.current = true;
     }
   }, [dispatch, territoryId]);
 
@@ -576,7 +578,7 @@ const CreateInvoiceScreen = ({
                 invoiceType,
                 sourceApp: "MOBILE",
                 longitude,
-                latitude,
+                latitude: latitude || 0,
                 isReversed: false,
                 isPrinted: invoiceMode === "2",
                 isBook: true, // isBook is true for both Booking and Actual modes
@@ -584,18 +586,21 @@ const CreateInvoiceScreen = ({
                 isLateDelivery: false,
                 invActualBy: 0,
                 invReversedBy: 0,
-                invUpdatedBy: 0,
+                invUpdatedBy: userId || 0,
                 isActive: true,
                 invoiceDetailDTOList: mappedItems,
                 totalCancelValue: 0.0,
                 discountPercentage: parseFloat(billDiscount) || 0,
-                totalMarketReturnValue,
-                totalGoodReturnValue,
-                totalFreeValue,
+                totalMarketReturnValue: totalMarketReturnValue || 0,
+                totalGoodReturnValue: totalGoodReturnValue || 0,
+                totalFreeValue: totalFreeValue || 0,
+                totalBookValue: totalGrossBookValue,
+                totalActualValue: invoiceMode === "2" ? finalInvoiceNetValue : 0,
+                totalDiscountValue: totalBillDiscountAmount,
               };
 
               let apiInvoiceData;
-
+             
               if (invoiceMode === "1") {
                 // Booking stage
                 apiInvoiceData = {
@@ -606,7 +611,7 @@ const CreateInvoiceScreen = ({
                   totalBookFinalValue: netTotalAfterAllDiscounts, // Total after item-level discounts
 
                   totalActualValue: 0,
-                  totalDiscountValue: 0,
+                  totalDiscountValue: totalBillDiscountAmount,
                 };
               } else {
                 // Actual stage (invoiceMode === "2")
