@@ -164,35 +164,26 @@ const CreateInvoiceScreen = ({
 
   useEffect(() => {
     if (createInvoiceSuccess && latestInvoiceData) {
-      Alert.alert(
-        "Success",
-        "Invoice created successfully!",
-        [
-          {
-            text: "OK",
-            onPress: async () => {
-              try {
-                await AsyncStorage.setItem(
-                  "latest_invoice",
-                  JSON.stringify(latestInvoiceData)
-                );
-                navigation.navigate("InvoiceFinish", {
-                  invoiceData: latestInvoiceData,
-                });
-              } catch (e) {
-                console.error(
-                  "Failed to save or navigate after invoice creation:",
-                  e
-                );
-              } finally {
-                dispatch(resetCreateInvoiceState());
-                setLatestInvoiceData(null);
-              }
-            },
-          },
-        ],
-        { cancelable: false }
-      );
+      const navigateToFinish = async () => {
+        try {
+          await AsyncStorage.setItem(
+            "latest_invoice",
+            JSON.stringify(latestInvoiceData)
+          );
+          navigation.navigate("InvoiceFinish", {
+            invoiceData: latestInvoiceData,
+          });
+        } catch (e) {
+          console.error(
+            "Failed to save or navigate after invoice creation:",
+            e
+          );
+        } finally {
+          dispatch(resetCreateInvoiceState());
+          setLatestInvoiceData(null);
+        }
+      };
+      navigateToFinish();
     }
     if (createInvoiceError) {
       Alert.alert("Error", "Failed to create invoice. Please try again.");
@@ -502,6 +493,10 @@ const CreateInvoiceScreen = ({
                   (parseInt(item.marketReturnQty, 10) || 0) > 0 ||
                   (parseInt(item.freeIssue, 10) || 0) > 0
               );
+          const finalTotalValue = mappedItems.reduce(
+                (sum, item) => sum + item.finalTotalValue,
+                0
+              );
 
               const totalValueAllItem = mappedItems.reduce(
                 (sum, item) => sum + item.itemSellTotalPrice,
@@ -529,7 +524,7 @@ const CreateInvoiceScreen = ({
               const totalBillDiscountAmount = billDiscountValue; // The calculated bill discount amount
 
               // Net total after item-level and bill discounts (before considering returns)
-              const netTotalAfterAllDiscounts = totalValueAllItem - totalBillDiscountAmount;
+              const netTotalAfterAllDiscounts = finalTotalValue - totalBillDiscountAmount;
 
               const netTotalwithoutGRMR =
                  totalValueAllItem - totalBillDiscountAmount;
@@ -565,15 +560,21 @@ const CreateInvoiceScreen = ({
                 items: selectedItemsForUI,
               };
 
+              // Generate a unique 6-digit number for client-side identification
+              // const generateUniqueId = () => {
+              //   return Math.floor(100000 + Math.random() * 900000);
+              // };
+
               setLatestInvoiceData(uiInvoiceData);
               // This object is for the API call - base data
               const baseApiData = {
-                userId,
+                userId:userId || 0,
                 territoryId,
                 agencyWarehouseId,
                 routeId: Number(routeId),
                 rangeId,
                 outletId: Number(customerId),
+               // clientGeneratedId: generateUniqueId(),
 
                 invoiceType,
                 sourceApp: "MOBILE",
@@ -598,6 +599,7 @@ const CreateInvoiceScreen = ({
                 totalActualValue: invoiceMode === "2" ? finalInvoiceNetValue : 0,
                 totalDiscountValue: totalBillDiscountAmount,
               };
+      console.log("Base API Data:", userId);
 
               let apiInvoiceData;
              

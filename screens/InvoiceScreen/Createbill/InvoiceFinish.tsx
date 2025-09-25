@@ -176,7 +176,7 @@ const InvoiceFinish = ({
           name="arrow-back-outline"
           size={28}
           color="white"
-          onPress={() => navigation.goBack()}
+          
         />
         <Text style={styles.title}>Raigam</Text>
         <Ionicons name="notifications-outline" size={28} color="white" />

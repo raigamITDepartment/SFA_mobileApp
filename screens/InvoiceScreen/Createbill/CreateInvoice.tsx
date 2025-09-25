@@ -186,6 +186,13 @@ const CreateInvoice = ({ navigation, route }: CreateInvoiceProps): React.JSX.Ele
       const selectedRouteObject = routes.find((r: RouteType) => String(r.id) === selectedRoute);
       const routeName = selectedRouteObject ? selectedRouteObject.routeName : '';
       try {
+        // Clear previous invoice draft data from AsyncStorage
+        const keys = await AsyncStorage.getAllKeys();
+        const invoiceKeys = keys.filter(
+          (key) => key.startsWith("item_") || key.startsWith("lastBill_") || ["RouteName", "customerName", "invoiceType", "invoiceMode"].includes(key)
+        );
+        await AsyncStorage.multiRemove(invoiceKeys);
+
         // Save invoice details to AsyncStorage
         await AsyncStorage.setItem('RouteName', routeName);
         await AsyncStorage.setItem('customerName', customer.outletName);

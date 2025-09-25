@@ -13,6 +13,7 @@ import {
 import { Text, Card, Button } from "react-native-paper";
 import { LinearGradient } from "expo-linear-gradient";
 import * as ImagePicker from "expo-image-picker";
+import * as ImageManipulator from "expo-image-manipulator";
 import * as Location from "expo-location";
 import type { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { RootStackParamList } from "@/navigation/AuthNavigator";
@@ -45,7 +46,7 @@ const OutletAdd = ({ navigation }: StockProps): React.JSX.Element => {
   );
   const [selectedCustomer, setSelectedCustomer] = useState<string>("");
   const [shopCode, setShopCode] = useState("");
-  const [vatNum, setVatNum] = useState("");
+  const [vatNum, setVatNum] = useState("0");
   const [outletName, setOutletName] = useState("");
   const [address1, setAddress1] = useState("");
   const [address2, setAddress2] = useState("");
@@ -77,6 +78,7 @@ const OutletAdd = ({ navigation }: StockProps): React.JSX.Element => {
     setCategory("");
     setImage(null);
     setSelectedAfter("");
+    setVatNum("0");
     setSelectedRoute("");
   };
 
@@ -100,6 +102,7 @@ const OutletAdd = ({ navigation }: StockProps): React.JSX.Element => {
     if (routeId) {
       dispatch(fetchRouteIdbyOutlet(Number(routeId)));
     }
+  
   };
 
   useEffect(() => {
@@ -150,7 +153,7 @@ const OutletAdd = ({ navigation }: StockProps): React.JSX.Element => {
     }
   };
 
-  const handleCreateOutlet = () => {
+  const handleCreateOutlet = async () => {
     if (
       !outletName ||
       !image ||
@@ -239,10 +242,17 @@ const OutletAdd = ({ navigation }: StockProps): React.JSX.Element => {
     formData.append("vatNum", vatNum);
 
     if (image) {
-      const uriParts = image.split(".");
-      const fileType = uriParts[uriParts.length - 1];
+      // Manipulate the image to reduce its size
+      const manipResult = await ImageManipulator.manipulateAsync(
+        image,
+        [{ resize: { width: 1024 } }], // Resize to a max width of 1024px, height is scaled automatically
+        { compress: 0.7, format: ImageManipulator.SaveFormat.JPEG }
+      );
+
+      const uriParts = manipResult.uri.split(".");
+      const fileType = uriParts[uriParts.length - 1] || "jpeg";
       formData.append("image", {
-        uri: image,
+        uri: manipResult.uri,
         name: `photo.${fileType}`,
         type: `image/${fileType}`,
       } as any);
@@ -412,6 +422,7 @@ const OutletAdd = ({ navigation }: StockProps): React.JSX.Element => {
               loading={false}
             />
           </View>
+                   <Text style={styles.label}>Vat Number</Text>
 
           <TextInput
             style={[styles.input, { color: "#000" }]}
@@ -458,7 +469,7 @@ const styles = StyleSheet.create({
     textAlign: "center",
   },
   field: { marginBottom: 16, marginTop: 8, color: "#000" },
-  label: { fontSize: 16, marginBottom: 8 },
+  label: { fontSize: 16, marginBottom: 8 ,color: "#000"},
   input: {
     marginTop: 8,
     borderWidth: 1,
