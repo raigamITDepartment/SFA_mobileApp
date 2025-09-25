@@ -67,7 +67,8 @@
     "react-native-webview": "13.13.5",
     "react-redux": "^9.2.0",
     "react-test-renderer": "19.0.0",
-    "redux": "^5.0.1"
+    "redux": "^5.0.1",
+    "expo-image-manipulator": "~13.1.7"
   },
   "devDependencies": {
     "@types/jwt-decode": "^2.2.1",
