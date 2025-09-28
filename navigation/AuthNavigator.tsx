@@ -24,6 +24,7 @@ import InvoiceDetailView from "../screens/ReportScreen/InvoiceDetailView";
 import InvoiceEditScreen from "../screens/InvoiceScreen/EditeBill/InvoiceEditScreen";
 import InvoiceItemEditScreen from "../screens/InvoiceScreen/EditeBill/InvoiceItemEditScreen";
 import ReverseInvoiceScreen from "../screens/InvoiceScreen/EditeBill/ReverseInvoiceScreen";
+import ProductReport from "../screens/ReportScreen/ProductReport"
 
 export type InvoiceItem = {
   itemName: string;
@@ -69,6 +70,8 @@ export type RootStackParamList = {
     InvoiceItemEditScreen: { invoiceData: any };
     ReverseInvoiceScreen: { invoiceId: string; customerName: string };
     UpproductiveCall: undefined;
+    ProductReport:undefined;
+
 
 
 };
@@ -101,6 +104,7 @@ const AuthNavigator = () => (
        <Stack.Screen name="InvoiceEditScreen" component={InvoiceEditScreen} />
        <Stack.Screen name="InvoiceItemEditScreen" component={InvoiceItemEditScreen} />
        <Stack.Screen name="ReverseInvoiceScreen" component={ReverseInvoiceScreen} />
+       <Stack.Screen name="ProductReport" component={ProductReport} />
 
   </Stack.Navigator>
 );

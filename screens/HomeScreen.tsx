@@ -151,9 +151,9 @@ const HomeScreen = ({ navigation }: HomeScreenProps) => {
           <Text style={styles.cardTitle}> Target</Text>
         </View>
 
-        <Text style={styles.input}>Territory Target:</Text>
-        <Text style={styles.input}>My Achievement Value:</Text>
-        <Text style={styles.input}>My Achievement Percentage:</Text>
+        <Text style={styles.input}>Territory Target:{dashboardInfoLoading ? 'Loading...' : dashboardInfo?.territoryTargetForThisMonth ?? 'N/A'}</Text>
+        <Text style={styles.input}>My Achievement Value:{dashboardInfoLoading ? 'Loading...' : dashboardInfo?.totalActualValueForThisMonth ?? 'N/A'}</Text>
+        <Text style={styles.input}>My Achievement Percentage:{dashboardInfoLoading ? 'Loading...' : dashboardInfo?.achievementPercentageForThisMonth ?? 'N/A'}</Text>
 
       </View>
 
@@ -163,9 +163,9 @@ const HomeScreen = ({ navigation }: HomeScreenProps) => {
           <Text style={styles.cardTitle}> PC Target</Text>
         </View>
 
-        <Text style={styles.input}>PC Target:</Text>
-        <Text style={styles.input}>My Achieved PC Target:</Text>
-        <Text style={styles.input}>My Unproductive calls:</Text>
+        <Text style={styles.input}>PC Target:{dashboardInfoLoading ? 'Loading...' : dashboardInfo?.pcTargetForThisMonth ?? 'N/A'}</Text>
+        <Text style={styles.input}>My Achieved PC Target:{dashboardInfoLoading ? 'Loading...' : dashboardInfo?.achievedPcTargetForThisMonth ?? 'N/A'}</Text>
+        <Text style={styles.input}>My Unproductive calls:{dashboardInfoLoading ? 'Loading...' : dashboardInfo?.unproductiveCallCountForThisMonth ?? 'N/A'}</Text>
       </View>
 
       <View style={styles.card}>
@@ -193,11 +193,17 @@ const HomeScreen = ({ navigation }: HomeScreenProps) => {
           <Entypo name="shop" size={24} color="black" />
           <Text style={styles.cardTitle}>Invoice</Text>
         </View>
+        <Text style={styles.input}>Booking Value:{dashboardInfoLoading ? 'Loading...' : dashboardInfo?.totalBookingValueForThisMonth ?? 'N/A'}</Text>
+        <Text style={styles.input}>Booking Count:{dashboardInfoLoading ? 'Loading...' : dashboardInfo?.bookingInvoicesCountForThisMonth ?? 'N/A'}</Text>
 
-    
-        <Text style={styles.input}>Booking Value:</Text>
-        <Text style={styles.input}>Cancelled Value:</Text>
-        <Text style={styles.input}>Late Delivery bills:</Text>
+        <Text style={styles.input}>Actual Value:{dashboardInfoLoading ? 'Loading...' : dashboardInfo?.totalActualValueForThisMonth ?? 'N/A'}</Text>
+        <Text style={styles.input}>Actual Total Count :{dashboardInfoLoading ? 'Loading...' : dashboardInfo?.actualInvoicesCountForThisMonth ?? 'N/A'}</Text>
+
+        <Text style={styles.input}>Cancelled Value:{dashboardInfoLoading ? 'Loading...' : dashboardInfo?.totalCancelValueForThisMonth ?? 'N/A'}</Text>
+         <Text style={styles.input}>Cancelled Count:{dashboardInfoLoading ? 'Loading...' : dashboardInfo?.cancelInvoicesCountForThisMonth ?? 'N/A'}</Text>
+
+        <Text style={styles.input}>Late Delivery bills Value:{dashboardInfoLoading ? 'Loading...' : dashboardInfo?.totalLateDeliveryValueForThisMonth ?? 'N/A'}</Text>
+          <Text style={styles.input}>Late Delivery bills Count:{dashboardInfoLoading ? 'Loading...' : dashboardInfo?.lateDeliveryInvoicesCountForThisMonth ?? 'N/A'}</Text>
       </View>
 
       <View style={styles.card}>

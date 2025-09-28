@@ -587,7 +587,7 @@ const CreateInvoiceScreen = ({
                 isLateDelivery: false,
                 invActualBy: 0,
                 invReversedBy: 0,
-                invUpdatedBy: userId || 0,
+                invUpdatedBy: 0,
                 isActive: true,
                 invoiceDetailDTOList: mappedItems,
                 totalCancelValue: 0.0,

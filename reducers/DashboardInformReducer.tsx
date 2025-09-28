@@ -7,6 +7,27 @@ interface DashboardInfo {
   visitCountForThisMonth: number;
   checkInTime: string;
 
+  territoryTargetForThisMonth: number;
+  achievementPercentageForThisMonth: number;
+ 
+
+  pcTargetForThisMonth: number;
+  achievedPcTargetForThisMonth: number;
+  unproductiveCallCountForThisMonth: number;
+
+  bookingInvoicesCountForThisMonth: number;
+  totalBookingValueForThisMonth:number
+
+  actualInvoicesCountForThisMonth: number;
+  totalActualValueForThisMonth:number
+
+  cancelInvoicesCountForThisMonth: number;
+  totalCancelValueForThisMonth:number
+
+  lateDeliveryInvoicesCountForThisMonth:number
+  totalLateDeliveryValueForThisMonth:number
+
+
 }
 
 interface DashboardInfoState {
