@@ -37,6 +37,56 @@ const LabelInput: React.FC<LabelInputProps> = ({ label, value, onChangeText = ()
   </View>
 );
 
+interface Price {
+  id: number;
+  itemPrice: number;
+}
+
+type PriceMenuProps = {
+  label: string;
+  visible: boolean;
+  onDismiss: () => void;
+  onPress: () => void;
+  loading: boolean;
+  price: string;
+  prices: Price[];
+  onSelect: (price: string, id: number) => void;
+};
+
+const PriceMenu: React.FC<PriceMenuProps> = ({
+  label,
+  visible,
+  onDismiss,
+  onPress,
+  loading,
+  price,
+  prices,
+  onSelect,
+}) => (
+  <View style={styles.labelInput}>
+    <Text style={styles.label}>{label}</Text>
+    <Menu
+      visible={visible}
+      onDismiss={onDismiss}
+      anchor={
+        <TouchableOpacity style={[styles.input, styles.dropdown]} onPress={onPress} disabled={loading}>
+          <Text style={styles.dropdownText}>
+            {loading ? 'Loading prices...' : price ? `Rs. ${price}` : 'Select a price'}
+          </Text>
+        </TouchableOpacity>
+      }
+    >
+      {prices && prices.length > 0 ? (
+        prices.map((p) => (
+          <Menu.Item key={p.id} onPress={() => onSelect(String(p.itemPrice), p.id)} title={`Rs. ${p.itemPrice}`} />
+        ))
+      ) : (
+        <Menu.Item disabled title={loading ? 'Loading...' : 'No prices available'} />
+      )}
+    </Menu>
+  </View>
+);
+
 type ItemDetailsScreenProps = NativeStackScreenProps<RootStackParamList, 'ItemDetailsScreen'>;
 
 const ItemDetailsScreen = ({ navigation, route }: ItemDetailsScreenProps): React.JSX.Element => {
@@ -45,13 +95,18 @@ const ItemDetailsScreen = ({ navigation, route }: ItemDetailsScreenProps): React
 
   const dispatch = useAppDispatch();
   const rangeId = useAppSelector((state: RootState) => state.login.user.data.rangeId);
-  const { Price: prices, loading: priceLoading } = useAppSelector(
+  const { Price: prices = [], loading: priceLoading } = useAppSelector(
     (state: RootState) => state.Price
   );
 
   const [priceMenuVisible, setPriceMenuVisible] = useState(false);
+  const [priceMenuGRVisible, setPriceMenuGRVisible] = useState(false);
+  const [priceMenuMRVisible, setPriceMenuMRVisible] = useState(false);
 
   const [unitPrice, setUnitPrice] = useState(item.unitPrice || '');
+  const [sellPriceId, setSellPriceId] = useState<number | null>(item.sellPriceId || null);
+  const [goodReturnPriceId, setGoodReturnPriceId] = useState<number | null>(item.goodReturnPriceId || null);
+  const [marketReturnPriceId, setMarketReturnPriceId] = useState<number | null>(item.marketReturnPriceId || null);
   const [unitPriceGR, setUnitPriceGR] = useState(item.unitPriceGR || '');
   const [unitPriceMR, setUnitPriceMR] = useState(item.unitPriceMR || '');
   const [quantity, setQuantity] = useState(item.quantity || '');
@@ -93,7 +148,7 @@ const ItemDetailsScreen = ({ navigation, route }: ItemDetailsScreenProps): React
     const marketTotal = unitMR * Math.max(marketQty - marketFree, 0);
     setMarketReturnTotal(marketTotal.toFixed(2));
 
-    const baseAmount = unit * Math.max(qty - free, 0);
+    const baseAmount = unit * qty;
     const discountValue = baseAmount * (discount / 100);
     setItemDiscountValue(discountValue.toFixed(2));
     const finalTotal = baseAmount - discountValue - goodTotal - marketTotal;
@@ -106,6 +161,9 @@ const ItemDetailsScreen = ({ navigation, route }: ItemDetailsScreenProps): React
       itemName,
       itemId,
       unitPrice,
+      sellPriceId,
+      goodReturnPriceId,
+      marketReturnPriceId,
       quantity,
       specialDiscount,
       freeIssue,
@@ -137,39 +195,21 @@ const ItemDetailsScreen = ({ navigation, route }: ItemDetailsScreenProps): React
       <View style={styles.inputGroup}>
         <LabelInput label="Available Stock" value="10000" editable={false} />
         <LabelInput label="Unit of Measure" value="Pkt" editable={false} />
-        <View style={styles.labelInput}>
-          <Text style={styles.label}>Unit Price</Text>
-          <Menu
-            visible={priceMenuVisible}
-            onDismiss={() => setPriceMenuVisible(false)}
-            anchor={
-              <TouchableOpacity
-                style={[styles.input, styles.dropdown]}
-                onPress={() => setPriceMenuVisible(true)}
-                disabled={priceLoading}
-              >
-                <Text style={styles.dropdownText}>
-                  {priceLoading
-                    ? 'Loading prices...'
-                    : unitPrice
-                    ? `Rs. ${unitPrice}`
-                    : 'Select a price'}
-                </Text>
-              </TouchableOpacity>
-            }
-          >
-            {prices && prices.length > 0 ? (
-              prices.map((p: any) => (
-                <Menu.Item
-                  key={p.priceListId}
-                  onPress={() => { setUnitPrice(String(p.price)); setPriceMenuVisible(false); }}
-                  title={`Rs. ${p.price}`}
-                />
-              ))
-            ) : (<Menu.Item disabled title={priceLoading ? 'Loading...' : 'No prices available'} />)}
-          </Menu>
-        </View>
-        <LabelInput label="Adjusted Unit Price Rs." value={unitPrice || '0.00'} editable={false} />
+        <PriceMenu
+          label="Unit Price"
+          visible={priceMenuVisible}
+          onDismiss={() => setPriceMenuVisible(false)}
+          onPress={() => setPriceMenuVisible(true)}
+          loading={priceLoading}
+          price={unitPrice}
+          prices={prices}
+          onSelect={(price, id) => {
+            setUnitPrice(price);
+            setSellPriceId(id);
+            setPriceMenuVisible(false);
+          }}
+        />
+        <LabelInput label="Adjusted Unit Price Rs." value={unitPrice || '0.00'} onChangeText={setUnitPrice} />
         <LabelInput label="Quantity" value={quantity} onChangeText={setQuantity} />
         <LabelInput label="Special Discount (%)" value={specialDiscount} onChangeText={setSpecialDiscount} />
         <LabelInput label="Free Issue" value={freeIssue} onChangeText={setFreeIssue} />
@@ -183,7 +223,21 @@ const ItemDetailsScreen = ({ navigation, route }: ItemDetailsScreenProps): React
         </TouchableOpacity>
         {showGoodReturn && (
           <View style={styles.accordionContent}>
-            <LabelInput label="Unit Price GoodReturn" value={unitPriceGR} onChangeText={setUnitPriceGR} />
+            <PriceMenu
+              label="Unit Price GoodReturn"
+              visible={priceMenuGRVisible}
+              onDismiss={() => setPriceMenuGRVisible(false)}
+              onPress={() => setPriceMenuGRVisible(true)}
+              loading={priceLoading}
+              price={unitPriceGR}
+              prices={prices}
+              onSelect={(price, id) => {
+                setUnitPriceGR  (price);
+                setGoodReturnPriceId(id);
+                setPriceMenuGRVisible(false);
+              }}
+            />
+                <LabelInput label="Adjusted Unit Price Rs." value={unitPriceGR || '0.00'} onChangeText={setUnitPriceGR} />
             <LabelInput label="Good Return Qty" value={goodReturnQty} onChangeText={setGoodReturnQty} />
             <LabelInput label="Good Return Free Qty" value={goodReturnFreeQty} onChangeText={setGoodReturnFreeQty} />
             <LabelInput label="Good Return Total" value={goodReturnTotal} editable={false} />
@@ -196,7 +250,21 @@ const ItemDetailsScreen = ({ navigation, route }: ItemDetailsScreenProps): React
         </TouchableOpacity>
         {showMarketReturn && (
           <View style={styles.accordionContent}>
-            <LabelInput label="Unit Price MarketReturn" value={unitPriceMR} onChangeText={setUnitPriceMR} />
+            <PriceMenu
+              label="Unit Price MarketReturn"
+              visible={priceMenuMRVisible}
+              onDismiss={() => setPriceMenuMRVisible(false)}
+              onPress={() => setPriceMenuMRVisible(true)}
+              loading={priceLoading}
+              price={unitPriceMR}
+              prices={prices}
+              onSelect={(price, id) => {
+                setUnitPriceMR(price);
+                setMarketReturnPriceId(id);
+                setPriceMenuMRVisible(false);
+              }}
+            />
+            <LabelInput label="Adjusted Unit Price Rs." value={unitPriceMR || '0.00'} onChangeText={setUnitPriceMR} />
             <LabelInput label="Market Return Qty" value={marketReturnQty} onChangeText={setMarketReturnQty} />
             <LabelInput label="Market Return Free Qty" value={marketReturnFreeQty} onChangeText={setMarketReturnFreeQty} />
             <LabelInput label="Market Return Total" value={marketReturnTotal} editable={false} />

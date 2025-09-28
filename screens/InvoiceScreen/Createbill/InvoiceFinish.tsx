@@ -9,6 +9,7 @@ import {
   TouchableOpacity,
 } from "react-native";
 import { useMemo } from "react";
+import { Alert } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import type { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { RootStackParamList } from "../../../navigation/AuthNavigator";
@@ -175,7 +176,7 @@ const InvoiceFinish = ({
           name="arrow-back-outline"
           size={28}
           color="white"
-          onPress={() => navigation.goBack()}
+          
         />
         <Text style={styles.title}>Raigam</Text>
         <Ionicons name="notifications-outline" size={28} color="white" />
@@ -256,8 +257,19 @@ const InvoiceFinish = ({
           style={styles.button}
           onPress={async () => {
             try {
-              await AsyncStorage.clear();
-              navigation.navigate("Home");
+              // Selectively clear only the invoice draft data
+              const keys = await AsyncStorage.getAllKeys();
+              const invoiceKeys = keys.filter(key => key.startsWith('item_') || key.startsWith('lastBill_') || ['RouteName', 'customerName', 'invoiceType', 'invoiceMode'].includes(key));
+              await AsyncStorage.multiRemove(invoiceKeys);
+
+              Alert.alert(
+                "Success",
+                `Successfully added the Invoice for ${customerName}.`,
+                [
+                  { text: "OK", onPress: () => navigation.navigate('Home') }
+                ],
+                { cancelable: false }
+              );
             } catch (e) {
               console.error("Failed to clear AsyncStorage.", e);
             }

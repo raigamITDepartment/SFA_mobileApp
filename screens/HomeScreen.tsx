@@ -18,6 +18,7 @@ import * as Location from "expo-location";
 import { useAppDispatch, useAppSelector } from "../store/Hooks";
 import type { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { logoutUser } from "../actions/UserAction";
+import { fetchDashboardInfo } from "../actions/DashboardAction";
 // import useBackToHome from '../store/UseBackToHome';
 
 type RootStackParamList = {
@@ -32,16 +33,11 @@ type HomeScreenProps = NativeStackScreenProps<RootStackParamList, "HomeScreen">;
 const HomeScreen = ({ navigation }: HomeScreenProps) => {
   const dispatch = useAppDispatch();
   const userLoginResponse = useAppSelector((state) => state.login.user);
+  const { info: dashboardInfo, loading: dashboardInfoLoading } = useAppSelector((state) => state.dashboardInfo);
+  const userId = userLoginResponse?.data?.userId;
+  const territoryId = userLoginResponse?.data?.territoryId;
+  // const territoryId =  2 // This was the hardcoded value causing the issue
 
-  const [monthlyTarget, setMonthlyTarget] = useState("");
-  const [achievementValue, setAchievementValue] = useState("");
-  const [achievementPercentage, setAchievementPercentage] = useState("");
-  const [pcTarget, setPcTarget] = useState("");
-  const [pcAchievement, setPcAchievement] = useState("");
-  const [pcUnproductive, setPcUnproductive] = useState("");
-  const [activeOutlets, setActiveOutlets] = useState("");
-  const [closedOutlets, setClosedOutlets] = useState("");
-  const [visitedOutlets, setVisitedOutlets] = useState("");
   const [dropdownValue, setDropdownValue] = useState(null);
   const [isFocus, setIsFocus] = useState(false);
   const [bookingValue, setBookingValue] = useState("");
@@ -54,6 +50,15 @@ const HomeScreen = ({ navigation }: HomeScreenProps) => {
     { label: "Item 3", value: "3" },
     { label: "Item 4", value: "4" },
   ];
+
+  useEffect(() => {
+    if (userId && territoryId) {
+      dispatch(fetchDashboardInfo({ userId: Number(userId), territoryId: Number(territoryId) }));
+    }
+  }, [dispatch, userId, territoryId]);
+
+  console.log("Dashboard Info:", userId, territoryId);
+
 
   useEffect(() => {
     const backAction = () => {
@@ -98,7 +103,7 @@ const HomeScreen = ({ navigation }: HomeScreenProps) => {
                 return;
               }
               await dispatch(
-                logoutUser({ userId, latitude, longitude, gpsStatus: false })
+                logoutUser({ userId, latitude, longitude, isCheckIn: false, isCheckOut : true ,gpsStatus: false})
               );
               navigation.replace("AuthLoading"); // Use lowercase "login" if your screen name is defined like that
             } catch (error) {
@@ -135,6 +140,9 @@ const HomeScreen = ({ navigation }: HomeScreenProps) => {
         <Text style={styles.input}>
           Territory: {userLoginResponse?.data?.territoryName}
         </Text>
+        <Text style={styles.input}>
+          Check-In Time: {dashboardInfoLoading ? '...' : dashboardInfo?.checkInTime ?? 'N/A'}
+        </Text>
       </View>
 
       <View style={styles.card}>
@@ -143,9 +151,9 @@ const HomeScreen = ({ navigation }: HomeScreenProps) => {
           <Text style={styles.cardTitle}> Target</Text>
         </View>
 
-        <Text style={styles.input}>Territory Target:</Text>
-        <Text style={styles.input}>My Achievement Value:</Text>
-        <Text style={styles.input}>My Achievement Percentage:</Text>
+        <Text style={styles.input}>Territory Target:{dashboardInfoLoading ? 'Loading...' : dashboardInfo?.territoryTargetForThisMonth ?? 'N/A'}</Text>
+        <Text style={styles.input}>My Achievement Value:{dashboardInfoLoading ? 'Loading...' : dashboardInfo?.totalActualValueForThisMonth ?? 'N/A'}</Text>
+        <Text style={styles.input}>My Achievement Percentage:{dashboardInfoLoading ? 'Loading...' : dashboardInfo?.achievementPercentageForThisMonth ?? 'N/A'}</Text>
 
       </View>
 
@@ -155,9 +163,9 @@ const HomeScreen = ({ navigation }: HomeScreenProps) => {
           <Text style={styles.cardTitle}> PC Target</Text>
         </View>
 
-        <Text style={styles.input}>PC Target:</Text>
-        <Text style={styles.input}>My Achieved PC Target:</Text>
-        <Text style={styles.input}>My Unproductive calls:</Text>
+        <Text style={styles.input}>PC Target:{dashboardInfoLoading ? 'Loading...' : dashboardInfo?.pcTargetForThisMonth ?? 'N/A'}</Text>
+        <Text style={styles.input}>My Achieved PC Target:{dashboardInfoLoading ? 'Loading...' : dashboardInfo?.achievedPcTargetForThisMonth ?? 'N/A'}</Text>
+        <Text style={styles.input}>My Unproductive calls:{dashboardInfoLoading ? 'Loading...' : dashboardInfo?.unproductiveCallCountForThisMonth ?? 'N/A'}</Text>
       </View>
 
       <View style={styles.card}>
@@ -166,9 +174,18 @@ const HomeScreen = ({ navigation }: HomeScreenProps) => {
           <Text style={styles.cardTitle}>Outlets</Text>
         </View>
 
-        <Text style={styles.input}>Active Outlets:</Text>
-        <Text style={styles.input}>Closed Outlets:</Text>
-        <Text style={styles.input}>Visited Outlets:</Text>
+        <Text style={styles.input}>
+          Active Outlets: {dashboardInfoLoading ? 'Loading...' : dashboardInfo?.activeOutletCount ?? 'N/A'}
+        </Text>
+        <Text style={styles.input}>
+          Closed Outlets: {dashboardInfoLoading ? 'Loading...' : dashboardInfo?.inactiveOutletCount ?? 'N/A'}
+        </Text>
+        <Text style={styles.input}>
+          Visited Outlets (This Month): {dashboardInfoLoading ? 'Loading...' : dashboardInfo?.visitedOutletCountForThisMonth ?? 'N/A'}
+        </Text>
+        <Text style={styles.input}>
+          Total Visits (This Month): {dashboardInfoLoading ? 'Loading...' : dashboardInfo?.visitCountForThisMonth ?? 'N/A'}
+        </Text>
       </View>
 
       <View style={styles.card}>
@@ -176,11 +193,17 @@ const HomeScreen = ({ navigation }: HomeScreenProps) => {
           <Entypo name="shop" size={24} color="black" />
           <Text style={styles.cardTitle}>Invoice</Text>
         </View>
+        <Text style={styles.input}>Booking Value:{dashboardInfoLoading ? 'Loading...' : dashboardInfo?.totalBookingValueForThisMonth ?? 'N/A'}</Text>
+        <Text style={styles.input}>Booking Count:{dashboardInfoLoading ? 'Loading...' : dashboardInfo?.bookingInvoicesCountForThisMonth ?? 'N/A'}</Text>
 
-    
-        <Text style={styles.input}>Booking Value:</Text>
-        <Text style={styles.input}>Cancelled Value:</Text>
-        <Text style={styles.input}>Late Delivery bills:</Text>
+        <Text style={styles.input}>Actual Value:{dashboardInfoLoading ? 'Loading...' : dashboardInfo?.totalActualValueForThisMonth ?? 'N/A'}</Text>
+        <Text style={styles.input}>Actual Total Count :{dashboardInfoLoading ? 'Loading...' : dashboardInfo?.actualInvoicesCountForThisMonth ?? 'N/A'}</Text>
+
+        <Text style={styles.input}>Cancelled Value:{dashboardInfoLoading ? 'Loading...' : dashboardInfo?.totalCancelValueForThisMonth ?? 'N/A'}</Text>
+         <Text style={styles.input}>Cancelled Count:{dashboardInfoLoading ? 'Loading...' : dashboardInfo?.cancelInvoicesCountForThisMonth ?? 'N/A'}</Text>
+
+        <Text style={styles.input}>Late Delivery bills Value:{dashboardInfoLoading ? 'Loading...' : dashboardInfo?.totalLateDeliveryValueForThisMonth ?? 'N/A'}</Text>
+          <Text style={styles.input}>Late Delivery bills Count:{dashboardInfoLoading ? 'Loading...' : dashboardInfo?.lateDeliveryInvoicesCountForThisMonth ?? 'N/A'}</Text>
       </View>
 
       <View style={styles.card}>
@@ -246,7 +269,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   card: {
-    backgroundColor: "white",
+     backgroundColor: "white", // Let the theme handle the background color
     borderRadius: 10,
     padding: 16,
     marginVertical: 8,

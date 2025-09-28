@@ -57,7 +57,7 @@ const DayStart = ({ navigation }: DayStartScreenProps) => {
                 return;
               }
 
-              await dispatch(DayStartUser({ userId, latitude, longitude, gpsStatus: true }));
+              await dispatch(DayStartUser({ userId, latitude, longitude, isCheckIn: true, isCheckOut : false , gpsStatus:true     }));
               navigation.replace("Home"); // Use lowercase "login" if your screen name is defined like that
             } catch (error) {
               console.error("Logout error:", error);

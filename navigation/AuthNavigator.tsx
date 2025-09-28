@@ -20,9 +20,11 @@ import InvoiceSummaryScreen from "../screens/ReportScreen/InvoiceSummary";
 import StockLevelReportScreen from "../screens/ReportScreen/StockLevel";
 import ViewLastBillScreen from "../screens/InvoiceScreen/Createbill/ViewLastBillScreen";
 import HomeInvoice from "../screens/InvoiceScreen/HomeInvoice";
+import InvoiceDetailView from "../screens/ReportScreen/InvoiceDetailView";
 import InvoiceEditScreen from "../screens/InvoiceScreen/EditeBill/InvoiceEditScreen";
 import InvoiceItemEditScreen from "../screens/InvoiceScreen/EditeBill/InvoiceItemEditScreen";
 import ReverseInvoiceScreen from "../screens/InvoiceScreen/EditeBill/ReverseInvoiceScreen";
+import ProductReport from "../screens/ReportScreen/ProductReport"
 
 export type InvoiceItem = {
   itemName: string;
@@ -63,10 +65,13 @@ export type RootStackParamList = {
     StockLevel: undefined;
     ViewLastBillScreen: { routeId: string; customerId: string; customerName: string; invoiceType: string; invoiceMode: string };
     HomeInvoice: undefined;
+    InvoiceDetailView: { invoiceId: number };
     InvoiceEditScreen: undefined;
     InvoiceItemEditScreen: { invoiceData: any };
     ReverseInvoiceScreen: { invoiceId: string; customerName: string };
     UpproductiveCall: undefined;
+    ProductReport:undefined;
+
 
 
 };
@@ -94,10 +99,12 @@ const AuthNavigator = () => (
       <Stack.Screen name="InvoiceSummary" component={InvoiceSummaryScreen} options={{ headerShown: true, title: 'Invoice Summary' }} />
       <Stack.Screen name="StockLevel" component={StockLevelReportScreen} options={{ headerShown: true, title: 'Stock Level Report' }} />
       <Stack.Screen name="ViewLastBillScreen" component={ViewLastBillScreen} />
+      <Stack.Screen name="InvoiceDetailView" component={InvoiceDetailView} options={{ headerShown: true, title: 'Invoice Details' }} />
       <Stack.Screen name="HomeInvoice" component={HomeInvoice} />
        <Stack.Screen name="InvoiceEditScreen" component={InvoiceEditScreen} />
        <Stack.Screen name="InvoiceItemEditScreen" component={InvoiceItemEditScreen} />
        <Stack.Screen name="ReverseInvoiceScreen" component={ReverseInvoiceScreen} />
+       <Stack.Screen name="ProductReport" component={ProductReport} />
 
   </Stack.Navigator>
 );

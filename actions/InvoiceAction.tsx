@@ -1,20 +1,20 @@
 import { ThunkAction, UnknownAction } from "@reduxjs/toolkit";
 import { RootState } from "../store";
 import { setItemsLoading, setItemsSuccess, setItemsError } from "../reducers/FetchItemsReducer";
-import { setPriceLoading, setPriceSuccess, setPriceError } from "../reducers/FetchPriceReducer";
-import { setCreateInvoiceLoading, setCreateInvoiceSuccess, setCreateInvoiceError } from "../reducers/CreateInvoiceReducer";
+import { setPriceLoading, setPriceSuccess, setPriceError } from "../reducers/FetchPriceReducer"; 
+import { setCreateInvoiceLoading, setCreateInvoiceSuccess, setCreateInvoiceError, resetCreateInvoiceState } from "../reducers/CreateInvoiceReducer";
 
 import { userManagementApi } from "../services/Api";
 
 
 
 const fetchItems = (
-
+territoryId: number
 ): ThunkAction<void, RootState, unknown, UnknownAction> => {
   return async (dispatch, getState) => {
     dispatch(setItemsLoading());
     const token = getState().login?.user?.data?.token;
-    let url = `/api/v1/sales/item/grouped-by-main-category`;
+    let url = `/api/v1/sales/item//grouped-by-main-category-list/${territoryId}`;
     console.log("Fetching items from API with token:", token);
     console.log("Fetching items from API with URL:", url);
 
@@ -46,7 +46,7 @@ const fetchItemIdbyPrice = (
       return;
     }
 
-    const url = `/api/v1/userDemarcation/items/${itemId}/${rangeId}`;
+    const url = `/api/v1/sales/itemPrice/findItemPricesByTerritoryAndItemIds/${itemId}/${rangeId}`;
 
     try {
       const response = await userManagementApi().get(url, {
@@ -62,7 +62,7 @@ const fetchItemIdbyPrice = (
 
 
  const createInvoice = (
-  invoiceData: any
+  invoiceData: any,
 ): ThunkAction<void, RootState, unknown, UnknownAction> => {
   return async (dispatch, getState) => {
     dispatch(setCreateInvoiceLoading());
@@ -80,16 +80,16 @@ const fetchItemIdbyPrice = (
       });
       // Explicitly check for the success message from the API
       if (response.data && response.data.message === "Success") {
-        console.log("Create invoice Response:", response.data);
+      //  console.log("Create invoice Response:", response.data);
         dispatch(setCreateInvoiceSuccess(response.data.payload));
       } else {
         // Handle cases where the API returns 2xx but indicates an error in the body
-        //console.error("Create invoice API did not return success:", response.data);
+        console.error("Create invoice API did not return success:", response.data);
         dispatch(setCreateInvoiceError(response.data || { error: "API returned a non-success message" }));
       }
     } catch (err) {
       const error = err as { response?: { data?: any }; message?: string };
-      //console.error("Create invoice Error:", error.response?.data || error.message);
+      console.error("Create invoice Error:", error.response?.data || error.message);
       dispatch(setCreateInvoiceError(error.response?.data || { error: "Network error" }));
     }
   };
@@ -110,4 +110,5 @@ const fetchItemIdbyPrice = (
 
 
 
-export { fetchItems,fetchItemIdbyPrice,createInvoice};
+
+export { fetchItems,fetchItemIdbyPrice,createInvoice, resetCreateInvoiceState};

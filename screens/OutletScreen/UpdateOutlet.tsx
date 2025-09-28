@@ -1,19 +1,22 @@
 import React, { useState } from "react";
 import { View, StyleSheet, ScrollView, TouchableOpacity } from "react-native";
-import { Text, Card, Menu ,Button} from "react-native-paper";
+import { Text, Card, Menu, Button } from "react-native-paper";
 //import type { NativeStackScreenProps } from "@react-navigation/native-stack";
 
 import { LinearGradient } from "expo-linear-gradient";
 
-import type { NativeStackScreenProps } from '@react-navigation/native-stack';
-import { RootStackParamList } from '@/navigation/AuthNavigator';
+import type { NativeStackScreenProps } from "@react-navigation/native-stack";
+import { RootStackParamList } from "@/navigation/AuthNavigator";
 
-type UpdateOutletProps = NativeStackScreenProps<RootStackParamList, 'UpdateOutlet'>;
+type UpdateOutletProps = NativeStackScreenProps<
+  RootStackParamList,
+  "UpdateOutlet"
+>;
 
-
-
-const UpdateOutlet = ({ navigation }: UpdateOutletProps): React.ReactElement => {
-// UpdateOutletScreen Component
+const UpdateOutlet = ({
+  navigation,
+}: UpdateOutletProps): React.ReactElement => {
+  // UpdateOutletScreen Component
 
   const [route, setRoute] = useState("");
   const [outlet, setOutlet] = useState("");
@@ -44,7 +47,7 @@ const UpdateOutlet = ({ navigation }: UpdateOutletProps): React.ReactElement => 
   return (
     <LinearGradient colors={["#ff6666", "#ff0000"]} style={styles.gradient}>
       <ScrollView style={styles.container}>
-        <Card style={styles.card}>
+      <View style={styles.card}>
           <Text style={styles.title}>Update Outlet</Text>
 
           {/* Dropdown: Select Route */}
@@ -150,18 +153,15 @@ const UpdateOutlet = ({ navigation }: UpdateOutletProps): React.ReactElement => 
               />
             ))}
           </Menu>
-                         {/* Image Buttons */}
-                         <View style={styles.imageContainer}>
-                           <Button icon="upload" mode="outlined" style={styles.imageButton}>
-                             Upload from Gallery
-                           </Button>
-                           <Button icon="camera" mode="outlined" style={styles.imageButton}>
-                             Take Photo
-                           </Button>
-                         </View>
-               
-
-
+          {/* Image Buttons */}
+          <View style={styles.imageContainer}>
+            <Button icon="upload" mode="outlined" style={styles.imageButton}>
+              Upload from Gallery
+            </Button>
+            <Button icon="camera" mode="outlined" style={styles.imageButton}>
+              Take Photo
+            </Button>
+          </View>
 
           {/* Action Buttons */}
           <View style={styles.buttonContainer}>
@@ -171,11 +171,14 @@ const UpdateOutlet = ({ navigation }: UpdateOutletProps): React.ReactElement => 
             >
               <Text style={styles.cancelText}>Cancel</Text>
             </TouchableOpacity>
-            <TouchableOpacity onPress={handleCreateOutlet} style={styles.createButton}>
+            <TouchableOpacity
+              onPress={handleCreateOutlet}
+              style={styles.createButton}
+            >
               <Text style={styles.createText}>Create</Text>
             </TouchableOpacity>
           </View>
-        </Card>
+        </View>
       </ScrollView>
     </LinearGradient>
   );
@@ -189,11 +192,11 @@ const styles = StyleSheet.create({
     flex: 1,
     padding: 16,
   },
-  card: {
-    padding: 16,
-    borderRadius: 8,
-    marginTop: 35,
-  },
+  // card: {
+  //   padding: 16,
+  //   borderRadius: 8,
+  //   marginTop: 35,
+  // },
   title: {
     fontSize: 24,
     fontWeight: "bold",
@@ -243,7 +246,7 @@ const styles = StyleSheet.create({
     fontWeight: "600",
   },
 
-   imageContainer: {
+  imageContainer: {
     flexDirection: "row",
     justifyContent: "space-between",
     marginBottom: 16,
@@ -252,6 +255,20 @@ const styles = StyleSheet.create({
     flex: 1,
     marginHorizontal: 8,
   },
+ card: {
+     backgroundColor: "white", // Let the theme handle the background color
+    borderRadius: 10,
+    padding: 16,
+    marginVertical: 8,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 3,
+  },
+
+
+
 
 });
 

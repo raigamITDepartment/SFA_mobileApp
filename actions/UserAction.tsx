@@ -58,7 +58,7 @@ const loginUser = (
 // };
 
 const logoutUser = (
-  data: { userId: number; latitude: number; longitude: number; gpsStatus: boolean }
+  data: { userId: number; latitude: number; longitude: number; isCheckIn: boolean , isCheckOut: boolean , gpsStatus: boolean}
 ): ThunkAction<void, RootState, unknown, AnyAction> => {
   return async (dispatch) => {
     dispatch(setLogoutLoading());
@@ -89,7 +89,7 @@ const logoutUser = (
 
 
  const DayStartUser = (
-  data: { userId: number; latitude: number; longitude: number; gpsStatus: boolean }
+  data: { userId: number; latitude: number; longitude: number; isCheckIn: boolean , isCheckOut: boolean ,gpsStatus: boolean }
 ): ThunkAction<void, RootState, unknown, AnyAction> => {
   return async (dispatch, getState) => {
     dispatch(setDayStartLoading());

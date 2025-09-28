@@ -1,20 +1,25 @@
-import { createSlice } from "@reduxjs/toolkit";
+import { createSlice, PayloadAction } from "@reduxjs/toolkit";
+
+interface OutletType {
+  id: number;
+  outletName: string;
+}
 
 const initialState = {
-  outlets: [],
+  outlets: [] as OutletType[],
   loading: false,
   error: null,
 };
 
-const ItemSlice = createSlice({
-  name: "fetchoutlet",
+const fetchOutletSlice = createSlice({
+  name: "fetchOutlet",
   initialState,
   reducers: {
     setOutletLoading: (state) => {
       state.loading = true;
       state.error = null;
     },
-    setOutletSuccess: (state, { payload }) => {
+    setOutletSuccess: (state, { payload }: PayloadAction<OutletType[]>) => {
       state.loading = false;
       state.outlets = payload; // payload is the array from API response
       state.error = null;
@@ -28,5 +33,5 @@ const ItemSlice = createSlice({
   },
 });
 
-export const { setOutletLoading, setOutletSuccess, setOutletError } = ItemSlice.actions;
-export default ItemSlice.reducer;
+export const { setOutletLoading, setOutletSuccess, setOutletError } = fetchOutletSlice.actions;
+export default fetchOutletSlice.reducer;

@@ -44,7 +44,7 @@ const fetchRouteIdbyOutlet = (
 
     try {
       const response = await userManagementApi().get(url, { headers: { Authorization: `Bearer ${token}` } });
-      //console.log("API response outleteeeeeeeeeeeeeeee: ", response.data.payload);
+      console.log("API response outleteeeeeeeeeeeeeeee: ", response.data.payload);
       dispatch(setOutletSuccess(response.data.payload));
     } catch (err) {
       const error = err as { response?: { data?: any }; message?: string };

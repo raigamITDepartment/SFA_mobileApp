@@ -1,176 +1,134 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useState } from "react";
 import {
   View,
   Text,
   ScrollView,
   StyleSheet,
   Pressable,
-  Platform,
   TextInput,
-} from 'react-native';
-import AsyncStorage from '@react-native-async-storage/async-storage';
-import DateTimePicker from '@react-native-community/datetimepicker';
-
-type InvoiceItem = {
-  itemName: string;
-  quantity: number;
-  unitPrice: number;
-  total: number;
-};
-
-type Invoice = {
-  date: string;
-  shopCode: string;
-  customerName: string;
-  invoiceType: string;
-  invoiceMode: string;
-  items: InvoiceItem[];
-  invoiceSubtotal: number;
-  billDiscount: number;
-  billDiscountValue: number;
-  invoiceNetValue: number;
-};
+  ActivityIndicator,
+  Platform,
+} from "react-native";
+import DateTimePicker from "@react-native-community/datetimepicker";
+import { useAppDispatch, useAppSelector } from "../../store/Hooks";
+import {
+  fetchInvoiceSummaryReport,
+  fetchInvoiceDetailsById,
+} from "../../actions/ReportAction";
+import { InvoiceReportItem } from "../../reducers/InvoiceReportReducer";
+import InvoiceDetailsModal from "./InvoiceDetailsModal";
+import { resetInvoiceDetails } from "../../reducers/InvoiceDetailsReducer";
 
 const InvoiceSummaryByDateScreen = () => {
-  const [invoices, setInvoices] = useState<Invoice[]>([]);
-  const [selectedDate, setSelectedDate] = useState(new Date());
+  const dispatch = useAppDispatch();
+  const { territoryId } = useAppSelector((state) => state.login.user.data);
+
+  // ✅ Safe default: invoices = []
+  const {
+    invoices = [],
+    loading,
+    error,
+  } = useAppSelector((state) => state.invoiceReport);
+
+  const [startDate, setStartDate] = useState(new Date());
+  const [endDate, setEndDate] = useState(new Date());
   const [showDatePicker, setShowDatePicker] = useState(false);
-  const [searchQuery, setSearchQuery] = useState('');
-
-  useEffect(() => {
-    saveSampleData(); // 👈 Load sample data first (remove this line in production)
-    fetchInvoices();
-  }, []);
-
-  const saveSampleData = async () => {
-    const sampleInvoices: Invoice[] = [
-
-      {
-        date: '2025-07-12',
-        shopCode: 'SK001',
-        customerName: 'Super K',
-        invoiceType: 'Retail',
-        invoiceMode: 'Cash',
-        items: [
-          {
-            itemName: 'Dazzling Face Wash 90ml',
-            quantity: 2,
-            unitPrice: 500,
-            total: 100,
-          },
-          {
-            itemName: 'Nenaposha 80g',
-            quantity: 1,
-            unitPrice: 250,
-            total: 250,
-          },
-        ],
-        invoiceSubtotal: 3250,
-        billDiscount: 10,
-        billDiscountValue: 125,
-        invoiceNetValue: 2125,
-      },
-      {
-        date: '2025-07-12',
-        shopCode: 'JD001',
-        customerName: 'John Doe',
-        invoiceType: 'Retail',
-        invoiceMode: 'Cash',
-        items: [
-          {
-            itemName: 'Dazzling Face Wash 90ml',
-            quantity: 2,
-            unitPrice: 500,
-            total: 1000,
-          },
-          {
-            itemName: 'Nenaposha 80g',
-            quantity: 1,
-            unitPrice: 250,
-            total: 250,
-          },
-        ],
-        invoiceSubtotal: 1250,
-        billDiscount: 10,
-        billDiscountValue: 125,
-        invoiceNetValue: 1125,
-      },
-      {
-        date: '2025-07-11',
-        shopCode: 'JS001',
-        customerName: 'Jane Smith',
-        invoiceType: 'Wholesale',
-        invoiceMode: 'Credit',
-        items: [
-          {
-            itemName: 'Deveni Batha Kotthu Mix White',
-            quantity: 5,
-            unitPrice: 200,
-            total: 1000,
-          },
-        ],
-        invoiceSubtotal: 1000,
-        billDiscount: 5,
-        billDiscountValue: 50,
-        invoiceNetValue: 950,
-      },
-    ];
-
-    try {
-      await AsyncStorage.setItem('allInvoices', JSON.stringify(sampleInvoices));
-      console.log('Sample invoices saved!');
-    } catch (error) {
-      console.error('Error saving sample invoices:', error);
-    }
-  };
-
-  const fetchInvoices = async () => {
-    try {
-      const data = await AsyncStorage.getItem('allInvoices');
-      if (data !== null) {
-        setInvoices(JSON.parse(data));
-      }
-    } catch (error) {
-      console.error('Failed to fetch invoices:', error);
-    }
-  };
+  const [pickerMode, setPickerMode] = useState<"start" | "end">("start");
+  const [searchQuery, setSearchQuery] = useState("");
+  const [isModalVisible, setModalVisible] = useState(false);
 
   const handleDateChange = (_event: any, date?: Date) => {
-    setShowDatePicker(Platform.OS === 'ios');
+    setShowDatePicker(Platform.OS === "ios");
     if (date) {
-      setSelectedDate(date);
+      if (pickerMode === "start") {
+        setStartDate(date);
+      } else {
+        setEndDate(date);
+      }
     }
   };
 
   const formatDate = (date: Date): string => {
-    return date.toISOString().split('T')[0]; // 'YYYY-MM-DD'
+    return date.toISOString().split("T")[0]; // 'YYYY-MM-DD'
   };
 
-  const filteredInvoices = invoices.filter((inv) =>
-    inv.date === formatDate(selectedDate) &&
-    (searchQuery === '' ||
-      inv.customerName.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      inv.shopCode.toLowerCase().includes(searchQuery.toLowerCase()))
+  const showPicker = (mode: "start" | "end") => {
+    setPickerMode(mode);
+    setShowDatePicker(true);
+  };
+
+  const handleInvoicePress = (invoiceId: number) => {
+    if (invoiceId) {
+      dispatch(fetchInvoiceDetailsById(invoiceId));
+      setModalVisible(true);
+    }
+  };
+  useEffect(() => {
+    if (territoryId) {
+      dispatch(
+        fetchInvoiceSummaryReport({
+          territoryId,
+          startDate: formatDate(startDate),
+          endDate: formatDate(endDate),
+        })
+      );
+
+      console.log(
+        "Fetching invoice report for date:",
+        formatDate(startDate),
+        territoryId,
+        formatDate(endDate)
+      );
+      console.log("Invoices data:", invoices);
+    }
+  }, [dispatch, territoryId, startDate, endDate]);
+
+  const filteredInvoices = invoices.filter(
+    (inv) =>
+      searchQuery === "" ||
+      inv.invoiceNo?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      String(inv.outletId).includes(searchQuery)
   );
 
-  const { dailyTotalNet, dailyInvoiceCount } = useMemo(() => {
-    return {
-      dailyTotalNet: filteredInvoices.reduce((total, inv) => total + inv.invoiceNetValue, 0),
-      dailyInvoiceCount: filteredInvoices.length,
-    };
-  }, [filteredInvoices]);
+  const { dailyTotalNet, dailyInvoiceCount, bookingCount, actualCount } =
+    useMemo(() => {
+      const bookings = filteredInvoices.filter(
+        (inv) => inv.isBook && !inv.isActual
+      ).length;
+      const actuals = filteredInvoices.filter((inv) => inv.isActual).length;
+
+      return {
+        dailyTotalNet: filteredInvoices.reduce(
+          (total, inv) => total + (inv.totalBookValue || 0),
+          0
+        ),
+        dailyInvoiceCount: filteredInvoices.length,
+        bookingCount: bookings,
+        actualCount: actuals,
+      };
+    }, [filteredInvoices]);
 
   return (
     <ScrollView contentContainerStyle={styles.container}>
-      <Text style={styles.title}>Invoice Summary By Date</Text>
+      <Text style={styles.title}>Invoice Summary Report</Text>
 
-      <Pressable onPress={() => setShowDatePicker(true)} style={styles.dateButton}>
-        <Text style={styles.dateText}>Selected Date: {formatDate(selectedDate)}</Text>
-      </Pressable>
+      <View style={styles.datePickerContainer}>
+        <Pressable
+          onPress={() => showPicker("start")}
+          style={styles.dateButton}
+        >
+          <Text style={styles.dateText}>
+            Start Date: {formatDate(startDate)}
+          </Text>
+        </Pressable>
+        <Pressable onPress={() => showPicker("end")} style={styles.dateButton}>
+          <Text style={styles.dateText}>End Date: {formatDate(endDate)}</Text>
+        </Pressable>
+      </View>
 
       {showDatePicker && (
         <DateTimePicker
-          value={selectedDate}
+          value={pickerMode === "start" ? startDate : endDate}
           mode="date"
           display="default"
           onChange={handleDateChange}
@@ -179,7 +137,7 @@ const InvoiceSummaryByDateScreen = () => {
 
       <TextInput
         style={styles.searchInput}
-        placeholder="Search by Customer Name / Code"
+        placeholder="Search by Invoice No / Outlet ID"
         value={searchQuery}
         onChangeText={setSearchQuery}
       />
@@ -188,37 +146,95 @@ const InvoiceSummaryByDateScreen = () => {
         <Text style={styles.summaryText}>
           Total Productive Calls: {dailyInvoiceCount}
         </Text>
+        <Text style={styles.summaryDetailText}>- Bookings: {bookingCount}</Text>
+        <Text style={styles.summaryDetailText}>- Actual: {actualCount}</Text>
+        <Text style={styles.summaryText}>Total UnProductive Calls:</Text>
         <Text style={styles.summaryText}>
-          Total UnProductive Calls: 
+          Total Net Value: Rs. {dailyTotalNet.toFixed(2)}
         </Text>
-        <Text style={styles.summaryText}>Total Net Value: Rs. {dailyTotalNet.toFixed(2)}</Text>
       </View>
 
-      {filteredInvoices.length === 0 ? (
+      {loading ? (
+        <ActivityIndicator size="large" color="#1D4ED8" />
+      ) : error ? (
+        <Text style={styles.noData}>
+          Error fetching data. Please try again.
+        </Text>
+      ) : filteredInvoices.length === 0 ? (
         <Text style={styles.noData}>No invoices found for this date.</Text>
       ) : (
-        filteredInvoices.map((invoice, idx) => (
-          <View key={idx} style={styles.invoiceBox}>
-            <Text style={styles.subTitle}>Customer: {invoice.customerName}</Text>
-            <Text>Shop Code: {invoice.shopCode}</Text>
-            <Text>Invoice Type: {invoice.invoiceType}</Text>
-            <Text>Mode: {invoice.invoiceMode}</Text>
-
-            {invoice.items.map((item, i) => (
-              <View key={i} style={styles.itemBox}>
-                <Text style={styles.itemName}>{item.itemName}</Text>
-                <Text>Qty: {item.quantity}</Text>
-                <Text>Price: Rs. {item.unitPrice}</Text>
-                <Text>Total: Rs. {item.total}</Text>
+        filteredInvoices.map((invoice: InvoiceReportItem) => {
+          // Ensure invoice.id is a number before passing
+          const invoiceId = Number(invoice.id);
+          return (
+            <Pressable
+              key={`${invoice.id}-${invoice.invoiceNo}`}
+              onPress={() => handleInvoicePress(invoiceId)}
+            >
+              <View style={styles.invoiceBox}>
+                <Text style={styles.subTitle}>
+                  Invoice: {invoice.invoiceNo}
+                </Text>
+                <View style={styles.detailRow}>
+                  <Text>Outlet ID:</Text>
+                  <Text style={styles.detailValue}>{invoice.outletId}</Text>
+                </View>
+                <View style={styles.detailRow}>
+                  <Text>Type:</Text>
+                  <Text style={styles.detailValue}>{invoice.invoiceType}</Text>
+                </View>
+                <View style={styles.detailRow}>
+                  <Text>Mode:</Text>
+                  <Text style={styles.detailValue}>
+                    {invoice.isActual
+                      ? "Actual"
+                      : invoice.isBook
+                      ? "Booking"
+                      : "N/A"}
+                  </Text>
+                </View>
+                <View style={styles.detailRow}>
+                  <Text>Route:</Text>
+                  <Text style={styles.detailValue}>{invoice.routeName}</Text>
+                </View>
+                <View style={styles.detailRow}>
+                  <Text>Shop:</Text>
+                  <Text style={styles.detailValue}>{invoice.outletName}</Text>
+                </View>
+                <View style={styles.detailRow}>
+                  <Text>Discount:</Text>
+                  <Text style={styles.detailValue}>
+                    {invoice.discountPercentage}
+                  </Text>
+                </View>
+                <View style={styles.detailRow}>
+                  <Text>Discount Value:</Text>
+                  <Text style={styles.detailValue}>
+                    {invoice.totalDiscountValue}
+                  </Text>
+                </View>
+                <View style={styles.detailRow}>
+                  <Text>Free Issue Value:</Text>
+                  <Text style={styles.detailValue}>
+                    {invoice.totalFreeValue}
+                  </Text>
+                </View>
+                <Text style={styles.total}>
+                  Value: Rs. {(invoice.totalBookValue || 0).toFixed(2)}
+                </Text>
+                <Text style={styles.dateBook}>Date: {invoice.dateBook}</Text>
               </View>
-            ))}
-
-            <Text>Subtotal: Rs. {invoice.invoiceSubtotal}</Text>
-            <Text>Discount ({invoice.billDiscount}%): Rs. {invoice.billDiscountValue}</Text>
-            <Text style={styles.total}>Net: Rs. {invoice.invoiceNetValue}</Text>
-          </View>
-        ))
+            </Pressable>
+          );
+        })
       )}
+      <InvoiceDetailsModal
+        visible={isModalVisible}
+        onClose={() => {
+          setModalVisible(false);
+          dispatch(resetInvoiceDetails());
+        }}
+      />
     </ScrollView>
   );
 };
@@ -226,40 +242,46 @@ const InvoiceSummaryByDateScreen = () => {
 const styles = StyleSheet.create({
   container: {
     padding: 20,
-    backgroundColor: '#F4F6F8',
+    backgroundColor: "#F4F6F8",
   },
   title: {
     fontSize: 24,
-    fontWeight: 'bold',
+    fontWeight: "bold",
     marginBottom: 15,
-    color: '#1F2937',
+    color: "#1F2937",
+  },
+  datePickerContainer: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    marginBottom: 20,
   },
   dateButton: {
-    backgroundColor: '#E0F2FE',
+    backgroundColor: "#E0F2FE",
     padding: 10,
-    borderRadius: 10,
-    marginBottom: 20,
+    borderRadius: 8,
+    flex: 1,
+    marginHorizontal: 5,
   },
   dateText: {
     fontSize: 16,
-    color: '#1D4ED8',
+    color: "#1D4ED8",
   },
   searchInput: {
     height: 40,
-    backgroundColor: '#fff',
+    backgroundColor: "#fff",
     borderRadius: 8,
     paddingHorizontal: 12,
     borderWidth: 1,
-    borderColor: '#ddd',
+    borderColor: "#ddd",
     marginBottom: 20,
   },
   subTitle: {
-    fontWeight: '600',
+    fontWeight: "600",
     fontSize: 18,
     marginBottom: 5,
   },
   summaryBox: {
-    backgroundColor: '#fff',
+    backgroundColor: "#fff",
     padding: 15,
     borderRadius: 10,
     marginBottom: 20,
@@ -267,35 +289,44 @@ const styles = StyleSheet.create({
   },
   summaryText: {
     fontSize: 16,
-    fontWeight: 'bold',
+    fontWeight: "bold",
+  },
+  summaryDetailText: {
+    fontSize: 15,
+    paddingLeft: 15,
+    color: "#374151",
   },
   noData: {
-    textAlign: 'center',
+    textAlign: "center",
     fontSize: 16,
-    color: '#888',
+    color: "#888",
     marginTop: 20,
   },
   invoiceBox: {
-    backgroundColor: '#fff',
+    backgroundColor: "#fff",
     padding: 15,
     borderRadius: 10,
     marginBottom: 20,
     elevation: 2,
   },
-  itemBox: {
-    marginTop: 10,
-    backgroundColor: '#F9FAFB',
-    padding: 10,
-    borderRadius: 6,
-  },
-  itemName: {
-    fontWeight: '600',
-  },
   total: {
     marginTop: 10,
-    fontWeight: 'bold',
+    fontWeight: "bold",
     fontSize: 16,
-    color: '#16A34A',
+    color: "#16A34A",
+    textAlign: "right",
+  },
+  detailRow: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    marginVertical: 2,
+  },
+  detailValue: { fontWeight: "600" },
+  dateBook: {
+    textAlign: "right",
+    fontSize: 12,
+    color: "#666",
+    marginTop: 5,
   },
 });
 

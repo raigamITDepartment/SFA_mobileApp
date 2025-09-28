@@ -28,8 +28,8 @@ type HomeInvoiceProps = NativeStackScreenProps<RootStackParamList, 'HomeInvoice'
 const HomeInvoice = ({ navigation }: HomeInvoiceProps): React.ReactElement => {
   const reports = [
     { title: 'Create Invoice', route: 'CreateInvoice' },
-    { title: 'Edite Invoice', route: 'InvoiceEditScreen' },
-     { title: 'Revers Invoice', route: 'ReverseInvoiceScreen' },
+    { title: 'Edit Invoice', route: 'InvoiceEditScreen' },
+     { title: 'Reverse Invoice', route: 'ReverseInvoiceScreen' },
 
   ];
 

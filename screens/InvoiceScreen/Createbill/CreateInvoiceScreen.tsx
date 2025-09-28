@@ -1,6 +1,6 @@
-// File: CreateInvoiceScreen.tsx
+// File: /home/thusitha/SFA_mobile/git2/SFA_mobileApp/screens/InvoiceScreen/Createbill/CreateInvoiceScreen.tsx
 
-import React, { useState, useMemo, useEffect } from "react";
+import React, { useState, useMemo, useEffect, useRef } from "react";
 import {
   View,
   Text,
@@ -8,6 +8,7 @@ import {
   TouchableOpacity,
   StyleSheet,
   ScrollView,
+  ActivityIndicator,
   Alert,
 } from "react-native";
 import type { NativeStackScreenProps } from "@react-navigation/native-stack";
@@ -19,7 +20,11 @@ import { RootState } from "@/store";
 import { useFocusEffect } from "@react-navigation/native";
 import * as Location from "expo-location";
 import { useAppDispatch, useAppSelector } from "../../../store/Hooks";
-import { createInvoice, fetchItems } from "../../../actions/InvoiceAction";
+import {
+  createInvoice,
+  fetchItems,
+  resetCreateInvoiceState,
+} from "../../../actions/InvoiceAction";
 
 interface ItemType {
   category: string;
@@ -36,6 +41,9 @@ interface ItemType {
   lineTotal: string;
   unitPriceGR: string;
   unitPriceMR: string;
+  sellPriceId?: number | null;
+  goodReturnPriceId?: number | null;
+  marketReturnPriceId?: number | null;
   [key: string]: any;
 }
 
@@ -56,15 +64,24 @@ const CreateInvoiceScreen = ({
   const [searchQuery, setSearchQuery] = useState<string>("");
   const [latitude, setLatitude] = useState<number | null>(null);
   const [longitude, setLongitude] = useState<number | null>(null);
-  const dispatch: any = useAppDispatch();
+  const dispatch = useAppDispatch();
+  const itemsFetchedRef = useRef(false);
   const user = useSelector((state: RootState) => state.login.user);
   const userId = user?.data?.userId || null;
   const rangeId = user?.data?.rangeId || null;
   const territoryId = user?.data?.territoryId || null;
+  const agencyWarehouseId = user?.data?.agencyWarehouseId || 1; // Default to 1 as per API example
 
-  const { Items: apiItems, loading: itemsLoading } = useAppSelector(
+  const { Items: apiItems = [], loading: itemsLoading } = useAppSelector(
     (state: RootState) => state.Items
   );
+
+  const {
+    loading: createInvoiceLoading,
+    success: createInvoiceSuccess,
+    error: createInvoiceError,
+  } = useAppSelector((state: RootState) => state.Invoice);
+  const [latestInvoiceData, setLatestInvoiceData] = useState<any>(null);
 
   const {
     routeId,
@@ -96,9 +113,12 @@ const CreateInvoiceScreen = ({
     })();
   }, []);
   useEffect(() => {
-    dispatch(fetchItems());
-    console.log("Fetching items from Redux store");
-  }, [dispatch]);
+    if (territoryId && !itemsFetchedRef.current) {
+      dispatch(fetchItems(Number(territoryId)));
+      console.log("Fetching items from Redux store");
+      itemsFetchedRef.current = true;
+    }
+  }, [dispatch, territoryId]);
 
   useFocusEffect(
     React.useCallback(() => {
@@ -112,7 +132,8 @@ const CreateInvoiceScreen = ({
           const existingItemNames = new Set(
             items.map((i: ItemType) => i.itemName)
           );
-          const newApiItems: ItemType[] = apiItems
+
+          const newApiItems: ItemType[] = (apiItems || [])
             .filter((apiItem: any) => !existingItemNames.has(apiItem.itemName))
             .map((apiItem: any) => ({
               category: apiItem.mainCatName,
@@ -140,6 +161,41 @@ const CreateInvoiceScreen = ({
       loadItems();
     }, [apiItems])
   );
+
+  useEffect(() => {
+    if (createInvoiceSuccess && latestInvoiceData) {
+      const navigateToFinish = async () => {
+        try {
+          await AsyncStorage.setItem(
+            "latest_invoice",
+            JSON.stringify(latestInvoiceData)
+          );
+          navigation.navigate("InvoiceFinish", {
+            invoiceData: latestInvoiceData,
+          });
+        } catch (e) {
+          console.error(
+            "Failed to save or navigate after invoice creation:",
+            e
+          );
+        } finally {
+          dispatch(resetCreateInvoiceState());
+          setLatestInvoiceData(null);
+        }
+      };
+      navigateToFinish();
+    }
+    if (createInvoiceError) {
+      Alert.alert("Error", "Failed to create invoice. Please try again.");
+      dispatch(resetCreateInvoiceState());
+    }
+  }, [
+    createInvoiceSuccess,
+    createInvoiceError,
+    latestInvoiceData,
+    navigation,
+    dispatch,
+  ]);
 
   const categorizedItems = useMemo(() => {
     const filtered = savedItems.filter((item) =>
@@ -200,8 +256,8 @@ const CreateInvoiceScreen = ({
   }, [savedItems]);
 
   const billDiscountValue = useMemo(() => {
-    const discountPercentage = parseFloat(billDiscount) || 0;
-    return (invoiceSubtotal * discountPercentage) / 100;
+    const d = parseFloat(billDiscount) || 0;
+    return (invoiceSubtotal * d) / 100;
   }, [invoiceSubtotal, billDiscount]);
 
   const invoiceNetValue = useMemo(() => {
@@ -228,6 +284,105 @@ const CreateInvoiceScreen = ({
       0
     );
   }, [savedItems]);
+
+  const mappedItems = useMemo(() => {
+    const selectedItems = savedItems.filter(
+      (item: ItemType) =>
+        (parseInt(item.quantity, 10) || 0) > 0 ||
+        (parseInt(item.goodReturnQty, 10) || 0) > 0 ||
+        (parseInt(item.marketReturnQty, 10) || 0) > 0 ||
+        (parseInt(item.freeIssue, 10) || 0) > 0
+    );
+
+    return selectedItems.map((item) => {
+      const parse = (val: string) => parseFloat(val) || 0;
+      const parseIntVal = (val: string) => parseInt(val, 10) || 0;
+
+      const sellUnitPrice = parse(item.unitPrice);
+      const sellPriceId = item.sellPriceId ?? null;
+      const totalBookQty = parseIntVal(item.quantity);
+      const totalFreeQty = parseIntVal(item.freeIssue);
+      const discountPercentage = parse(item.specialDiscount);
+
+      const baseAmount = sellUnitPrice * totalBookQty;
+      const totalDiscountValue = baseAmount * (discountPercentage / 100);
+      const sellTotalPrice =
+        totalDiscountValue === 0
+          ? baseAmount
+          : baseAmount - totalDiscountValue;
+
+          console.log("Item Mapping Debug:",sellTotalPrice )
+  
+
+      const goodReturnUnitPrice = parse(item.unitPriceGR);
+      const goodReturnTotalQty = parseIntVal(item.goodReturnQty); // Quantity of good returns for this item
+      const goodReturnFreeQty = parseIntVal(item.goodReturnFreeQty); // Free quantity of good returns for this item
+      const goodReturnTotalVal =
+        goodReturnUnitPrice *
+        Math.max(goodReturnTotalQty - goodReturnFreeQty, 0);
+
+      const marketReturnUnitPrice = parse(item.unitPriceMR);
+      const marketReturnTotalQty = parseIntVal(item.marketReturnQty); // Quantity of market returns for this item
+      const marketReturnFreeQty = parseIntVal(item.marketReturnFreeQty); // Free quantity of market returns for this item
+      const marketReturnTotalVal =
+        marketReturnUnitPrice *
+        Math.max(marketReturnTotalQty - marketReturnFreeQty, 0);
+
+      const bookingData = {
+        totalBookQty,
+        bookDiscountPercentage: discountPercentage,
+        totalBookDiscountValue: totalDiscountValue,
+        totalBookSellValue: sellTotalPrice,
+        totalBookValue: baseAmount,
+        itemSellTotalPrice: sellTotalPrice, // Net price for this item after special discount
+        sellTotalPrice: 0, // This maps to sell_total in the backend
+        totalActualQty: 0,
+        totalDiscountValue: 0,
+        discountPercentage: 0,
+      };
+
+      const actualData = {
+        totalBookQty,
+        bookDiscountPercentage: discountPercentage,
+        totalBookDiscountValue: totalDiscountValue,
+        totalBookSellValue: sellTotalPrice,
+        totalBookValue: baseAmount,
+        itemSellTotalPrice: sellTotalPrice, // Net price for this item after special discount
+        totalActualQty: totalBookQty, // Assuming actual qty is same as booking qty
+        totalDiscountValue: totalDiscountValue,
+        discountPercentage: discountPercentage,
+        sellTotalPrice: sellTotalPrice, // This maps to sell_total in the backend
+      };
+
+      const commonItemData = {
+        itemId: item.itemId,
+        sellPriceId,
+        sellUnitPrice,
+        totalCancelQty: 0,
+        totalFreeQty,
+        goodReturnPriceId: item.goodReturnPriceId ?? null,
+        goodReturnUnitPrice,
+        goodReturnFreeQty,
+        goodReturnTotalQty,
+        goodReturnTotalVal,
+        marketReturnPriceId: item.marketReturnPriceId ?? null,
+        marketReturnFreeQty,
+        marketReturnTotalQty,
+        marketReturnTotalVal,
+        marketReturnUnitPrice,
+        finalTotalValue: parse(item.lineTotal),
+        isActive: true,
+      };
+
+      if (invoiceMode === "1") {
+        // Booking
+        return { ...commonItemData, ...bookingData };
+      } else {
+        // Actual (invoiceMode === "2")
+        return { ...commonItemData, ...bookingData, ...actualData };
+      }
+    });
+  }, [savedItems, invoiceMode]);
 
   return (
     <LinearGradient colors={["#ff6666", "#ff0000"]} style={styles.container}>
@@ -331,21 +486,61 @@ const CreateInvoiceScreen = ({
           <TouchableOpacity
             style={styles.completeButton}
             onPress={async () => {
-              const selectedItems = savedItems.filter(
+              const selectedItemsForUI = savedItems.filter(
                 (item: ItemType) =>
                   (parseInt(item.quantity, 10) || 0) > 0 ||
                   (parseInt(item.goodReturnQty, 10) || 0) > 0 ||
                   (parseInt(item.marketReturnQty, 10) || 0) > 0 ||
                   (parseInt(item.freeIssue, 10) || 0) > 0
               );
+          const finalTotalValue = mappedItems.reduce(
+                (sum, item) => sum + item.finalTotalValue,
+                0
+              );
 
-              const invoiceData = {
+              const totalValueAllItem = mappedItems.reduce(
+                (sum, item) => sum + item.itemSellTotalPrice,
+                0
+              );
+
+              // Sum of (unitPrice * quantity) for all items (Gross total before any item discounts)
+              const totalGrossBookValue = mappedItems.reduce(
+                (sum, item) => sum + item.sellUnitPrice * item.totalBookQty,
+                0
+              );
+              const totalGoodReturnValue = mappedItems.reduce(
+                (sum, item) => sum + item.goodReturnTotalVal,
+                0
+              );
+              const totalMarketReturnValue = mappedItems.reduce(
+                (sum, item) => sum + item.marketReturnTotalVal,
+                0
+              );
+              const totalFreeValue = mappedItems.reduce(
+                (sum, item) => sum + item.sellUnitPrice * item.totalFreeQty,
+                0
+              );
+
+              const totalBillDiscountAmount = billDiscountValue; // The calculated bill discount amount
+
+              // Net total after item-level and bill discounts (before considering returns)
+              const netTotalAfterAllDiscounts = finalTotalValue - totalBillDiscountAmount;
+
+              const netTotalwithoutGRMR =
+                 totalValueAllItem - totalBillDiscountAmount;
+              console.log("netTotalwithoutGRMR", netTotalwithoutGRMR);
+              console.log("sellTotalPrice", totalValueAllItem);
+
+              // Final invoice net value (after all discounts and returns)
+              const finalInvoiceNetValue = invoiceNetValue; // This is already calculated in the UI section
+
+              // This object is for UI and navigation to InvoiceFinish screen
+              const uiInvoiceData = {
                 userId,
                 rangeId,
                 territoryId,
                 latitude,
                 longitude,
-              ////////////////////////passs by login user
                 routeId: routeId,
                 customerName,
                 customerId,
@@ -362,24 +557,92 @@ const CreateInvoiceScreen = ({
                 totalGoodReturns,
                 totalMarketReturns,
                 invoiceDate: new Date().toISOString(),
-                items: selectedItems,
+                items: selectedItemsForUI,
               };
-              console.log("Invoice Data:", invoiceData);
 
-              dispatch(createInvoice(invoiceData));
+              // Generate a unique 6-digit number for client-side identification
+              // const generateUniqueId = () => {
+              //   return Math.floor(100000 + Math.random() * 900000);
+              // };
 
-              try {
-                await AsyncStorage.setItem(
-                  "latest_invoice",
-                  JSON.stringify(invoiceData)
-                );
-                navigation.navigate("InvoiceFinish", { invoiceData });
-              } catch (e) {
-                console.error("Failed to save invoice:", e);
+              setLatestInvoiceData(uiInvoiceData);
+              // This object is for the API call - base data
+              const baseApiData = {
+                userId:userId || 0,
+                territoryId,
+                agencyWarehouseId,
+                routeId: Number(routeId),
+                rangeId,
+                outletId: Number(customerId),
+               // clientGeneratedId: generateUniqueId(),
+
+                invoiceType,
+                sourceApp: "MOBILE",
+                longitude,
+                latitude: latitude || 0,
+                isReversed: false,
+                isPrinted: invoiceMode === "2",
+                isBook: true, // isBook is true for both Booking and Actual modes
+                isActual: invoiceMode === "2",
+                isLateDelivery: false,
+                invActualBy: 0,
+                invReversedBy: 0,
+                invUpdatedBy: 0,
+                isActive: true,
+                invoiceDetailDTOList: mappedItems,
+                totalCancelValue: 0.0,
+                discountPercentage: parseFloat(billDiscount) || 0,
+                totalMarketReturnValue: totalMarketReturnValue || 0,
+                totalGoodReturnValue: totalGoodReturnValue || 0,
+                totalFreeValue: totalFreeValue || 0,
+                totalBookValue: totalGrossBookValue,
+                totalActualValue: invoiceMode === "2" ? finalInvoiceNetValue : 0,
+                totalDiscountValue: totalBillDiscountAmount,
+              };
+      console.log("Base API Data:", userId);
+
+              let apiInvoiceData;
+             
+              if (invoiceMode === "1") {
+                // Booking stage
+                apiInvoiceData = {
+                  ...baseApiData,
+                  totalBookSellValue: netTotalwithoutGRMR, // Net total after item and bill discounts
+                 
+                  totalBookValue: totalGrossBookValue, // Gross total before any discounts
+                  totalBookFinalValue: netTotalAfterAllDiscounts, // Total after item-level discounts
+
+                  totalActualValue: 0,
+                  totalDiscountValue: totalBillDiscountAmount,
+                };
+              } else {
+                // Actual stage (invoiceMode === "2")
+                apiInvoiceData = {
+                  ...baseApiData,
+                  // Booking stage fields
+                  totalBookSellValue: netTotalwithoutGRMR, // Net total after item and bill discounts
+                  totalBookValue: totalGrossBookValue, // Gross total before any discounts
+                  totalBookFinalValue: netTotalAfterAllDiscounts, // Total after item-level discounts
+                  // Actual stage fields
+
+                  totalActualValue: finalInvoiceNetValue, // Final net value for actual mode
+                  totalDiscountValue: totalBillDiscountAmount,
+                };
               }
+
+              console.log(
+                "Invoice Data for API:",
+                JSON.stringify(apiInvoiceData, null, 2)
+              );
+              dispatch(createInvoice(apiInvoiceData));
             }}
+            disabled={createInvoiceLoading}
           >
-            <Text style={styles.buttonText}>Complete Invoice</Text>
+            {createInvoiceLoading ? (
+              <ActivityIndicator color="#fff" />
+            ) : (
+              <Text style={styles.buttonText}>Complete Invoice</Text>
+            )}
           </TouchableOpacity>
         </View>
       </ScrollView>
@@ -401,15 +664,6 @@ const styles = StyleSheet.create({
     paddingVertical: 8,
     marginBottom: 10,
   },
-  tableHeader: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    backgroundColor: "#d94e4e",
-    paddingVertical: 5,
-    paddingHorizontal: 5,
-    borderRadius: 5,
-  },
-  headerCell: { fontSize: 11, color: "#fff", flex: 1, textAlign: "center" },
   categoryHeader: {
     backgroundColor: "#b30000",
     padding: 8,
@@ -420,6 +674,19 @@ const styles = StyleSheet.create({
     color: "#fff",
     fontWeight: "bold",
     fontSize: 14,
+  },
+  tableHeader: {
+    flexDirection: "row",
+    justifyContent: "space-around",
+    paddingRight: 10,
+    paddingLeft: 50,
+    marginTop: 10,
+  },
+  headerCell: {
+    fontWeight: "bold",
+    color: "#fff",
+    flex: 1,
+    textAlign: "center",
   },
   itemBox: {
     backgroundColor: "#eaeaea",

@@ -6,6 +6,7 @@ const initialLoginState = {
     data: {
       agencyCode: "",
       gpsStatus: false,
+      serverTime:"",
       personalName: "",
       role: "",
       roleId: "",
@@ -53,6 +54,7 @@ const loginSlice = createSlice({
 
           state.user.data.agencyCode = payload.agencyCode;
           state.user.data.gpsStatus = payload.gpsStatus;
+          state.user.data.serverTime = payload.serverTime;
           state.user.data.personalName = payload.personalName;
           state.user.data.role = payload.role;
           state.user.data.roleId = payload.roleId;
@@ -75,6 +77,7 @@ const loginSlice = createSlice({
           state.user.data = {
             agencyCode: "",
             gpsStatus: false,
+            serverTime:"",
             personalName: "",
             role: "",
             roleId: "",
@@ -98,9 +101,11 @@ const loginSlice = createSlice({
       }
     },
     setError: (state, { payload }) => {
-        console.error("Login Error Reducer Payload:", payload);
+      //console.error("Login Error Reducer Payload:", payload);
+      state.loading = false;
       state.error = true;
-      state.user = payload;
+      state.user.error = payload; // Store the error object correctly
+      state.user.data = initialLoginState.user.data; // Reset user data
     },
   },
 });
