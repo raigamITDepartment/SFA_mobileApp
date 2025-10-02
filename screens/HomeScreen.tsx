@@ -108,7 +108,7 @@ const HomeScreen = ({ navigation }: HomeScreenProps) => {
               navigation.replace("AuthLoading"); // Use lowercase "login" if your screen name is defined like that
             } catch (error) {
               console.error("Logout error:", error);
-              Alert.alert("Error", "Something went wrong while logging out.");
+              Alert.alert("Error", "Something went wrong pleas check your internet connection or GPS ON and try again while logging out.");
             }
           },
           style: "destructive",
@@ -116,6 +116,27 @@ const HomeScreen = ({ navigation }: HomeScreenProps) => {
       ]
     );
   };
+
+  // Helper function to format numbers with thousand separators
+  const formatNumber = (num: number | null | undefined): string => {
+    if (num === null || num === undefined) {
+      return 'N/A';
+    }
+    return num.toLocaleString('en-LK');
+  };
+
+  // Helper function to format currency values
+  const formatCurrency = (num: number | null | undefined): string => {
+    if (num === null || num === undefined) {
+      return 'N/A';
+    }
+    return `Rs. ${num.toLocaleString('en-LK', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+  };
+
+  const formatPercentage = (num: number | null | undefined): string => {
+    if (num === null || num === undefined) return 'N/A';
+    return `${num.toFixed(2)}%`;
+  }
 
   return (
     <ScrollView style={styles.container}>
@@ -151,9 +172,9 @@ const HomeScreen = ({ navigation }: HomeScreenProps) => {
           <Text style={styles.cardTitle}> Target</Text>
         </View>
 
-        <Text style={styles.input}>Territory Target:{dashboardInfoLoading ? 'Loading...' : dashboardInfo?.territoryTargetForThisMonth ?? 'N/A'}</Text>
-        <Text style={styles.input}>My Achievement Value:{dashboardInfoLoading ? 'Loading...' : dashboardInfo?.totalActualValueForThisMonth ?? 'N/A'}</Text>
-        <Text style={styles.input}>My Achievement Percentage:{dashboardInfoLoading ? 'Loading...' : dashboardInfo?.achievementPercentageForThisMonth ?? 'N/A'}</Text>
+        <Text style={styles.input}>Territory Target: {dashboardInfoLoading ? 'Loading...' : formatCurrency(dashboardInfo?.territoryTargetForThisMonth)}</Text>
+        <Text style={styles.input}>My Achievement Value: {dashboardInfoLoading ? 'Loading...' : formatCurrency(dashboardInfo?.totalActualValueForThisMonth)}</Text>
+        <Text style={styles.input}>My Achievement Percentage: {dashboardInfoLoading ? 'Loading...' : formatPercentage(dashboardInfo?.achievementPercentageForThisMonth)}</Text>
 
       </View>
 
@@ -163,9 +184,9 @@ const HomeScreen = ({ navigation }: HomeScreenProps) => {
           <Text style={styles.cardTitle}> PC Target</Text>
         </View>
 
-        <Text style={styles.input}>PC Target:{dashboardInfoLoading ? 'Loading...' : dashboardInfo?.pcTargetForThisMonth ?? 'N/A'}</Text>
-        <Text style={styles.input}>My Achieved PC Target:{dashboardInfoLoading ? 'Loading...' : dashboardInfo?.achievedPcTargetForThisMonth ?? 'N/A'}</Text>
-        <Text style={styles.input}>My Unproductive calls:{dashboardInfoLoading ? 'Loading...' : dashboardInfo?.unproductiveCallCountForThisMonth ?? 'N/A'}</Text>
+        <Text style={styles.input}>PC Target: {dashboardInfoLoading ? 'Loading...' : formatNumber(dashboardInfo?.pcTargetForThisMonth)}</Text>
+        <Text style={styles.input}>My Achieved PC Target :  {dashboardInfoLoading ? 'Loading...' : formatNumber(dashboardInfo?.achievedPcTargetForThisMonth)}</Text>
+        <Text style={styles.input}>My Unproductive calls: {dashboardInfoLoading ? 'Loading...' : formatNumber(dashboardInfo?.unproductiveCallCountForThisMonth)}</Text>
       </View>
 
       <View style={styles.card}>
@@ -175,16 +196,16 @@ const HomeScreen = ({ navigation }: HomeScreenProps) => {
         </View>
 
         <Text style={styles.input}>
-          Active Outlets: {dashboardInfoLoading ? 'Loading...' : dashboardInfo?.activeOutletCount ?? 'N/A'}
+          Active Outlets: {dashboardInfoLoading ? 'Loading...' : formatNumber(dashboardInfo?.activeOutletCount)}
         </Text>
         <Text style={styles.input}>
-          Closed Outlets: {dashboardInfoLoading ? 'Loading...' : dashboardInfo?.inactiveOutletCount ?? 'N/A'}
+          Closed Outlets: {dashboardInfoLoading ? 'Loading...' : formatNumber(dashboardInfo?.inactiveOutletCount)}
         </Text>
         <Text style={styles.input}>
-          Visited Outlets (This Month): {dashboardInfoLoading ? 'Loading...' : dashboardInfo?.visitedOutletCountForThisMonth ?? 'N/A'}
+          Visited Outlets (This Month): {dashboardInfoLoading ? 'Loading...' : formatNumber(dashboardInfo?.visitedOutletCountForThisMonth)}
         </Text>
         <Text style={styles.input}>
-          Total Visits (This Month): {dashboardInfoLoading ? 'Loading...' : dashboardInfo?.visitCountForThisMonth ?? 'N/A'}
+          Total Visits (This Month): {dashboardInfoLoading ? 'Loading...' : formatNumber(dashboardInfo?.visitCountForThisMonth)}
         </Text>
       </View>
 
@@ -193,17 +214,17 @@ const HomeScreen = ({ navigation }: HomeScreenProps) => {
           <Entypo name="shop" size={24} color="black" />
           <Text style={styles.cardTitle}>Invoice</Text>
         </View>
-        <Text style={styles.input}>Booking Value:{dashboardInfoLoading ? 'Loading...' : dashboardInfo?.totalBookingValueForThisMonth ?? 'N/A'}</Text>
-        <Text style={styles.input}>Booking Count:{dashboardInfoLoading ? 'Loading...' : dashboardInfo?.bookingInvoicesCountForThisMonth ?? 'N/A'}</Text>
+        <Text style={styles.input}>Booking Value: {dashboardInfoLoading ? 'Loading...' : formatCurrency(dashboardInfo?.totalBookingValueForThisMonth)}</Text>
+        <Text style={styles.input}>Booking Count: {dashboardInfoLoading ? 'Loading...' : formatNumber(dashboardInfo?.bookingInvoicesCountForThisMonth)}</Text>
 
-        <Text style={styles.input}>Actual Value:{dashboardInfoLoading ? 'Loading...' : dashboardInfo?.totalActualValueForThisMonth ?? 'N/A'}</Text>
-        <Text style={styles.input}>Actual Total Count :{dashboardInfoLoading ? 'Loading...' : dashboardInfo?.actualInvoicesCountForThisMonth ?? 'N/A'}</Text>
+        <Text style={styles.input}>Actual Value: {dashboardInfoLoading ? 'Loading...' : formatCurrency(dashboardInfo?.totalActualValueForThisMonth)}</Text>
+        <Text style={styles.input}>Actual Total Count : {dashboardInfoLoading ? 'Loading...' : formatNumber(dashboardInfo?.actualInvoicesCountForThisMonth)}</Text>
 
-        <Text style={styles.input}>Cancelled Value:{dashboardInfoLoading ? 'Loading...' : dashboardInfo?.totalCancelValueForThisMonth ?? 'N/A'}</Text>
-         <Text style={styles.input}>Cancelled Count:{dashboardInfoLoading ? 'Loading...' : dashboardInfo?.cancelInvoicesCountForThisMonth ?? 'N/A'}</Text>
+        <Text style={styles.input}>Cancelled Value: {dashboardInfoLoading ? 'Loading...' : formatCurrency(dashboardInfo?.totalCancelValueForThisMonth)}</Text>
+         <Text style={styles.input}>Cancelled Count: {dashboardInfoLoading ? 'Loading...' : formatNumber(dashboardInfo?.cancelInvoicesCountForThisMonth)}</Text>
 
-        <Text style={styles.input}>Late Delivery bills Value:{dashboardInfoLoading ? 'Loading...' : dashboardInfo?.totalLateDeliveryValueForThisMonth ?? 'N/A'}</Text>
-          <Text style={styles.input}>Late Delivery bills Count:{dashboardInfoLoading ? 'Loading...' : dashboardInfo?.lateDeliveryInvoicesCountForThisMonth ?? 'N/A'}</Text>
+        <Text style={styles.input}>Late Delivery bills Value: {dashboardInfoLoading ? 'Loading...' : formatCurrency(dashboardInfo?.totalLateDeliveryValueForThisMonth)}</Text>
+          <Text style={styles.input}>Late Delivery bills Count: {dashboardInfoLoading ? 'Loading...' : formatNumber(dashboardInfo?.lateDeliveryInvoicesCountForThisMonth)}</Text>
       </View>
 
       <View style={styles.card}>

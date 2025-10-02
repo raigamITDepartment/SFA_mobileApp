@@ -14,6 +14,9 @@ import InvoiceReportReducer from "./InvoiceReportReducer";
 import DashboardInformReducer from "./DashboardInformReducer";
 import LastThreeInvoicesReducer from "./LastThreeInvoicesReducer";
 import InvoiceDetailReducer from "./InvoiceDetailsReducer";
+import ProductReportReducer from "./ProductReportReducer";
+import FetchOutletDetailsReducer from "./FetchOutletDetailsReducer";
+
 
 
 
@@ -33,6 +36,8 @@ const appReducer = combineReducers({
   dashboardInfo: DashboardInformReducer,
   lastThreeInvoices: LastThreeInvoicesReducer,
   invoiceDetails: InvoiceDetailReducer,
+  productReport: ProductReportReducer,
+  outletDetails: FetchOutletDetailsReducer,
 });
 
 const rootReducer = (state: ReturnType<typeof appReducer> | undefined, action: AnyAction) => {
