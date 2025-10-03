@@ -195,8 +195,12 @@ export default function ProductReportScreen() {
   const renderItem = ({ item }: { item: ProductSummary }) => {
     const metricLabel = (() => {
       switch (selectedType) {
-        case "sold":
-          return `${item.soldQty} sold`;
+        case "sold": {
+          const soldValue = item.totalSoldValue ?? item.totalBookingValue;
+          return (
+            `${item.soldQty} sold\nRs. ${soldValue.toFixed(2)}`
+          );
+        }
         case "free":
           return `${item.freeQty} free`;
         case "discount":
@@ -218,7 +222,7 @@ export default function ProductReportScreen() {
           </Text>
         </View>
         <View style={{ alignItems: "flex-end" }}>
-          <Text style={styles.metric}>{metricLabel}</Text>
+          <Text style={styles.metric} numberOfLines={2}>{metricLabel}</Text>
         </View>
       </TouchableOpacity>
     );
@@ -309,8 +313,9 @@ export default function ProductReportScreen() {
 
           <View style={styles.modalSummaryRow}>
             <View style={styles.modalStat}>
+                  <Text style={styles.modalStatLabel}>Sold Qty</Text>
               <Text style={styles.modalStatValue}>{activeProduct?.soldQty ?? "-"}</Text>
-              <Text style={styles.modalStatLabel}>Sold</Text>
+          
             </View>
             <View style={styles.modalStat}>
               <Text style={styles.modalStatValue}>{activeProduct?.freeQty ?? "-"}</Text>
@@ -435,7 +440,7 @@ const styles = StyleSheet.create({
   },
   title: { fontSize: 15, fontWeight: "700" },
   subtitle: { fontSize: 12, color: "#666", marginTop: 4 },
-  metric: { fontWeight: "700", fontSize: 14 },
+  metric: { fontWeight: "700", fontSize: 14, textAlign: "right" },
   small: { fontSize: 12, color: "#666" },
   loadingWrap: { padding: 24, alignItems: "center" },
   empty: { padding: 30, alignItems: "center" },

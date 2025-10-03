@@ -63,6 +63,7 @@ const CreateInvoiceScreen = ({
   >({});
   const [searchQuery, setSearchQuery] = useState<string>("");
   const [latitude, setLatitude] = useState<number | null>(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const [longitude, setLongitude] = useState<number | null>(null);
   const dispatch = useAppDispatch();
   const itemsFetchedRef = useRef(false);
@@ -188,6 +189,7 @@ const CreateInvoiceScreen = ({
     if (createInvoiceError) {
       Alert.alert("Error", "Failed to create invoice. Please try again.");
       dispatch(resetCreateInvoiceState());
+      setIsSubmitting(false); // Allow user to try again on error
     }
   }, [
     createInvoiceSuccess,
@@ -485,9 +487,20 @@ const CreateInvoiceScreen = ({
             <Text style={styles.buttonText}>Cancel Invoice</Text>
           </TouchableOpacity>
 
-          <TouchableOpacity
-            style={styles.completeButton}
-            onPress={async () => {
+          {isSubmitting || createInvoiceLoading ? (
+            <View style={[styles.completeButton, styles.loadingButton]}>
+              <ActivityIndicator color="#fff" />
+            </View>
+          ) : (
+            <TouchableOpacity
+              style={styles.completeButton}
+              onPress={async () => {
+                // Prevent multiple submissions
+                if (isSubmitting) {
+                  return;
+                }
+                setIsSubmitting(true);
+
               const selectedItemsForUI = savedItems.filter(
                 (item: ItemType) =>
                   (parseInt(item.quantity, 10) || 0) > 0 ||
@@ -639,14 +652,10 @@ const CreateInvoiceScreen = ({
               // );
               dispatch(createInvoice(apiInvoiceData));
             }}
-            disabled={createInvoiceLoading}
-          >
-            {createInvoiceLoading ? (
-              <ActivityIndicator color="#fff" />
-            ) : (
+            >
               <Text style={styles.buttonText}>Complete Invoice</Text>
-            )}
-          </TouchableOpacity>
+            </TouchableOpacity>
+          )}
         </View>
       </ScrollView>
     </LinearGradient>
@@ -753,6 +762,9 @@ const styles = StyleSheet.create({
     borderRadius: 10,
     flex: 0.48,
     alignItems: "center",
+  },
+  loadingButton: {
+    justifyContent: "center",
   },
   buttonText: { color: "#fff", fontWeight: "bold" },
 });
