@@ -107,6 +107,11 @@ const CreateInvoiceScreen = ({
         let location = await Location.getCurrentPositionAsync({});
         setLatitude(location.coords.latitude);
         setLongitude(location.coords.longitude);
+    
+        console.log("Latitude:", location.coords.latitude);
+        console.log("Longitude:", location.coords.longitude);
+
+
       } catch (error) {
         console.error("Failed to get location", error);
         Alert.alert("Location Error", "Could not fetch location.");
@@ -594,7 +599,7 @@ const CreateInvoiceScreen = ({
 
                 invoiceType,
                 sourceApp: "MOBILE",
-                longitude,
+                longitude:longitude || 0,
                 latitude: latitude || 0,
                 isReversed: false,
                 isPrinted: invoiceMode === "2",
