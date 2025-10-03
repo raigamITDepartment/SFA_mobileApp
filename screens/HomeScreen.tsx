@@ -227,7 +227,7 @@ const HomeScreen = ({ navigation }: HomeScreenProps) => {
           <Text style={styles.input}>Late Delivery bills Count: {dashboardInfoLoading ? 'Loading...' : formatNumber(dashboardInfo?.lateDeliveryInvoicesCountForThisMonth)}</Text>
       </View>
 
-      <View style={styles.card}>
+      {/* <View style={styles.card}>
         <Text style={styles.cardTitle}>Category Wise Target</Text>
 
         <Dropdown
@@ -260,7 +260,7 @@ const HomeScreen = ({ navigation }: HomeScreenProps) => {
         <Text style={styles.input}>Percentage:</Text>
         <Text style={styles.input}>Average Pc:</Text>
         <Text style={styles.input}>Heart Count:</Text>
-      </View>
+      </View> */}
     </ScrollView>
   );
 };

@@ -28,8 +28,8 @@ const HomeReport = ({ navigation }: HomeReportProps): React.JSX.Element => {
   const reports = [
     { title: 'Invoice Summary Report', route: 'InvoiceSummary' },
     { title: 'Product Report', route: 'ProductReport' },
-    { title: 'Stock Level Report', route: 'StockLevel' },
-    { title: 'Promo Target VS Achievement', route: 'PromoTarget' },
+    // { title: 'Stock Level Report', route: 'StockLevel' },
+    // { title: 'Promo Target VS Achievement', route: 'PromoTarget' },
     
   ];
 
@@ -48,7 +48,7 @@ const HomeReport = ({ navigation }: HomeReportProps): React.JSX.Element => {
           <TouchableOpacity
             key={index}
             style={styles.button}
-            onPress={() => navigation.navigate(report.route as "InvoiceSummary" | "ProductReport"  | "StockLevel" | "PromoTarget")}
+            onPress={() => navigation.navigate(report.route as "InvoiceSummary" | "ProductReport"  )}
           >
             <Text style={styles.buttonText}>{report.title}</Text>
           </TouchableOpacity>

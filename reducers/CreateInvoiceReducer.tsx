@@ -18,7 +18,7 @@ const invoiceSlice = createSlice({
     setCreateInvoiceSuccess: (state, action) => {
       state.loading = false;
       state.success = true;
-      console.log("Create Invoice Success Payload:", action.payload);
+      // console.log("Create Invoice Success Payload:", action.payload);
       state.createdInvoice = action.payload;
     },
     setCreateInvoiceError: (state, action) => {

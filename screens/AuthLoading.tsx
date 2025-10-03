@@ -64,11 +64,7 @@ const AuthLoading: React.FC<AuthLoadingProps> = ({ navigation }) => {
               "Update Available",
               `A new version (${platformData.versionName}) is available.`,
               [
-                {
-                  text: "Later",
-                  onPress: () => navigation.replace("Login"),
-                  style: "cancel",
-                },
+                
                 {
                   text: "Update",
                   onPress: () => Linking.openURL(platformData.url),

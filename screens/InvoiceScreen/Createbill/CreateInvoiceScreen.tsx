@@ -477,7 +477,9 @@ const CreateInvoiceScreen = ({
                 customerId,
                 invoiceType,
                 invoiceMode,
+              
               })
+              
             }
           >
             <Text style={styles.buttonText}>Cancel Invoice</Text>
@@ -561,10 +563,11 @@ const CreateInvoiceScreen = ({
               };
 
               // Generate a unique 6-digit number for client-side identification
-              // const generateUniqueId = () => {
-              //   return Math.floor(100000 + Math.random() * 900000);
-              // };
 
+              // const generateUniqueId = () => {
+              //   return Math.floor(100000 + Math.random() * 900000000000000);
+              // };
+ 
               setLatestInvoiceData(uiInvoiceData);
               // This object is for the API call - base data
               const baseApiData = {
@@ -574,7 +577,7 @@ const CreateInvoiceScreen = ({
                 routeId: Number(routeId),
                 rangeId,
                 outletId: Number(customerId),
-               // clientGeneratedId: generateUniqueId(),
+              //  clientGeneratedId: generateUniqueId(),
 
                 invoiceType,
                 sourceApp: "MOBILE",
@@ -599,7 +602,7 @@ const CreateInvoiceScreen = ({
                 totalActualValue: invoiceMode === "2" ? finalInvoiceNetValue : 0,
                 totalDiscountValue: totalBillDiscountAmount,
               };
-      console.log("Base API Data:", userId);
+             console.log("Base API Data Create Invoice:", userId);
 
               let apiInvoiceData;
              
@@ -630,10 +633,10 @@ const CreateInvoiceScreen = ({
                 };
               }
 
-              console.log(
-                "Invoice Data for API:",
-                JSON.stringify(apiInvoiceData, null, 2)
-              );
+              // console.log(
+              //   "Invoice Data for API:",
+              //   JSON.stringify(apiInvoiceData, null, 2)
+              // );
               dispatch(createInvoice(apiInvoiceData));
             }}
             disabled={createInvoiceLoading}

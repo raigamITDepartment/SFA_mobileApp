@@ -80,7 +80,9 @@ const fetchItemIdbyPrice = (
       });
       // Explicitly check for the success message from the API
       if (response.data && response.data.message === "Success") {
-      //  console.log("Create invoice Response:", response.data);
+        console.log("Create invoice Response with Api Respose:", response.data);
+   
+
         dispatch(setCreateInvoiceSuccess(response.data.payload));
       } else {
         // Handle cases where the API returns 2xx but indicates an error in the body
