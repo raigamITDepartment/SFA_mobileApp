@@ -35,7 +35,7 @@ territoryId: number
 
 const fetchItemIdbyPrice = (
   itemId: number,
-  rangeId: number
+  territoryId: number
 ): ThunkAction<void, RootState, unknown, UnknownAction> => {
   return async (dispatch, getState) => {
     dispatch(setPriceLoading());
@@ -46,7 +46,7 @@ const fetchItemIdbyPrice = (
       return;
     }
 
-    const url = `/api/v1/sales/itemPrice/findItemPricesByTerritoryAndItemIds/${itemId}/${rangeId}`;
+    const url = `/api/v1/sales/itemPrice/findItemPricesByTerritoryAndItemIds/${itemId}/${territoryId}`;
 
     try {
       const response = await userManagementApi().get(url, {
@@ -92,7 +92,12 @@ const fetchItemIdbyPrice = (
     } catch (err) {
       const error = err as { response?: { data?: any }; message?: string };
       console.error("Create invoice Error:", error.response?.data || error.message);
-      dispatch(setCreateInvoiceError(error.response?.data || { error: "Network error" }));
+      // Ensure a consistent error object is dispatched, especially for network errors
+      const errorPayload = error.response?.data || { 
+        message: error.message || "Network error",
+        error: "Network request failed" 
+      };
+      dispatch(setCreateInvoiceError(errorPayload));
     }
   };
 };

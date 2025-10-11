@@ -95,6 +95,8 @@ const ItemDetailsScreen = ({ navigation, route }: ItemDetailsScreenProps): React
 
   const dispatch = useAppDispatch();
   const rangeId = useAppSelector((state: RootState) => state.login.user.data.rangeId);
+  const territoryId = useAppSelector((state: RootState) => state.login.user.data.territoryId);
+
   const { Price: prices = [], loading: priceLoading } = useAppSelector(
     (state: RootState) => state.Price
   );
@@ -124,10 +126,10 @@ const ItemDetailsScreen = ({ navigation, route }: ItemDetailsScreenProps): React
   const [itemDiscountValue, setItemDiscountValue] = useState('');
 
   useEffect(() => {
-    if (itemId && rangeId) {
-      dispatch(fetchItemIdbyPrice(itemId, Number(rangeId)));
+    if (itemId && territoryId) {
+      dispatch(fetchItemIdbyPrice(itemId, Number(territoryId)));
     }
-  }, [dispatch, itemId, rangeId]);
+  }, [dispatch, itemId, territoryId]);
 
   useEffect(() => {
     const parse = (val: string) => parseFloat(val) || 0;
@@ -209,7 +211,7 @@ const ItemDetailsScreen = ({ navigation, route }: ItemDetailsScreenProps): React
             setPriceMenuVisible(false);
           }}
         />
-        <LabelInput label="Adjusted Unit Price Rs." value={unitPrice || '0.00'} onChangeText={setUnitPrice} />
+        <LabelInput label="Adjusted Unit Price Rs." value={unitPrice } onChangeText={setUnitPrice} />
         <LabelInput label="Quantity" value={quantity} onChangeText={setQuantity} />
         <LabelInput label="Special Discount (%)" value={specialDiscount} onChangeText={setSpecialDiscount} />
         <LabelInput label="Free Issue" value={freeIssue} onChangeText={setFreeIssue} />
@@ -237,7 +239,7 @@ const ItemDetailsScreen = ({ navigation, route }: ItemDetailsScreenProps): React
                 setPriceMenuGRVisible(false);
               }}
             />
-                <LabelInput label="Adjusted Unit Price Rs." value={unitPriceGR || '0.00'} onChangeText={setUnitPriceGR} />
+                <LabelInput label="Adjusted Unit Price Rs." value={unitPriceGR } onChangeText={setUnitPriceGR} />
             <LabelInput label="Good Return Qty" value={goodReturnQty} onChangeText={setGoodReturnQty} />
             <LabelInput label="Good Return Free Qty" value={goodReturnFreeQty} onChangeText={setGoodReturnFreeQty} />
             <LabelInput label="Good Return Total" value={goodReturnTotal} editable={false} />
@@ -264,7 +266,7 @@ const ItemDetailsScreen = ({ navigation, route }: ItemDetailsScreenProps): React
                 setPriceMenuMRVisible(false);
               }}
             />
-            <LabelInput label="Adjusted Unit Price Rs." value={unitPriceMR || '0.00'} onChangeText={setUnitPriceMR} />
+            <LabelInput label="Adjusted Unit Price Rs." value={unitPriceMR } onChangeText={setUnitPriceMR} />
             <LabelInput label="Market Return Qty" value={marketReturnQty} onChangeText={setMarketReturnQty} />
             <LabelInput label="Market Return Free Qty" value={marketReturnFreeQty} onChangeText={setMarketReturnFreeQty} />
             <LabelInput label="Market Return Total" value={marketReturnTotal} editable={false} />

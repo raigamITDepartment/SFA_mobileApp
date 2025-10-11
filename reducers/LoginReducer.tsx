@@ -21,6 +21,7 @@ const initialLoginState = {
       userType: null,
       userTypeId: null,
       rangeId: "",
+      range: "",
     },
     error: "",
     // loginType: "",
@@ -70,6 +71,8 @@ const loginSlice = createSlice({
           state.user.data.userType = payload.userType;
           state.user.data.userTypeId = payload.userTypeId;
           state.user.data.rangeId = payload.rangeId;
+          state.user.data.range = payload.range;
+
 
           //console.log("Login Success Reducer User Data:", state.user.data);
           // state.user.loginType = payload.loginType;
@@ -92,6 +95,7 @@ const loginSlice = createSlice({
             userType: null,
             userTypeId: null,
             rangeId: "",
+            range: "",
           };
          // state.user.isOnboarding = false;
         }
