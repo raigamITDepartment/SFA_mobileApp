@@ -5,11 +5,18 @@ import {
   setCreateOutletLoading,
   setCreateOutletSuccess,
   setCreateOutletError,
-
+  setUpdateOutletLoading,
+  setUpdateOutletSuccess,
+  setUpdateOutletError,
  
 } from "../reducers/OutletReducer"; // updated import
 
 import { setOutletLoading, setOutletSuccess, setOutletError } from "../reducers/FetchOutletReducer";
+import {
+  setOutletDetailsLoading,
+  setOutletDetailsSuccess,
+  setOutletDetailsError,
+} from "../reducers/FetchOutletDetailsReducer";
 
 
 import { userManagementApi } from "../services/Api";
@@ -24,7 +31,7 @@ const fetchRoutesByTerritoryId = (
 
     try {
       const response = await userManagementApi().get(url, { headers: { Authorization: `Bearer ${token}` } });
-    // console.log("API response routes:", response.data);
+    console.log("API response routes:", response.data);
       dispatch(setRoutesSuccess(response.data.payload));
     } catch (err) {
       const error = err as { response?: { data?: any }; message?: string };
@@ -50,6 +57,27 @@ const fetchRouteIdbyOutlet = (
       const error = err as { response?: { data?: any }; message?: string };
       //console.error("API error:", error.response?.data || error.message);
       dispatch(setOutletError(error.response?.data || { error: "Network error" }));
+    }
+  };
+};
+
+const fetchOutletById = (
+  outletId: number
+): ThunkAction<void, RootState, unknown, UnknownAction> => {
+  return async (dispatch, getState) => {
+    dispatch(setOutletDetailsLoading());
+    const token = getState().login?.user?.data?.token;
+    const url = `/api/v1/userDemarcation/outlet/findById/${outletId}`;
+
+    try {
+      const response = await userManagementApi().get(url, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      console.log("API response for outlet details: ", response.data.payload);
+      dispatch(setOutletDetailsSuccess(response.data.payload));
+    } catch (err) {
+      const error = err as { response?: { data?: any }; message?: string };
+      dispatch(setOutletDetailsError(error.response?.data || { error: "Network error" }));
     }
   };
 };
@@ -91,6 +119,39 @@ const fetchRouteIdbyOutlet = (
   };
 };
  
+ const updateOutlet = (
+  formData: any
+): ThunkAction<void, RootState, unknown, UnknownAction> => {
+  return async (dispatch, getState) => {
+    dispatch(setUpdateOutletLoading());
+    console.log("Updating Outlet with data:", formData);
+    const token = getState().login?.user?.data?.token;
+    const url = `/api/v1/userDemarcation/outlet`;
+  
+
+    try {
+      const response = await userManagementApi().put(url, formData, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "multipart/form-data",
+        },
+      });
+      // Explicitly check for the success message from the API
+      if (response.data && response.data.message === "Success") {
+        console.log("Update  Outlet Response:", response.data);
+        dispatch(setUpdateOutletSuccess(response.data.payload));
+      } else {
+        // Handle cases where the API returns 2xx but indicates an error in the body
+        console.error("Update Outlet API did not return success:", response.data);
+        dispatch(setUpdateOutletError(response.data || { error: "API returned a non-success message" }));
+      }
+    } catch (err) {
+      const error = err as { response?: { data?: any }; message?: string };
+      console.error("Update Outlet Error:", error.response?.data || error.message);
+      dispatch(setUpdateOutletError(error.response?.data || { error: "Network error" }));
+    }
+  };
+};
 
 
 
@@ -102,5 +163,4 @@ const fetchRouteIdbyOutlet = (
 
 
 
-
-export { fetchRoutesByTerritoryId , createOutlet,fetchRouteIdbyOutlet};
+export { fetchRoutesByTerritoryId, createOutlet, fetchRouteIdbyOutlet, fetchOutletById,updateOutlet };

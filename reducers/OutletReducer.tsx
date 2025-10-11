@@ -32,6 +32,21 @@ const outletSlice = createSlice({
       state.success = false;
       state.createdOutlet = null;
     },
+    setUpdateOutletLoading: (state) => {
+      state.loading = true;
+      state.error = null;
+      state.success = false;
+    },
+    setUpdateOutletSuccess: (state, action) => {
+      state.loading = false;
+      state.success = true;
+      state.createdOutlet = action.payload; // Re-using createdOutlet for the response
+    },
+    setUpdateOutletError: (state, action) => {
+      state.loading = false;
+      state.error = action.payload;
+      state.success = false;
+    },
     setOutletsLoading: (state) => {
       state.loading = true;
       state.error = null;
@@ -52,6 +67,9 @@ export const {
   setCreateOutletSuccess,
   setCreateOutletError,
   resetCreateOutletState,
+  setUpdateOutletLoading,
+  setUpdateOutletSuccess,
+  setUpdateOutletError,
   setOutletsLoading,
   setOutletsSuccess,
   setOutletsError,

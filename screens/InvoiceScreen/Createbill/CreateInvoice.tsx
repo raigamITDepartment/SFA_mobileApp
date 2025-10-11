@@ -61,7 +61,7 @@ const CreateInvoice = ({ navigation, route }: CreateInvoiceProps): React.JSX.Ele
   const [selectedRoute, setSelectedRoute] = useState<string>("");
   const [selectedCustomer, setSelectedCustomer] = useState<string>("");
   const [invoiceType, setInvoiceType] = useState<string>("");
-  const [invoiceMode, setInvoiceMode] = useState<string>("1"); // Default to 'Booking'
+  const [invoiceMode, setInvoiceMode] = useState<string>("");
   const [date] = useState(new Date());
   const [isUnproductiveCallDialogVisible, setIsUnproductiveCallDialogVisible] = useState(false);
   const [latitude, setLatitude] = useState<number | null>(null);
@@ -73,11 +73,24 @@ const CreateInvoice = ({ navigation, route }: CreateInvoiceProps): React.JSX.Ele
   const territoryId = user?.data?.territoryId;
   const userId = user?.data?.userId;
 
+    const rangeId = useAppSelector((state: RootState) => state.login.user?.data?.range);
+    console.log("rangeId", rangeId);
+
   const {
     loading: unproductiveLoading,
     success: unproductiveSuccess,
     error: unproductiveError,
   } = useAppSelector((state: RootState) => state.unproductiveCall);
+
+  useEffect(() => {
+    if (rangeId) {
+      if (["B", "R"].includes(rangeId)) {
+        setInvoiceMode("2"); // Actual
+      } else {
+        setInvoiceMode("1"); // Booking
+      }
+    }
+  }, [rangeId]);
 
   useEffect(() => {
     if (territoryId) {

@@ -63,6 +63,7 @@ const CreateInvoiceScreen = ({
   >({});
   const [searchQuery, setSearchQuery] = useState<string>("");
   const [latitude, setLatitude] = useState<number | null>(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const [longitude, setLongitude] = useState<number | null>(null);
   const dispatch = useAppDispatch();
   const itemsFetchedRef = useRef(false);
@@ -106,6 +107,11 @@ const CreateInvoiceScreen = ({
         let location = await Location.getCurrentPositionAsync({});
         setLatitude(location.coords.latitude);
         setLongitude(location.coords.longitude);
+    
+        console.log("Latitude:", location.coords.latitude);
+        console.log("Longitude:", location.coords.longitude);
+
+
       } catch (error) {
         console.error("Failed to get location", error);
         Alert.alert("Location Error", "Could not fetch location.");
@@ -188,6 +194,7 @@ const CreateInvoiceScreen = ({
     if (createInvoiceError) {
       Alert.alert("Error", "Failed to create invoice. Please try again.");
       dispatch(resetCreateInvoiceState());
+      setIsSubmitting(false); // Allow user to try again on error
     }
   }, [
     createInvoiceSuccess,
@@ -477,15 +484,28 @@ const CreateInvoiceScreen = ({
                 customerId,
                 invoiceType,
                 invoiceMode,
+              
               })
+              
             }
           >
             <Text style={styles.buttonText}>Cancel Invoice</Text>
           </TouchableOpacity>
 
-          <TouchableOpacity
-            style={styles.completeButton}
-            onPress={async () => {
+          {isSubmitting || createInvoiceLoading ? (
+            <View style={[styles.completeButton, styles.loadingButton]}>
+              <ActivityIndicator color="#fff" />
+            </View>
+          ) : (
+            <TouchableOpacity
+              style={styles.completeButton}
+              onPress={async () => {
+                // Prevent multiple submissions
+                if (isSubmitting) {
+                  return;
+                }
+                setIsSubmitting(true);
+
               const selectedItemsForUI = savedItems.filter(
                 (item: ItemType) =>
                   (parseInt(item.quantity, 10) || 0) > 0 ||
@@ -561,10 +581,11 @@ const CreateInvoiceScreen = ({
               };
 
               // Generate a unique 6-digit number for client-side identification
-              // const generateUniqueId = () => {
-              //   return Math.floor(100000 + Math.random() * 900000);
-              // };
 
+              // const generateUniqueId = () => {
+              //   return Math.floor(100000 + Math.random() * 900000000000000);
+              // };
+ 
               setLatestInvoiceData(uiInvoiceData);
               // This object is for the API call - base data
               const baseApiData = {
@@ -574,11 +595,11 @@ const CreateInvoiceScreen = ({
                 routeId: Number(routeId),
                 rangeId,
                 outletId: Number(customerId),
-               // clientGeneratedId: generateUniqueId(),
+              //  clientGeneratedId: generateUniqueId(),
 
                 invoiceType,
                 sourceApp: "MOBILE",
-                longitude,
+                longitude:longitude || 0,
                 latitude: latitude || 0,
                 isReversed: false,
                 isPrinted: invoiceMode === "2",
@@ -599,7 +620,7 @@ const CreateInvoiceScreen = ({
                 totalActualValue: invoiceMode === "2" ? finalInvoiceNetValue : 0,
                 totalDiscountValue: totalBillDiscountAmount,
               };
-      console.log("Base API Data:", userId);
+             console.log("Base API Data Create Invoice:", userId);
 
               let apiInvoiceData;
              
@@ -630,20 +651,16 @@ const CreateInvoiceScreen = ({
                 };
               }
 
-              console.log(
-                "Invoice Data for API:",
-                JSON.stringify(apiInvoiceData, null, 2)
-              );
+              // console.log(
+              //   "Invoice Data for API:",
+              //   JSON.stringify(apiInvoiceData, null, 2)
+              // );
               dispatch(createInvoice(apiInvoiceData));
             }}
-            disabled={createInvoiceLoading}
-          >
-            {createInvoiceLoading ? (
-              <ActivityIndicator color="#fff" />
-            ) : (
+            >
               <Text style={styles.buttonText}>Complete Invoice</Text>
-            )}
-          </TouchableOpacity>
+            </TouchableOpacity>
+          )}
         </View>
       </ScrollView>
     </LinearGradient>
@@ -750,6 +767,9 @@ const styles = StyleSheet.create({
     borderRadius: 10,
     flex: 0.48,
     alignItems: "center",
+  },
+  loadingButton: {
+    justifyContent: "center",
   },
   buttonText: { color: "#fff", fontWeight: "bold" },
 });

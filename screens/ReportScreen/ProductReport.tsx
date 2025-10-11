@@ -2,6 +2,7 @@ import React, { useEffect, useMemo, useState } from "react";
 import {
   View,
   Text,
+    ScrollView,
   TextInput,
   TouchableOpacity,
   StyleSheet,
@@ -9,9 +10,16 @@ import {
   Modal,
   SafeAreaView,
   ActivityIndicator,
+  Platform,
   RefreshControl,
 } from "react-native";
-
+import { Ionicons } from "@expo/vector-icons";
+import DateTimePicker from "@react-native-community/datetimepicker";
+import { useAppDispatch, useAppSelector } from "../../store/Hooks";
+import { fetchProductSummaryReport } from "../../actions/ReportAction";
+import { RootState } from "../../store";
+import { useNavigation } from "@react-navigation/native";
+import { NativeStackNavigationProp } from "@react-navigation/native-stack";
 // TypeScript types (remove if using plain JS)
 type ProductSummary = {
   productId: string;
@@ -19,6 +27,12 @@ type ProductSummary = {
   name: string;
   soldQty: number;
   freeQty: number;
+  totalBookingValue: number;
+  totalSoldValue: number;
+  mainCatName?: string;
+  subOneCatName?: string;
+  subTwoCatName?: string;
+  unitOfMeasure?: string;
   discountValue: number; // total discount for product
   goodReturnQty: number;
   marketReturnQty: number;
@@ -31,44 +45,6 @@ type InvoiceLine = {
   rate: number;
   discount: number;
   isFree?: boolean;
-};
-
-// Mock API -- replace with your real API calls
-const fetchEodProductSummaries = async (date: string): Promise<ProductSummary[]> => {
-  // simulate network delay
-  await new Promise((r) => setTimeout(r, 450));
-  return [
-    {
-      productId: "P-001",
-      sku: "SALT-01",
-      name: "Table Salt 1kg",
-      soldQty: 120,
-      freeQty: 5,
-      discountValue: 48.0,
-      goodReturnQty: 2,
-      marketReturnQty: 1,
-    },
-    {
-      productId: "P-002",
-      sku: "SOYA-01",
-      name: "Soya Sauce 500ml",
-      soldQty: 80,
-      freeQty: 2,
-      discountValue: 32.0,
-      goodReturnQty: 0,
-      marketReturnQty: 3,
-    },
-    {
-      productId: "P-003",
-      sku: "JUICE-01",
-      name: "Orange Powder 200g",
-      soldQty: 200,
-      freeQty: 10,
-      discountValue: 90.0,
-      goodReturnQty: 4,
-      marketReturnQty: 0,
-    },
-  ];
 };
 
 const fetchProductDetails = async (productId: string, date: string): Promise<InvoiceLine[]> => {
@@ -102,16 +78,23 @@ const fetchProductDetails = async (productId: string, date: string): Promise<Inv
   ];
 };
 
-export default function EODReportsScreen() {
-  const [date, setDate] = useState<string>(() => {
-    const d = new Date();
-    return d.toISOString().slice(0, 10); // YYYY-MM-DD
-  });
+type RootStackParamList = {
+  HomeScreen: undefined;
+};
+
+export default function ProductReportScreen() {
+  const dispatch = useAppDispatch();
+  const navigation =
+    useNavigation<NativeStackNavigationProp<RootStackParamList>>();
+  const { territoryId } = useAppSelector((state: RootState) => state.login.user.data);
+  const {
+    products: summaries = [],
+    loading,
+    error,
+  } = useAppSelector((state: RootState) => state.productReport); // Assuming 'productReport' slice in root reducer
 
   const [query, setQuery] = useState("");
-  const [loading, setLoading] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
-  const [summaries, setSummaries] = useState<ProductSummary[]>([]);
   const [selectedType, setSelectedType] = useState<
     "sold" | "free" | "discount" | "returns"
   >("sold");
@@ -121,21 +104,46 @@ export default function EODReportsScreen() {
   const [productDetails, setProductDetails] = useState<InvoiceLine[] | null>(null);
   const [detailsLoading, setDetailsLoading] = useState(false);
 
-  const load = async (d = date) => {
-    setLoading(true);
-    try {
-      const res = await fetchEodProductSummaries(d);
-      setSummaries(res);
-    } catch (err) {
-      console.warn("Failed to load EOD summaries", err);
-    } finally {
-      setLoading(false);
+  const [startDate, setStartDate] = useState(new Date());
+  const [endDate, setEndDate] = useState(new Date());
+  const [showDatePicker, setShowDatePicker] = useState(false);
+  const [pickerMode, setPickerMode] = useState<"start" | "end">("start");
+
+  const formatDate = (date: Date): string => {
+    return date.toISOString().split("T")[0]; // 'YYYY-MM-DD'
+  };
+
+  const handleDateChange = (_event: any, date?: Date) => {
+    setShowDatePicker(Platform.OS === "ios");
+    if (date) {
+      if (pickerMode === "start") {
+        setStartDate(date);
+      } else {
+        setEndDate(date);
+      }
+    }
+  };
+
+  const showPicker = (mode: "start" | "end") => {
+    setPickerMode(mode);
+    setShowDatePicker(true);
+  };
+
+  const load = async () => {
+    if (territoryId) {
+      dispatch(
+        fetchProductSummaryReport({
+          territoryId,
+          startDate: formatDate(startDate),
+          endDate: formatDate(endDate),
+        })
+      );
     }
   };
 
   useEffect(() => {
     load();
-  }, [date]);
+  }, [dispatch, territoryId, startDate, endDate]);
 
   const onRefresh = async () => {
     setRefreshing(true);
@@ -148,7 +156,10 @@ export default function EODReportsScreen() {
     setModalOpen(true);
     setDetailsLoading(true);
     try {
-      const details = await fetchProductDetails(product.productId, date);
+      const details = await fetchProductDetails(
+        product.productId,
+        formatDate(startDate)
+      );
       setProductDetails(details);
     } catch (err) {
       console.warn("Failed to fetch product details", err);
@@ -157,7 +168,6 @@ export default function EODReportsScreen() {
       setDetailsLoading(false);
     }
   };
-
   const filtered = useMemo(() => {
     const q = query.trim().toLowerCase();
     if (!q) return summaries;
@@ -166,7 +176,7 @@ export default function EODReportsScreen() {
     );
   }, [summaries, query]);
 
-  // sort by currently selected metric
+  //sort by currently selected metric
   const sorted = useMemo(() => {
     const arr = [...filtered];
     switch (selectedType) {
@@ -185,8 +195,12 @@ export default function EODReportsScreen() {
   const renderItem = ({ item }: { item: ProductSummary }) => {
     const metricLabel = (() => {
       switch (selectedType) {
-        case "sold":
-          return `${item.soldQty} sold`;
+        case "sold": {
+          const soldValue = item.totalSoldValue ?? item.totalBookingValue;
+          return (
+            `${item.soldQty} sold\nRs. ${soldValue.toFixed(2)}`
+          );
+        }
         case "free":
           return `${item.freeQty} free`;
         case "discount":
@@ -197,58 +211,26 @@ export default function EODReportsScreen() {
     })();
 
     return (
-      <TouchableOpacity onPress={() => openProduct(item)} style={styles.card}>
+      <TouchableOpacity
+        onPress={() => openProduct(item)}
+        style={styles.card}>
         <View style={{ flex: 1 }}>
           <Text style={styles.title}>{item.name}</Text>
-          <Text style={styles.subtitle}>{item.sku || item.productId}</Text>
+          <Text style={styles.subtitle}>SKU: {item.sku || item.productId}</Text>
+          <Text style={styles.subtitle}>
+            Category: {item.mainCatName} &gt; {item.subOneCatName}
+          </Text>
         </View>
         <View style={{ alignItems: "flex-end" }}>
-          <Text style={styles.metric}>{metricLabel}</Text>
-          <Text style={styles.small}>Tap to view invoice list</Text>
+          <Text style={styles.metric} numberOfLines={2}>{metricLabel}</Text>
         </View>
       </TouchableOpacity>
     );
   };
-
   return (
+
     <SafeAreaView style={styles.container}>
-      <View style={styles.headerRow}>
-        <Text style={styles.screenTitle}> Sales & Returns Summary</Text>
-      </View>
-
-      <View style={styles.controlsRow}>
-        <TextInput
-          placeholder="YYYY-MM-DD"
-          value={date}
-          onChangeText={setDate}
-          style={styles.dateInput}
-        />
-        <TextInput
-          placeholder="Search product or SKU"
-          value={query}
-          onChangeText={setQuery}
-          style={styles.searchInput}
-        />
-      </View>
-
-      <View style={styles.segmentRow}>
-        {(
-          [
-            { key: "sold", label: "Sold" },
-            { key: "free", label: "Free" },
-            { key: "discount", label: "Discount" },
-            { key: "returns", label: "Returns" },
-          ] as { key: string; label: string }[]
-        ).map((s) => (
-          <TouchableOpacity
-            key={s.key}
-            onPress={() => setSelectedType(s.key as any)}
-            style={[styles.segmentButton, selectedType === s.key && styles.segmentButtonActive]}
-          >
-            <Text style={[styles.segmentText, selectedType === s.key && styles.segmentTextActive]}>{s.label}</Text>
-          </TouchableOpacity>
-        ))}
-      </View>
+    
 
       {loading ? (
         <View style={styles.loadingWrap}>
@@ -262,6 +244,57 @@ export default function EODReportsScreen() {
           renderItem={renderItem}
           contentContainerStyle={{ padding: 12, paddingBottom: 120 }}
           refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
+          ListHeaderComponent={
+            <>
+              <View style={styles.headerRow}>
+                <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
+                  <Ionicons name="arrow-back" size={24} color="black" />
+                </TouchableOpacity>
+                <Text style={styles.screenTitle}>Sales & Returns Summary</Text>
+              </View>
+              <View style={styles.controlsRow}>
+                <TouchableOpacity onPress={() => showPicker("start")} style={styles.dateButton}>
+                  <Text style={styles.dateText}>Start: {formatDate(startDate)}</Text>
+                </TouchableOpacity>
+                <TouchableOpacity onPress={() => showPicker("end")} style={styles.dateButton}>
+                  <Text style={styles.dateText}>End: {formatDate(endDate)}</Text>
+                </TouchableOpacity>
+              </View>
+              {showDatePicker && (
+                <DateTimePicker
+                  value={pickerMode === "start" ? startDate : endDate}
+                  mode="date"
+                  display="default"
+                  onChange={handleDateChange}
+                />
+              )}
+              <View style={styles.controlsRow}>
+                <TextInput
+                  placeholder="Search product or SKU"
+                  value={query}
+                  onChangeText={setQuery}
+                  style={styles.searchInput}
+                />
+              </View>
+              <View style={styles.segmentRow}>
+                {(
+                  [
+                    { key: "sold", label: "Sold" },
+                    { key: "free", label: "Free" },
+                    { key: "discount", label: "Discount" },
+                    { key: "returns", label: "Returns" },
+                  ] as { key: "sold" | "free" | "discount" | "returns"; label: string }[]
+                ).map((s) => (
+                  <TouchableOpacity
+                    key={s.key}
+                    onPress={() => setSelectedType(s.key)}
+                    style={[styles.segmentButton, selectedType === s.key && styles.segmentButtonActive]}>
+                    <Text style={[styles.segmentText, selectedType === s.key && styles.segmentTextActive]}>{s.label}</Text>
+                  </TouchableOpacity>
+                ))}
+              </View>
+            </>
+          }
           ListEmptyComponent={() => (
             <View style={styles.empty}><Text>No products found for selected date</Text></View>
           )}
@@ -280,8 +313,9 @@ export default function EODReportsScreen() {
 
           <View style={styles.modalSummaryRow}>
             <View style={styles.modalStat}>
+                  <Text style={styles.modalStatLabel}>Sold Qty</Text>
               <Text style={styles.modalStatValue}>{activeProduct?.soldQty ?? "-"}</Text>
-              <Text style={styles.modalStatLabel}>Sold</Text>
+          
             </View>
             <View style={styles.modalStat}>
               <Text style={styles.modalStatValue}>{activeProduct?.freeQty ?? "-"}</Text>
@@ -294,6 +328,16 @@ export default function EODReportsScreen() {
             <View style={styles.modalStat}>
               <Text style={styles.modalStatValue}>{(activeProduct?.goodReturnQty ?? 0) + (activeProduct?.marketReturnQty ?? 0)}</Text>
               <Text style={styles.modalStatLabel}>Returns</Text>
+            </View>
+          </View>
+          <View style={styles.modalSummaryRow}>
+            <View style={styles.modalStat}>
+              <Text style={styles.modalStatValue}>{activeProduct?.totalBookingValue?.toFixed(2) ?? "-"}</Text>
+              <Text style={styles.modalStatLabel}>Booking Value</Text>
+            </View>
+            <View style={styles.modalStat}>
+              <Text style={styles.modalStatValue}>{activeProduct?.totalSoldValue?.toFixed(2) ?? "-"}</Text>
+              <Text style={styles.modalStatLabel}>Sold Value</Text>
             </View>
           </View>
 
@@ -335,23 +379,38 @@ export default function EODReportsScreen() {
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: "#f6f7fb" },
-  headerRow: { padding: 12 },
-  screenTitle: { fontSize: 18, fontWeight: "700" },
+  headerRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    padding: 12,
+  },
+  backButton: {
+    marginRight: 16,
+  },
+  screenTitle: {
+    fontSize: 18,
+    fontWeight: "700",
+    flex: 1,
+  },
   controlsRow: { flexDirection: "row", paddingHorizontal: 12, gap: 8, alignItems: "center" },
-  dateInput: {
-    flex: 0.35,
+  dateButton: {
+    flex: 1,
     backgroundColor: "#fff",
     padding: 10,
     borderRadius: 8,
     borderWidth: 1,
     borderColor: "#eee",
+    alignItems: "center",
+    marginVertical: 5,
+  },
+  dateText: {
+    color: "#333",
   },
   searchInput: {
-    flex: 0.65,
+    flex: 1,
     backgroundColor: "#fff",
     padding: 10,
     borderRadius: 8,
-    marginLeft: 8,
     borderWidth: 1,
     borderColor: "#eee",
   },
@@ -381,7 +440,7 @@ const styles = StyleSheet.create({
   },
   title: { fontSize: 15, fontWeight: "700" },
   subtitle: { fontSize: 12, color: "#666", marginTop: 4 },
-  metric: { fontWeight: "700", fontSize: 14 },
+  metric: { fontWeight: "700", fontSize: 14, textAlign: "right" },
   small: { fontSize: 12, color: "#666" },
   loadingWrap: { padding: 24, alignItems: "center" },
   empty: { padding: 30, alignItems: "center" },
@@ -406,3 +465,16 @@ const styles = StyleSheet.create({
   },
   invoiceTitle: { fontWeight: "700" },
 });
+
+/*
+        <FlatList
+          data={sorted}
+          keyExtractor={(i) => i.productId}
+          renderItem={renderItem}
+          contentContainerStyle={{ padding: 12, paddingBottom: 120 }} // Note: I've corrected a typo here from `paddingBotton` to `paddingBottom`
+          refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
+          ListEmptyComponent={() => (
+            <View style={styles.empty}><Text>No products found for selected date</Text></View>
+          )}
+        />
+*/

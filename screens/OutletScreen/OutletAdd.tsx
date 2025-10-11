@@ -93,6 +93,10 @@ const OutletAdd = ({ navigation }: StockProps): React.JSX.Element => {
       let location = await Location.getCurrentPositionAsync({});
       setLatitude(location.coords.latitude);
       setLongitude(location.coords.longitude);
+     console.log("Latitude:", location.coords.latitude);
+    console.log("Longitude:", location.coords.longitude);
+
+
     })();
   }, []);
 
