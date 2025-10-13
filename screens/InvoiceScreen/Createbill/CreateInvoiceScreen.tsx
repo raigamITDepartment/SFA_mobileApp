@@ -7,6 +7,7 @@ import {
   TextInput,
   TouchableOpacity,
   StyleSheet,
+  FlatList,
   ScrollView,
   ActivityIndicator,
   Alert,
@@ -66,6 +67,10 @@ const CreateInvoiceScreen = ({
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [longitude, setLongitude] = useState<number | null>(null);
   const dispatch = useAppDispatch();
+
+  const [displayedItemsCount, setDisplayedItemsCount] = useState(10);
+  const ITEMS_TO_LOAD = 10;
+
   const itemsFetchedRef = useRef(false);
   const user = useSelector((state: RootState) => state.login.user);
   const userId = user?.data?.userId || null;
@@ -217,6 +222,10 @@ const CreateInvoiceScreen = ({
     }, {} as Record<string, ItemType[]>);
   }, [savedItems, searchQuery]);
 
+  const loadMoreItems = () => {
+    setDisplayedItemsCount((prevCount) => prevCount + ITEMS_TO_LOAD);
+  };
+
   const renderItem = ({ item }: { item: ItemType }) => (
     <TouchableOpacity
       key={item.itemId}
@@ -318,9 +327,6 @@ const CreateInvoiceScreen = ({
           ? baseAmount
           : baseAmount - totalDiscountValue;
 
-          console.log("Item Mapping Debug:",sellTotalPrice )
-  
-
       const goodReturnUnitPrice = parse(item.unitPriceGR);
       const goodReturnTotalQty = parseIntVal(item.goodReturnQty); // Quantity of good returns for this item
       const goodReturnFreeQty = parseIntVal(item.goodReturnFreeQty); // Free quantity of good returns for this item
@@ -393,32 +399,40 @@ const CreateInvoiceScreen = ({
 
   return (
     <LinearGradient colors={["#ff6666", "#ff0000"]} style={styles.container}>
-      <ScrollView style={styles.container}>
-        <View style={styles.headerBar}>
-          <Text style={styles.headerText}>{customerName}</Text>
-          <Text
-            style={styles.subHeaderText}
-          >{`Type: ${invoiceType} | Mode: ${invoiceMode} | Route: ${routeId}`}</Text>
-          <Text style={styles.subHeaderText}> </Text>
-        </View>
+      <FlatList
+        style={styles.container}
+        data={Object.entries(categorizedItems)}
+        keyExtractor={([category]) => category}
+        onEndReached={loadMoreItems}
+        onEndReachedThreshold={0.5}
+        ListHeaderComponent={
+          <>
+            <View style={styles.headerBar}>
+              <Text style={styles.headerText}>{customerName}</Text>
+              <Text
+                style={styles.subHeaderText}
+              >{`Type: ${invoiceType} | Mode: ${invoiceMode} | Route: ${routeId}`}</Text>
+              <Text style={styles.subHeaderText}> </Text>
+            </View>
 
-        <TextInput
-          placeholder="Search for items"
-          value={searchQuery}
-          onChangeText={setSearchQuery}
-          style={styles.searchBar}
-        />
+            <TextInput
+              placeholder="Search for items"
+              value={searchQuery}
+              onChangeText={setSearchQuery}
+              style={styles.searchBar}
+            />
 
-        <View style={styles.tableHeader}>
-          {["Unit", "Qty", "GR", "MR", "Free"].map((text, idx) => (
-            <Text key={idx} style={styles.headerCell}>
-              {text}
-            </Text>
-          ))}
-        </View>
-
-        {Object.entries(categorizedItems).map(([category, items]) => (
-          <View key={category}>
+            <View style={styles.tableHeader}>
+              {["Unit", "Qty", "GR", "MR", "Free"].map((text, idx) => (
+                <Text key={idx} style={styles.headerCell}>
+                  {text}
+                </Text>
+              ))}
+            </View>
+          </>
+        }
+        renderItem={({ item: [category, items] }) => (
+          <View>
             <TouchableOpacity
               style={styles.categoryHeader}
               onPress={() =>
@@ -435,12 +449,14 @@ const CreateInvoiceScreen = ({
             </TouchableOpacity>
 
             {expandedCategories[category] &&
-              (items as ItemType[]).map((item) => renderItem({ item }))}
+              (items as ItemType[])
+                .slice(0, displayedItemsCount)
+                .map((item) => renderItem({ item }))}
           </View>
-        ))}
-
-        <View style={styles.invoiceBox}>
-          <Text style={styles.invoiceTitle}>Invoice Details</Text>
+        )}
+        ListFooterComponent={
+          <View style={styles.invoiceBox}>
+            <Text style={styles.invoiceTitle}>Invoice Details</Text>
           <Text style={styles.invoiceRow}>
             Invoice Subtotal :{" "}
             <Text style={styles.bold}>Rs. {invoiceSubtotal.toFixed(2)}</Text>
@@ -473,10 +489,12 @@ const CreateInvoiceScreen = ({
             Total Market Returns:{" "}
             <Text style={styles.bold}>{totalMarketReturns}</Text>
           </Text>
-        </View>
-
-        <View style={styles.buttonRow}>
-          <TouchableOpacity
+          </View>
+        }
+        ListFooterComponentStyle={{ paddingBottom: 30 }}
+      />
+      <View style={styles.buttonRow}>
+        <TouchableOpacity
             style={styles.cancelButton}
             onPress={() =>
               navigation.navigate("CreateInvoice", {
@@ -489,10 +507,10 @@ const CreateInvoiceScreen = ({
               
             }
           >
-            <Text style={styles.buttonText}>Cancel Invoice</Text>
-          </TouchableOpacity>
+          <Text style={styles.buttonText}>Cancel Invoice</Text>
+        </TouchableOpacity>
 
-          {isSubmitting || createInvoiceLoading ? (
+        {isSubmitting || createInvoiceLoading ? (
             <View style={[styles.completeButton, styles.loadingButton]}>
               <ActivityIndicator color="#fff" />
             </View>
@@ -649,7 +667,7 @@ const CreateInvoiceScreen = ({
                   totalActualValue: finalInvoiceNetValue, // Final net value for actual mode
                   totalDiscountValue: totalBillDiscountAmount,
                 };
-              }
+               }
 
               // console.log(
               //   "Invoice Data for API:",
@@ -657,12 +675,11 @@ const CreateInvoiceScreen = ({
               // );
               dispatch(createInvoice(apiInvoiceData));
             }}
-            >
-              <Text style={styles.buttonText}>Complete Invoice</Text>
-            </TouchableOpacity>
-          )}
+          >
+            <Text style={styles.buttonText}>Complete Invoice</Text>
+          </TouchableOpacity>
+        )}
         </View>
-      </ScrollView>
     </LinearGradient>
   );
 };
