@@ -20,10 +20,11 @@ import {
 
 
 import { userManagementApi } from "../services/Api";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
 const fetchRoutesByTerritoryId = (
- territoryId: number
-): ThunkAction<void, RootState, unknown, UnknownAction> => {
+  territoryId: number
+): ThunkAction<Promise<any>, RootState, unknown, UnknownAction> => {
   return async (dispatch, getState) => {
     dispatch(setRoutesLoading());
     const token = getState().login?.user?.data?.token;
@@ -32,11 +33,17 @@ const fetchRoutesByTerritoryId = (
     try {
       const response = await userManagementApi().get(url, { headers: { Authorization: `Bearer ${token}` } });
     console.log("API response routes:", response.data);
+      // Store routes in AsyncStorage
+      await AsyncStorage.setItem(`@routes_${territoryId}`, JSON.stringify(response.data.payload));
+      console.log(`Routes for territory ${territoryId} stored in AsyncStorage.`);
+
       dispatch(setRoutesSuccess(response.data.payload));
+      return response.data.payload; // Return the data on success
     } catch (err) {
       const error = err as { response?: { data?: any }; message?: string };
       //console.error("API error:", error.response?.data || error.message);
       dispatch(setRoutesError(error.response?.data || { error: "Network error" }));
+      return Promise.reject(error); // Reject the promise on error
     }
   };
 };
@@ -52,6 +59,10 @@ const fetchRouteIdbyOutlet = (
     try {
       const response = await userManagementApi().get(url, { headers: { Authorization: `Bearer ${token}` } });
       console.log("API response outleteeeeeeeeeeeeeeee: ", response.data.payload);
+      // Store outlets in AsyncStorage
+      await AsyncStorage.setItem(`@outlets_for_route_${RouteId}`, JSON.stringify(response.data.payload));
+      console.log(`Outlets for route ${RouteId} stored in AsyncStorage.`);
+
       dispatch(setOutletSuccess(response.data.payload));
     } catch (err) {
       const error = err as { response?: { data?: any }; message?: string };

@@ -14,6 +14,7 @@ import type { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { Button } from "react-native-paper";
 import { LinearGradient } from "expo-linear-gradient";
 import { RootStackParamList } from "../../../navigation/AuthNavigator";
+import NetInfo from "@react-native-community/netinfo";
 import { useAppDispatch, useAppSelector } from "../../../store/Hooks";
 import {
   fetchLastThreeInvoices,
@@ -74,18 +75,19 @@ const ViewLastBillScreen = ({
     );
   }
 
-  if (error) {
-    return (
-      <View style={styles.centered}>
-        <Text>Error fetching last bills. Please try again.</Text>
-      </View>
-    );
-  }
-
-  const handleInvoicePress = (invoiceId: number) => {
+  const handleInvoicePress = async (invoiceId: number) => {
     if (invoiceId) {
-      dispatch(fetchInvoiceDetailsById(invoiceId));
-      setModalVisible(true);
+      const networkState = await NetInfo.fetch();
+      if (!networkState.isConnected) {
+        Alert.alert(
+          "No Internet Connection",
+          "Please check your network connection to view invoice details."
+        );
+        return;
+      }
+      // If connected, proceed to fetch details and show the modal
+        dispatch(fetchInvoiceDetailsById(invoiceId));
+        setModalVisible(true);
     }
   };
 
@@ -118,24 +120,26 @@ const ViewLastBillScreen = ({
         <Text style={styles.heading}>Last Bill History</Text>
 
         <View style={styles.lastBillsContainer}>
-          {lastInvoices.length > 0 ? (
-            lastInvoices.map((invoice) => (
-              <Button
-                key={invoice.id}
-                mode="contained"
-                onPress={() => handleInvoicePress(invoice.id)}
-                style={styles.lastBillButton}
-              >
-                <View>
-                  <Text
-                    style={styles.lastBillButtonText}
-                  >{`${invoice.invoiceNo} - ${invoice.dateActual}`}</Text>
-                  <Text
-                    style={styles.lastBillButtonText}
-                  >{`Rs. ${invoice.totalActualValue.toFixed(2)}`}</Text>
-                </View>
-              </Button>
-            ))
+          {error ? (
+            <Text style={styles.noBillsText}>Could not load last bills due to a network error.</Text>
+          ) : lastInvoices.length > 0 ? (
+              lastInvoices.map((invoice) => (
+                <Button
+                  key={invoice.id}
+                  mode="contained"
+                  onPress={() => handleInvoicePress(invoice.id)}
+                  style={styles.lastBillButton}
+                >
+                  <View>
+                    <Text
+                      style={styles.lastBillButtonText}
+                    >{`${invoice.invoiceNo} - ${invoice.dateActual}`}</Text>
+                    <Text
+                      style={styles.lastBillButtonText}
+                    >{`Rs. ${invoice.totalActualValue.toFixed(2)}`}</Text>
+                  </View>
+                </Button>
+              ))
           ) : (
             <Text style={styles.noBillsText}>No recent invoices found.</Text>
           )}

@@ -13,10 +13,12 @@ import { LinearGradient } from "expo-linear-gradient";
 import { useAppDispatch, useAppSelector, RootState } from "../../../store/Hooks";
 import { fetchRoutesByTerritoryId, fetchRouteIdbyOutlet } from "../../../actions/OutletAction";
 import type { NativeStackScreenProps } from "@react-navigation/native-stack";
+import { setOutletSuccess } from "../../../reducers/FetchOutletReducer";
+import { setRoutesSuccess } from "../../../reducers/FetchRouteReducer";
 import * as Location from "expo-location";
 import SearchableDropdown from "../../../components/ui/CustomerDropdown";
 import UnproductiveCallDialog from "./UnproductiveCallDialog";
-import { submitUnproductiveCall } from "../../../actions/UnproductiveCallAction";
+//import { submitUnproductiveCall } from "../../../actions/UnproductiveCallAction";
 import { resetUnproductiveCallState } from "../../../reducers/UnproductiveCallReducer";
 
 type RootStackParamList = {
@@ -52,14 +54,19 @@ interface OutletType {
   // Add other properties as necessary
 }
 
+// Define stable empty objects to use as default values in selectors
+const defaultRoutesState = { Routes: [], loading: false, error: null };
+const defaultOutletsState = { Outlets: [], loading: false, error: null };
+
 
 
 type CreateInvoiceProps = NativeStackScreenProps<RootStackParamList, "CreateInvoice">;
 
-const CreateInvoice = ({ navigation, route }: CreateInvoiceProps): React.JSX.Element => {
+const CreateInvoiceScreen = ({ navigation, route }: CreateInvoiceProps): React.JSX.Element => {
   const dispatch = useAppDispatch();
-  const [selectedRoute, setSelectedRoute] = useState<string>("");
+  const [storedRoutes, setStoredRoutes] = useState<string>("");
   const [selectedCustomer, setSelectedCustomer] = useState<string>("");
+  console.log("selectedCustomer", storedRoutes);
   const [invoiceType, setInvoiceType] = useState<string>("");
   const [invoiceMode, setInvoiceMode] = useState<string>("");
   const [date] = useState(new Date());
@@ -67,8 +74,14 @@ const CreateInvoice = ({ navigation, route }: CreateInvoiceProps): React.JSX.Ele
   const [latitude, setLatitude] = useState<number | null>(null);
   const [longitude, setLongitude] = useState<number | null>(null);
 
-  const { routes, loading: routesLoading } = useAppSelector((state) => state.fetchRoute);
-  const { outlets, loading: outletsLoading } = useAppSelector((state) => state.fetchOutlet);
+  // Correctly select data from the Redux store.
+  // The state slice is 'routes', and the array within it is 'Routes'.
+  // We alias 'Routes' to 'routes' for use in the component.
+
+  const { Routes: routes = [], loading: routesLoading } = useAppSelector((state) => state.fetchRoute || defaultRoutesState);
+  const { outlets = [], loading: outletsLoading } = useAppSelector((state) => state.fetchOutlet || defaultOutletsState);
+
+
   const user = useAppSelector((state: RootState) => state.login.user);
   const territoryId = user?.data?.territoryId;
   const userId = user?.data?.userId;
@@ -93,9 +106,24 @@ const CreateInvoice = ({ navigation, route }: CreateInvoiceProps): React.JSX.Ele
   }, [rangeId]);
 
   useEffect(() => {
-    if (territoryId) {
-      dispatch(fetchRoutesByTerritoryId(territoryId));
+    const loadRoutes = async () => {
+      if (territoryId) {
+        try {
+          const routesFromStorage = await AsyncStorage.getItem(`@routes_${territoryId}`);
+          if (routesFromStorage) {
+            console.log("Loading routes from AsyncStorage for dropdown.", routesFromStorage);
+            dispatch(setRoutesSuccess(JSON.parse(routesFromStorage)));
+          } else {
+            console.log("No routes in AsyncStorage, fetching from API.");
+            dispatch(fetchRoutesByTerritoryId(territoryId));
+          }
+        } catch (e) {
+          console.error("Failed to load routes from AsyncStorage, fetching from API.", e);
+          dispatch(fetchRoutesByTerritoryId(territoryId));
+        }
+      }
     }
+    loadRoutes();
 
     (async () => {
       let { status } = await Location.requestForegroundPermissionsAsync();
@@ -145,24 +173,41 @@ const CreateInvoice = ({ navigation, route }: CreateInvoiceProps): React.JSX.Ele
   );
 
   useEffect(() => {
-    if (route.params) {
-      if (route.params.routeId) setSelectedRoute(route.params.routeId);
-      if (route.params.customerId) setSelectedCustomer(route.params.customerId);
-      if (route.params.invoiceType) setInvoiceType(route.params.invoiceType);
-      if (route.params.invoiceMode) setInvoiceMode(route.params.invoiceMode);
-    }
+    // Safely access route params with default values to prevent crashes
+    const {
+      routeId = "",
+      customerId = "",
+      invoiceType: paramInvoiceType = "",
+      invoiceMode: paramInvoiceMode = "",
+    } = route.params || {};
+    setStoredRoutes(routeId);
+    setSelectedCustomer(customerId);
+    setInvoiceType(paramInvoiceType);
+    setInvoiceMode(paramInvoiceMode);
   }, [route.params]);
 
-  const handleRouteChanged = (routeId: string) => {
-    setSelectedRoute(routeId);
+  const handleRouteChanged = async (routeId: string) => {
+    setStoredRoutes(routeId);
     setSelectedCustomer("");
     if (routeId) {
-      dispatch(fetchRouteIdbyOutlet(Number(routeId)));
+      try {
+        const storedOutlets = await AsyncStorage.getItem(`@outlets_for_route_${routeId}`);
+        if (storedOutlets) {
+          console.log(`Loading outlets for route ${routeId} from AsyncStorage.`);
+          dispatch(setOutletSuccess(JSON.parse(storedOutlets)));
+        } else {
+          console.log(`No outlets for route ${routeId} in AsyncStorage, fetching from API.`);
+          dispatch(fetchRouteIdbyOutlet(Number(routeId)));
+        }
+      } catch (e) {
+        console.error(`Failed to load outlets for route ${routeId} from AsyncStorage, fetching from API.`, e);
+        dispatch(fetchRouteIdbyOutlet(Number(routeId)));
+      }
     }
   };
 
   const handleUnproductiveCall = () => {
-    if (!selectedRoute || !selectedCustomer) {
+    if (!storedRoutes || !selectedCustomer) {
       Alert.alert("Selection Required", "Please select a route and a customer first.");
       return;
     }
@@ -170,12 +215,12 @@ const CreateInvoice = ({ navigation, route }: CreateInvoiceProps): React.JSX.Ele
   };
 
   const handleUnproductiveSubmit = (reason: { id: number; reason: string }) => {
-    if (userId && territoryId && selectedRoute && selectedCustomer && latitude && longitude) {
+    if (userId && territoryId && storedRoutes && selectedCustomer && latitude && longitude) {
       dispatch(
         submitUnproductiveCall({
           userId: Number(userId),
           territoryId: Number(territoryId),
-          routeId: Number(selectedRoute),
+          routeId: Number(storedRoutes),
           outletId: Number(selectedCustomer),
           reasonId: reason.id,
           reason: reason.reason,
@@ -196,7 +241,7 @@ const CreateInvoice = ({ navigation, route }: CreateInvoiceProps): React.JSX.Ele
 
     const customer = outlets.find((c: any) => String(c.id) === selectedCustomer);
     if (customer) {
-      const selectedRouteObject = routes.find((r: RouteType) => String(r.id) === selectedRoute);
+      const selectedRouteObject = routes.find((r: RouteType) => String(r.id) === storedRoutes);
       const routeName = selectedRouteObject ? selectedRouteObject.routeName : '';
       try {
         // Clear previous invoice draft data from AsyncStorage
@@ -214,7 +259,7 @@ const CreateInvoice = ({ navigation, route }: CreateInvoiceProps): React.JSX.Ele
 
         // Navigate to the next screen, passing the data as params for immediate use
         navigation.navigate("ViewLastBillScreen", {
-          routeId: selectedRoute,
+          routeId: storedRoutes,
           customerId: String(customer.id),
           customerName: customer.outletName,
           invoiceType,
@@ -248,7 +293,7 @@ const CreateInvoice = ({ navigation, route }: CreateInvoiceProps): React.JSX.Ele
 
         <SearchableDropdown
           label="Route"
-          selectedValue={selectedRoute}
+          selectedValue={storedRoutes}
           setSelectedValue={handleRouteChanged}
           options={routes.map((r: any) => ({ id: r.id, name: r.routeName }))}
           loading={routesLoading}
@@ -260,7 +305,8 @@ const CreateInvoice = ({ navigation, route }: CreateInvoiceProps): React.JSX.Ele
           setSelectedValue={setSelectedCustomer}
           options={outlets.map((c: any) => ({ id: c.id, name: c.outletName }))}
           loading={outletsLoading}
-          disabled={!selectedRoute || outletsLoading}
+          disabled={!storedRoutes || outletsLoading}
+
         />
 
         <SearchableDropdown
@@ -367,4 +413,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default CreateInvoice;
+export default CreateInvoiceScreen;

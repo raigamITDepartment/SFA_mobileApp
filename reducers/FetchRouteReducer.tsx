@@ -1,37 +1,48 @@
 import { createSlice, PayloadAction } from "@reduxjs/toolkit";
 
-interface RouteType {
+/**
+ * Interface for a single Route object.
+ * Based on usage in other files, it must contain at least an 'id'.
+ */
+interface Route {
   id: number;
-  routeName: string;
+  [key: string]: any; // Allows for other properties from the API
 }
 
-const initialState = {
-  routes: [] as RouteType[],
+/**
+ * Interface for the Routes state in Redux.
+ */
+interface RoutesState {
+  loading: boolean;
+  Routes: Route[];
+  error: any | null;
+}
+
+const initialState: RoutesState = {
   loading: false,
+  Routes: [],
   error: null,
 };
 
 const fetchRouteSlice = createSlice({
-  name: "fetchRoute",
+  name: "routes", // This name will be used as the key in the root reducer
   initialState,
   reducers: {
     setRoutesLoading: (state) => {
       state.loading = true;
       state.error = null;
     },
-    setRoutesSuccess: (state, { payload }: PayloadAction<RouteType[]>) => {
+    setRoutesSuccess: (state, action: PayloadAction<Route[]>) => {
       state.loading = false;
-      state.routes = payload; // payload is the array from API response
-      state.error = null;
-     // console.log("setRoutesSuccess payload:", payload); // Log the payload
-     // console.log("Updated state.routes:", state.routes); // Log the updated state
+      state.Routes = action.payload;
     },
-    setRoutesError: (state, { payload }) => {
+    setRoutesError: (state, action: PayloadAction<any>) => {
       state.loading = false;
-      state.error = payload;
+      state.error = action.payload;
     },
   },
 });
 
 export const { setRoutesLoading, setRoutesSuccess, setRoutesError } = fetchRouteSlice.actions;
+
 export default fetchRouteSlice.reducer;

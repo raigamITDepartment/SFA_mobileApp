@@ -10,6 +10,7 @@ import {
   TouchableOpacity,
   KeyboardAvoidingView,
   ActivityIndicator,
+  Alert,
 } from "react-native";
 import titles from "../Titles";
 import { useAppDispatch, useAppSelector } from "../store/Hooks";
@@ -20,6 +21,7 @@ import { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import { LinearGradient } from "expo-linear-gradient";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 import { loginUser } from "../actions/UserAction";
+import { fetchAndCacheInitialData } from "../actions/InitialDataAction";
 import {
   setUserName as setAsyncUserName,
   setPassword as setAsyncPassword,
@@ -45,6 +47,25 @@ const LoginScreen = ({ navigation }: LoginScreenProps) => {
   const [passwordVisibility, setPasswordVisibility] = useState(true);
   const [rightIcon, setRightIcon] = useState("eye");
   const [verifiedByUserNameAndPassword, setVerifiedByUserNameAndPassword] = useState(false);
+
+  // This effect is dedicated to fetching initial data after a successful login.
+  useEffect(() => {
+    const syncData = async () => {
+      const token = userLoginResponse?.data?.token;
+      // If we have a token, it means login was successful.
+      if (token) {
+        console.log("Login successful, dispatching action to fetch and cache initial data...");
+        try {
+          await dispatch(fetchAndCacheInitialData());
+          Alert.alert("Sync Complete", "Routes, Outlets, and Items have been successfully synced to your device.");
+        } catch (error) {
+          console.error("Initial data sync failed:", error);
+          Alert.alert("Sync Failed", "Could not sync all initial data. The app may not work correctly offline.");
+        }
+      }
+    }
+    syncData();
+  }, [userLoginResponse?.data?.token, dispatch]);
 
   useEffect(() => {
     fillCredentials();
@@ -82,9 +103,6 @@ const LoginScreen = ({ navigation }: LoginScreenProps) => {
   }
 
   if (userLoginResponse.data.token) {
-    setAsyncToken(userLoginResponse.data.token);
-
-    // The API sometimes returns gpsStatus as a string ("false") instead of a boolean.
     const isDayStarted = userLoginResponse.data.gpsStatus === true;
       const isDayEnd = userLoginResponse.data.gpsStatus === false;
 

@@ -20,6 +20,7 @@ import { RootState } from "@/store";
 import { useFocusEffect } from "@react-navigation/native";
 import * as Location from "expo-location";
 import { useAppDispatch, useAppSelector } from "../../../store/Hooks";
+import NetInfo from "@react-native-community/netinfo";
 import {
   createInvoice,
   fetchItems,
@@ -583,7 +584,7 @@ const CreateInvoiceScreen = ({
               // Generate a unique 6-digit number for client-side identification
 
               // const generateUniqueId = () => {
-              //   return Math.floor(100000 + Math.random() * 900000000000000);
+              //   return `offline_${Date.now()}_${Math.floor(Math.random() * 1000)}`;
               // };
  
               setLatestInvoiceData(uiInvoiceData);
@@ -593,7 +594,7 @@ const CreateInvoiceScreen = ({
                 territoryId,
                 agencyWarehouseId,
                 routeId: Number(routeId),
-                rangeId,
+                rangeId: rangeId || 0,
                 outletId: Number(customerId),
               //  clientGeneratedId: generateUniqueId(),
 
@@ -655,7 +656,37 @@ const CreateInvoiceScreen = ({
               //   "Invoice Data for API:",
               //   JSON.stringify(apiInvoiceData, null, 2)
               // );
-              dispatch(createInvoice(apiInvoiceData));
+
+              const networkState = await NetInfo.fetch();
+              if (!networkState.isConnected) {
+                // --- OFFLINE LOGIC ---
+                try {
+                  const unsyncedKey = '@unsynced_invoices';
+                  const existingUnsynced = await AsyncStorage.getItem(unsyncedKey);
+                  const unsyncedInvoices = existingUnsynced ? JSON.parse(existingUnsynced) : [];
+                  unsyncedInvoices.push(apiInvoiceData);
+                  await AsyncStorage.setItem(unsyncedKey, JSON.stringify(unsyncedInvoices));
+
+                  Alert.alert(
+                    "Offline",
+                    "Invoice saved locally. It will be synced when you have an internet connection.",
+                    [{
+                      text: "OK",
+                      onPress: () => {
+                        // Still navigate to finish screen to show the user what they created
+                        navigation.navigate("InvoiceFinish", { invoiceData: uiInvoiceData });
+                      }
+                    }]
+                  );
+                } catch (e) {
+                  console.error("Failed to save invoice for offline use:", e);
+                  Alert.alert("Error", "Could not save invoice locally. Please try again.");
+                  setIsSubmitting(false); // Allow retry
+                }
+              } else {
+                // --- ONLINE LOGIC ---
+                dispatch(createInvoice(apiInvoiceData));
+              }
             }}
             >
               <Text style={styles.buttonText}>Complete Invoice</Text>

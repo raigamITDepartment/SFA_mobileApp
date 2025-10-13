@@ -1,7 +1,7 @@
 {
   "expo": {
-    "name": "Raigamsfa",
-    "slug": "raigamsfa",
+    "name": "Raigamsfa_OffLine",
+    "slug": "Raigamsfa_OffLine",
     "version": "1.0.0",
      "orientation": "portrait",
     "icon": "./assets/images/icon.png",

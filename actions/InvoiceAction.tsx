@@ -2,6 +2,7 @@ import { ThunkAction, UnknownAction } from "@reduxjs/toolkit";
 import { RootState } from "../store";
 import { setItemsLoading, setItemsSuccess, setItemsError } from "../reducers/FetchItemsReducer";
 import { setPriceLoading, setPriceSuccess, setPriceError } from "../reducers/FetchPriceReducer"; 
+import AsyncStorage from "@react-native-async-storage/async-storage";
 import { setCreateInvoiceLoading, setCreateInvoiceSuccess, setCreateInvoiceError, resetCreateInvoiceState } from "../reducers/CreateInvoiceReducer";
 
 import { userManagementApi } from "../services/Api";
@@ -9,8 +10,8 @@ import { userManagementApi } from "../services/Api";
 
 
 const fetchItems = (
-territoryId: number
-): ThunkAction<void, RootState, unknown, UnknownAction> => {
+  territoryId: number
+): ThunkAction<Promise<any>, RootState, unknown, UnknownAction> => {
   return async (dispatch, getState) => {
     dispatch(setItemsLoading());
     const token = getState().login?.user?.data?.token;
@@ -22,11 +23,17 @@ territoryId: number
       const response = await userManagementApi().get(url, { headers: { Authorization: `Bearer ${token}` } });
       // The API returns the data array directly, not nested under a 'payload' key.
       console.log("API response for items: ", response.data);
+      // Store items in AsyncStorage
+      await AsyncStorage.setItem(`@items_${territoryId}`, JSON.stringify(response.data));
+      console.log(`Items for territory ${territoryId} stored in AsyncStorage.`);
+
       dispatch(setItemsSuccess(response.data));
+      return response.data; // Return the data on success
     } catch (err) {
       const error = err as { response?: { data?: any }; message?: string };
       //console.error("API error:", error.response?.data || error.message);
       dispatch(setItemsError(error.response?.data || { error: "Network error" }));
+      return Promise.reject(error); // Reject the promise on error
     }
   };
 };
@@ -52,6 +59,10 @@ const fetchItemIdbyPrice = (
       const response = await userManagementApi().get(url, {
         headers: { Authorization: `Bearer ${token}` },
       });
+      // Store prices in AsyncStorage
+      await AsyncStorage.setItem(`@prices_for_item_${itemId}_${territoryId}`, JSON.stringify(response.data.payload));
+      console.log(`Prices for item ${itemId} in territory ${territoryId} stored in AsyncStorage.`);
+
       dispatch(setPriceSuccess(response.data.payload));
     } catch (err) {
       const error = err as { response?: { data?: any }; message?: string };
